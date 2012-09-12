@@ -1,5 +1,16 @@
 *.class
 
+# IDE Project Files #
+.idea
+*.jpr
+*.iml
+
+
+# IDE Output #
+out
+tmp
+
+
 # Package Files #
 *.jar
 *.war
