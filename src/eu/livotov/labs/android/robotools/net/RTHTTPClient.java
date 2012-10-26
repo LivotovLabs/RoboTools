@@ -43,7 +43,8 @@ import java.util.zip.GZIPInputStream;
  * (c) Livotov Labs Ltd. 2012
  * Date: 12.09.12
  */
-public class RTHTTPClient implements HttpRequestRetryHandler {
+public class RTHTTPClient implements HttpRequestRetryHandler
+{
 
     private DefaultHttpClient http;
 
@@ -52,91 +53,97 @@ public class RTHTTPClient implements HttpRequestRetryHandler {
     private boolean allowSelfSignedCerts = true;
     private boolean enableGzipCompression = false;
 
-    public RTHTTPClient() {
+    public RTHTTPClient()
+    {
         this(false);
     }
 
-    public RTHTTPClient(boolean allowSelfSignedCerts) {
+    public RTHTTPClient(boolean allowSelfSignedCerts)
+    {
         this.allowSelfSignedCerts = allowSelfSignedCerts;
-        try {
+        try
+        {
             reconfigureHttpClient();
-        } catch (Throwable err) {
+        } catch (Throwable err)
+        {
             throw new RTHTTPError(err);
         }
     }
 
-    public HttpResponse executeGetRequest(final String url) {
-        try {
+    public HttpResponse executeGetRequest(final String url)
+    {
+        try
+        {
             HttpGet get = new HttpGet(url);
             return http.execute(get);
-        } catch (Throwable err) {
+        } catch (Throwable err)
+        {
             throw new RTHTTPError(err);
         }
     }
 
-    public String executeGetRequestToString(final String url) {
+    public String executeGetRequestToString(final String url)
+    {
         return executeGetRequestToString(url, "utf-8");
     }
 
-    public String executeGetRequestToString(final String url, final String encoding) {
+    public String executeGetRequestToString(final String url, final String encoding)
+    {
         HttpResponse response = executeGetRequest(url);
-        if (response.getStatusLine().getStatusCode() == 200) {
-            try {
-                return RTStreamUtil.streamToString(response.getEntity().getContent(), encoding, true);
-            } catch (Throwable err) {
-                throw new RTHTTPError(err);
-            }
-        }
-
-        throw new RTHTTPError(response.getStatusLine());
+        return loadHttpResponseToString(response,encoding);
     }
 
-    public HttpResponse executePostRequest(final String url, final String contentType, final String content, RTPostParameter... headers) {
+    public HttpResponse executePostRequest(final String url, final String contentType, final String content, RTPostParameter... headers)
+    {
         return executePostRequest(url, contentType, "utf-8", content, headers);
     }
 
-    public HttpResponse executePostRequest(final String url, final String contentType, final String encoding, final String content, RTPostParameter... headers) {
-        try {
+    public HttpResponse executePostRequest(final String url, final String contentType, final String encoding, final String content, RTPostParameter... headers)
+    {
+        try
+        {
             HttpPost post = new HttpPost(url);
 
             StringEntity postEntity = new StringEntity(content, encoding);
-            postEntity.setContentType("text/xml; charset=" + encoding);
+            postEntity.setContentType(contentType + "; charset=" + encoding);
 
-            for (RTPostParameter header : headers) {
-                post.addHeader(header.getName(), header.getValue());
+            if (headers != null)
+            {
+                for (RTPostParameter header : headers)
+                {
+                    post.addHeader(header.getName(), header.getValue());
+                }
             }
 
             post.setEntity(postEntity);
             return http.execute(post);
-        } catch (Throwable err) {
+        } catch (Throwable err)
+        {
             throw new RTHTTPError(err);
         }
     }
 
-    public String executePostRequestToString(final String url, final String contentType, final String content, RTPostParameter... headers) {
+    public String executePostRequestToString(final String url, final String contentType, final String content, RTPostParameter... headers)
+    {
         return executePostRequestToString(url, contentType, "utf-8", content, headers);
     }
 
-    public String executePostRequestToString(final String url, final String contentType, final String encoding, final String content, RTPostParameter... headers) {
+    public String executePostRequestToString(final String url, final String contentType, final String encoding, final String content, RTPostParameter... headers)
+    {
         HttpResponse response = executePostRequest(url, contentType, encoding, content, headers);
-        if (response.getStatusLine().getStatusCode() == 200) {
-            try {
-                return RTStreamUtil.streamToString(response.getEntity().getContent(), encoding, true);
-            } catch (Throwable err) {
-                throw new RTHTTPError(err);
-            }
-        }
-
-        throw new RTHTTPError(response.getStatusLine());
+        return loadHttpResponseToString(response, encoding);
     }
 
-    public HttpResponse submitForm(final String url, Collection<RTPostParameter> headers, Collection<RTPostParameter> formFields, final String fileFeldName, File file) {
-        try {
+    public HttpResponse submitMultipartForm(final String url, Collection<RTPostParameter> headers, Collection<RTPostParameter> formFields, final String fileFeldName, File file)
+    {
+        try
+        {
             HttpPost httppost = new HttpPost(url);
 
             List<Part> parts = new ArrayList<Part>();
 
-            for (RTPostParameter field : formFields) {
+            for (RTPostParameter field : formFields)
+            {
                 parts.add(new StringPart(field.getName(), field.getValue()));
             }
 
@@ -149,22 +156,26 @@ public class RTHTTPClient implements HttpRequestRetryHandler {
 
             for (RTPostParameter header : headers)
             {
-                httppost.addHeader(header.getName(),header.getValue());
+                httppost.addHeader(header.getName(), header.getValue());
             }
 
             return http.execute(httppost);
-        } catch (Throwable err) {
+        } catch (Throwable err)
+        {
             throw new RTHTTPError(err);
         }
     }
 
-    public HttpResponse submitForm(final String url, Collection<RTPostParameter> headers, Collection<RTPostParameter> formFields) {
-        try {
+    public HttpResponse submitForm(final String url, Collection<RTPostParameter> headers, Collection<RTPostParameter> formFields)
+    {
+        try
+        {
             HttpPost httppost = new HttpPost(url);
 
             List<Part> parts = new ArrayList<Part>();
 
-            for (RTPostParameter field : formFields) {
+            for (RTPostParameter field : formFields)
+            {
                 parts.add(new StringPart(field.getName(), field.getValue()));
             }
 
@@ -173,68 +184,102 @@ public class RTHTTPClient implements HttpRequestRetryHandler {
 
             for (RTPostParameter header : headers)
             {
-                httppost.addHeader(header.getName(),header.getValue());
+                httppost.addHeader(header.getName(), header.getValue());
             }
 
             return http.execute(httppost);
-        } catch (Throwable err) {
+        } catch (Throwable err)
+        {
             throw new RTHTTPError(err);
         }
     }
 
-    public int getHttpConnectionTimeout() {
+    public String loadHttpResponseToString(HttpResponse response, final String encoding)
+    {
+        if (response.getStatusLine().getStatusCode() == 200)
+        {
+            try
+            {
+                return RTStreamUtil.streamToString(response.getEntity().getContent(), encoding, true);
+            } catch (Throwable err)
+            {
+                throw new RTHTTPError(err);
+            }
+        }
+
+        throw new RTHTTPError(response.getStatusLine());
+    }
+
+    public int getHttpConnectionTimeout()
+    {
         return httpConnectionTimeout;
     }
 
-    public void setHttpConnectionTimeout(int httpConnectionTimeout) {
+    public void setHttpConnectionTimeout(int httpConnectionTimeout)
+    {
         this.httpConnectionTimeout = httpConnectionTimeout;
-        try {
+        try
+        {
             reconfigureHttpClient();
-        } catch (Throwable err) {
+        } catch (Throwable err)
+        {
             throw new RTHTTPError(err);
         }
     }
 
-    public int getHttpDataResponseTimeout() {
+    public int getHttpDataResponseTimeout()
+    {
         return httpDataResponseTimeout;
     }
 
-    public void setHttpDataResponseTimeout(int httpDataResponseTimeout) {
+    public void setHttpDataResponseTimeout(int httpDataResponseTimeout)
+    {
         this.httpDataResponseTimeout = httpDataResponseTimeout;
-        try {
+        try
+        {
             reconfigureHttpClient();
-        } catch (Throwable err) {
+        } catch (Throwable err)
+        {
             throw new RTHTTPError(err);
         }
     }
 
-    public boolean isAllowSelfSignedCerts() {
+    public boolean isAllowSelfSignedCerts()
+    {
         return allowSelfSignedCerts;
     }
 
-    public void setAllowSelfSignedCerts(boolean allowSelfSignedCerts) {
+    public void setAllowSelfSignedCerts(boolean allowSelfSignedCerts)
+    {
         this.allowSelfSignedCerts = allowSelfSignedCerts;
-        try {
+        try
+        {
             reconfigureHttpClient();
-        } catch (Throwable err) {
+        } catch (Throwable err)
+        {
             throw new RTHTTPError(err);
         }
     }
 
-    public boolean isEnableGzipCompression() {
+    public boolean isEnableGzipCompression()
+    {
         return enableGzipCompression;
     }
 
-    public void setEnableGzipCompression(boolean enableGzipCompression) {
+    public void setEnableGzipCompression(boolean enableGzipCompression)
+    {
         this.enableGzipCompression = enableGzipCompression;
-        try {
+        try
+        {
             reconfigureHttpClient();
-        } catch (Throwable err) {
+        } catch (Throwable err)
+        {
             throw new RTHTTPError(err);
         }
     }
 
-    protected void reconfigureHttpClient() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, CertificateException, UnrecoverableKeyException {
+    protected void reconfigureHttpClient() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, CertificateException, UnrecoverableKeyException
+    {
 
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
@@ -245,21 +290,28 @@ public class RTHTTPClient implements HttpRequestRetryHandler {
         HttpConnectionParams.setConnectionTimeout(params, httpConnectionTimeout);
         HttpConnectionParams.setSoTimeout(params, httpDataResponseTimeout);
 
-        if (allowSelfSignedCerts) {
-            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                public boolean verify(String hostname, SSLSession session) {
+        if (allowSelfSignedCerts)
+        {
+            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier()
+            {
+                public boolean verify(String hostname, SSLSession session)
+                {
                     return true;
                 }
             });
             SSLContext context = SSLContext.getInstance("TLS");
-            context.init(null, new X509TrustManager[]{new X509TrustManager() {
-                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            context.init(null, new X509TrustManager[]{new X509TrustManager()
+            {
+                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException
+                {
                 }
 
-                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
+                {
                 }
 
-                public X509Certificate[] getAcceptedIssuers() {
+                public X509Certificate[] getAcceptedIssuers()
+                {
                     return new X509Certificate[0];
                 }
             }}, new SecureRandom());
@@ -278,31 +330,41 @@ public class RTHTTPClient implements HttpRequestRetryHandler {
             ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, registry);
 
             http = new DefaultHttpClient(ccm, params);
-        } else {
+        } else
+        {
             http = new DefaultHttpClient(params);
         }
 
         http.setHttpRequestRetryHandler(this);
 
-        if (enableGzipCompression) {
-            http.addRequestInterceptor(new HttpRequestInterceptor() {
+        if (enableGzipCompression)
+        {
+            http.addRequestInterceptor(new HttpRequestInterceptor()
+            {
                 public void process(final HttpRequest request, final HttpContext context) throws HttpException,
-                        IOException {
-                    if (!request.containsHeader("Accept-Encoding")) {
+                                                                                                 IOException
+                {
+                    if (!request.containsHeader("Accept-Encoding"))
+                    {
                         request.addHeader("Accept-Encoding", "gzip");
                     }
                 }
 
             });
 
-            http.addResponseInterceptor(new HttpResponseInterceptor() {
-                public void process(final HttpResponse response, final HttpContext context) throws HttpException, IOException {
+            http.addResponseInterceptor(new HttpResponseInterceptor()
+            {
+                public void process(final HttpResponse response, final HttpContext context) throws HttpException, IOException
+                {
                     HttpEntity entity = response.getEntity();
                     Header ceheader = entity.getContentEncoding();
-                    if (ceheader != null) {
+                    if (ceheader != null)
+                    {
                         HeaderElement[] codecs = ceheader.getElements();
-                        for (int i = 0; i < codecs.length; i++) {
-                            if (codecs[i].getName().equalsIgnoreCase("gzip")) {
+                        for (int i = 0; i < codecs.length; i++)
+                        {
+                            if (codecs[i].getName().equalsIgnoreCase("gzip"))
+                            {
                                 response.setEntity(new GzipDecompressingEntity(response.getEntity()));
                                 return;
                             }
@@ -316,26 +378,33 @@ public class RTHTTPClient implements HttpRequestRetryHandler {
     }
 
     @Override
-    public boolean retryRequest(IOException e, int i, HttpContext httpContext) {
+    public boolean retryRequest(IOException e, int i, HttpContext httpContext)
+    {
         return false;
     }
 
-    class DummySslSocketFactory extends org.apache.http.conn.ssl.SSLSocketFactory {
+    class DummySslSocketFactory extends org.apache.http.conn.ssl.SSLSocketFactory
+    {
 
         SSLContext sslContext = SSLContext.getInstance("TLS");
 
         public DummySslSocketFactory(KeyStore truststore) throws NoSuchAlgorithmException, KeyManagementException,
-                KeyStoreException, UnrecoverableKeyException {
+                                                                 KeyStoreException, UnrecoverableKeyException
+        {
             super(truststore);
 
-            TrustManager tm = new X509TrustManager() {
-                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            TrustManager tm = new X509TrustManager()
+            {
+                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException
+                {
                 }
 
-                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
+                {
                 }
 
-                public X509Certificate[] getAcceptedIssuers() {
+                public X509Certificate[] getAcceptedIssuers()
+                {
                     return null;
                 }
             };
@@ -344,31 +413,37 @@ public class RTHTTPClient implements HttpRequestRetryHandler {
         }
 
         @Override
-        public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException {
+        public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException
+        {
             return sslContext.getSocketFactory().createSocket(socket, host, port, autoClose);
         }
 
         @Override
-        public Socket createSocket() throws IOException {
+        public Socket createSocket() throws IOException
+        {
             return sslContext.getSocketFactory().createSocket();
         }
     }
 
-    class GzipDecompressingEntity extends HttpEntityWrapper {
+    class GzipDecompressingEntity extends HttpEntityWrapper
+    {
 
-        public GzipDecompressingEntity(final HttpEntity entity) {
+        public GzipDecompressingEntity(final HttpEntity entity)
+        {
             super(entity);
         }
 
         @Override
-        public InputStream getContent() throws IOException, IllegalStateException {
+        public InputStream getContent() throws IOException, IllegalStateException
+        {
 
             InputStream wrappedin = wrappedEntity.getContent();
             return new GZIPInputStream(wrappedin);
         }
 
         @Override
-        public long getContentLength() {
+        public long getContentLength()
+        {
             return -1;
         }
 
