@@ -25,11 +25,9 @@ public class RTCookieStore implements CookieStore
 
     private static final String CS_KEY = "robotools.net.cstore";
     private List<Cookie> cookies = new ArrayList<Cookie>();
-    private Context ctx;
 
-    public RTCookieStore(Context ctx)
+    public RTCookieStore()
     {
-        this.ctx = ctx;
     }
 
     public void addCookie(final Cookie cookie)
@@ -40,6 +38,20 @@ public class RTCookieStore implements CookieStore
     public List<Cookie> getCookies()
     {
         return cookies;
+    }
+
+    public Cookie getCookie(final String key)
+    {
+        clearExpired(new Date(System.currentTimeMillis()));
+        for (Cookie cookie : cookies)
+        {
+            if (cookie.getName().equalsIgnoreCase(key))
+            {
+                return cookie;
+            }
+        }
+
+        return null;
     }
 
     public boolean clearExpired(final Date date)
@@ -69,7 +81,7 @@ public class RTCookieStore implements CookieStore
         cookies.clear();
     }
 
-    public void saveCookieStore() throws IOException
+    public void saveCookieStore(final Context ctx) throws IOException
     {
         final List<Cookie> serialisableCookies = new ArrayList<Cookie>(cookies.size());
 
@@ -90,7 +102,7 @@ public class RTCookieStore implements CookieStore
         editor.commit();
     }
 
-    public void readCookieStore()
+    public void readCookieStore(final Context ctx)
     {
         try
         {
