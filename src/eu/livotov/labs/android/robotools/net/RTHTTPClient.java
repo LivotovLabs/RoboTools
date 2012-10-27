@@ -6,6 +6,7 @@ import eu.livotov.labs.android.robotools.net.multipart.MultipartEntity;
 import eu.livotov.labs.android.robotools.net.multipart.Part;
 import eu.livotov.labs.android.robotools.net.multipart.StringPart;
 import org.apache.http.*;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -52,6 +53,7 @@ public class RTHTTPClient implements HttpRequestRetryHandler
     private int httpDataResponseTimeout = 60000;
     private boolean allowSelfSignedCerts = true;
     private boolean enableGzipCompression = false;
+    private CookieStore customCookieStore;
 
     public RTHTTPClient()
     {
@@ -82,6 +84,18 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         }
     }
 
+    public void setCookieStore(CookieStore store)
+    {
+        customCookieStore = store;
+        try
+        {
+            reconfigureHttpClient();
+        } catch (Throwable err)
+        {
+            throw new RTHTTPError(err);
+        }
+    }
+
     public String executeGetRequestToString(final String url)
     {
         return executeGetRequestToString(url, "utf-8");
@@ -90,7 +104,7 @@ public class RTHTTPClient implements HttpRequestRetryHandler
     public String executeGetRequestToString(final String url, final String encoding)
     {
         HttpResponse response = executeGetRequest(url);
-        return loadHttpResponseToString(response,encoding);
+        return loadHttpResponseToString(response, encoding);
     }
 
     public HttpResponse executePostRequest(final String url, final String contentType, final String content, RTPostParameter... headers)
@@ -375,6 +389,10 @@ public class RTHTTPClient implements HttpRequestRetryHandler
             });
         }
 
+        if (customCookieStore != null)
+        {
+            http.setCookieStore(customCookieStore);
+        }
     }
 
     @Override
