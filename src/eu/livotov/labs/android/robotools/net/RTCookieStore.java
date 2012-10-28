@@ -54,6 +54,19 @@ public class RTCookieStore implements CookieStore
         return null;
     }
 
+    public boolean hasCookie(final String name)
+    {
+        for (Cookie ck : cookies)
+        {
+            if (ck.getName().equalsIgnoreCase(name))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public boolean clearExpired(final Date date)
     {
         List<Cookie> toExpire = new ArrayList<Cookie>();
