@@ -25,64 +25,94 @@ public class RTSecurePrefs
         try
         {
             ekey = lockToDevice ? RTCryptUtil.generateDeviceBoundEncryptionKeyForPassword(ctx,
-                                                                                         password,
-                                                                                         lockToWifiAddress,
-                                                                                         lockToTelephony,
-                                                                                         lockToSIM) :
-                          RTCryptUtil.generateDeviceBoundEncryptionKeyForPassword(password);
+                                                                                          password,
+                                                                                          lockToWifiAddress,
+                                                                                          lockToTelephony,
+                                                                                          lockToSIM) :
+                           RTCryptUtil.generateDeviceBoundEncryptionKeyForPassword(password);
         } catch (Throwable err)
         {
             throw new RuntimeException(err);
         }
     }
 
-    public static String getString(Context ctx, int key)
+    public static String getString(Context ctx, int key, final String defaultValue)
     {
-        return RTCryptUtil.decrypt(ekey,RTPrefs.getString(ctx,key,""));
+        try
+        {
+            return RTCryptUtil.decrypt(ekey, RTPrefs.getString(ctx, key, ""));
+        } catch (Throwable err)
+        {
+            return defaultValue;
+        }
     }
 
     public static void setString(Context ctx, int key, String value)
     {
-        RTPrefs.setString(ctx,key,RTCryptUtil.encrypt(ekey,value));
+        RTPrefs.setString(ctx, key, RTCryptUtil.encrypt(ekey, value));
     }
 
-    public static int getInt(Context ctx, int key)
+    public static int getInt(Context ctx, int key, int defaultValue)
     {
-        return Integer.parseInt(getString(ctx,key));
+        try
+        {
+            return Integer.parseInt(getString(ctx, key, "" + defaultValue));
+        } catch (Throwable err)
+        {
+            return defaultValue;
+        }
     }
 
     public static void setInt(Context ctx, int key, int value)
     {
-        setString(ctx,key,""+value);
+        setString(ctx, key, "" + value);
     }
 
-    public static long getLong(Context ctx, int key)
+    public static long getLong(Context ctx, int key, long defaultValue)
     {
-        return Long.parseLong(getString(ctx,key));
+        try
+        {
+            return Long.parseLong(getString(ctx, key, "" + defaultValue));
+        } catch (Throwable err)
+        {
+            return defaultValue;
+        }
     }
 
     public static void setLong(Context ctx, int key, long value)
     {
-        setString(ctx,key,""+value);
+        setString(ctx, key, "" + value);
     }
 
     public static void setDouble(Context ctx, int key, double value)
     {
-        setString(ctx,key,""+value);
+        setString(ctx, key, "" + value);
     }
 
-    public static double getDouble(Context ctx, int key)
+    public static double getDouble(Context ctx, int key, double defaultValue)
     {
-        return Double.parseDouble(getString(ctx,key));
+        try
+        {
+            return Double.parseDouble(getString(ctx, key, "" + defaultValue));
+        } catch (Throwable err)
+        {
+            return defaultValue;
+        }
     }
 
-    public static boolean getBoolean(Context ctx, int key)
+    public static boolean getBoolean(Context ctx, int key, boolean defaultValue)
     {
-        return "1".equals(getString(ctx,key));
+        try
+        {
+            return "1".equals(getString(ctx, key, defaultValue ? "1" : "0"));
+        } catch (Throwable err)
+        {
+            return defaultValue;
+        }
     }
 
     public static void setBoolean(Context ctx, int key, boolean value)
     {
-        setString(ctx,key,value ? "1":"0");
+        setString(ctx, key, value ? "1" : "0");
     }
 }
