@@ -52,7 +52,7 @@ public class RTSecurePrefs
     {
         if (TextUtils.isEmpty(value))
         {
-            RTPrefs.remove(key);
+            RTPrefs.remove(ctx, key);
         } else
         {
             RTPrefs.setString(ctx, key, RTCryptUtil.encrypt(ekey, value));
