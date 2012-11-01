@@ -13,36 +13,37 @@ import android.preference.PreferenceManager;
  */
 public class RTPrefs
 {
-    public static SharedPreferences getPreferences(Context ctx)
+
+    public static SharedPreferences getPreferences(final Context ctx)
     {
         return PreferenceManager.getDefaultSharedPreferences(ctx);
     }
 
-    public static String getString(Context ctx, int key, String defaultValue)
+    public static String getString(final Context ctx, int key, String defaultValue)
     {
         return getPreferences(ctx).getString(ctx.getString(key), defaultValue);
     }
 
-    public static void setString(Context ctx, int key, String value)
+    public static void setString(final Context ctx, int key, String value)
     {
         SharedPreferences.Editor editor = getPreferences(ctx).edit();
         editor.putString(ctx.getString(key), value);
         editor.commit();
     }
 
-    public static int getInt(Context ctx, int key, int defaultValue)
+    public static int getInt(final Context ctx, int key, int defaultValue)
     {
         return getPreferences(ctx).getInt(ctx.getString(key), defaultValue);
     }
 
-    public static void setInt(Context ctx, int key, int value)
+    public static void setInt(final Context ctx, int key, int value)
     {
         SharedPreferences.Editor editor = getPreferences(ctx).edit();
         editor.putInt(ctx.getString(key), value);
         editor.commit();
     }
 
-    public static long getLong(Context ctx, int key, long defaultValue)
+    public static long getLong(final Context ctx, int key, long defaultValue)
     {
         try
         {
@@ -54,19 +55,19 @@ public class RTPrefs
         }
     }
 
-    public static void setLong(Context ctx, int key, long value)
+    public static void setLong(final Context ctx, int key, long value)
     {
         SharedPreferences.Editor editor = getPreferences(ctx).edit();
         editor.putLong(ctx.getString(key), value);
         editor.commit();
     }
 
-    public static void setDouble(Context ctx, int key, double value)
+    public static void setDouble(final Context ctx, int key, double value)
     {
         setString(ctx, key, "" + value);
     }
 
-    public static double getDouble(Context ctx, int key, double defaultValue)
+    public static double getDouble(final Context ctx, int key, double defaultValue)
     {
         try
         {
@@ -77,15 +78,22 @@ public class RTPrefs
         }
     }
 
-    public static boolean getBoolean(Context ctx, int key, boolean defaultValue)
+    public static boolean getBoolean(final Context ctx, int key, boolean defaultValue)
     {
         return getPreferences(ctx).getBoolean(ctx.getString(key), defaultValue);
     }
 
-    public static void setBoolean(Context ctx, int key, boolean value)
+    public static void setBoolean(final Context ctx, int key, boolean value)
     {
         SharedPreferences.Editor editor = getPreferences(ctx).edit();
         editor.putBoolean(ctx.getString(key), value);
+        editor.commit();
+    }
+
+    public static void remove(final Context ctx, final int key)
+    {
+        SharedPreferences.Editor editor = getPreferences(ctx).edit();
+        editor.remove(ctx.getString(key));
         editor.commit();
     }
 }

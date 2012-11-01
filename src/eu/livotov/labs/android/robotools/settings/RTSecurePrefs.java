@@ -1,6 +1,7 @@
 package eu.livotov.labs.android.robotools.settings;
 
 import android.content.Context;
+import android.text.TextUtils;
 import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
 
 /**
@@ -49,7 +50,13 @@ public class RTSecurePrefs
 
     public static void setString(Context ctx, int key, String value)
     {
-        RTPrefs.setString(ctx, key, RTCryptUtil.encrypt(ekey, value));
+        if (TextUtils.isEmpty(value))
+        {
+            RTPrefs.remove(key);
+        } else
+        {
+            RTPrefs.setString(ctx, key, RTCryptUtil.encrypt(ekey, value));
+        }
     }
 
     public static int getInt(Context ctx, int key, int defaultValue)
