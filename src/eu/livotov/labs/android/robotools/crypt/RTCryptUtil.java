@@ -29,6 +29,7 @@ public class RTCryptUtil {
 
     private static final String TAG = RTCryptUtil.class.getSimpleName();
 
+    public static final String PKCS12_DERIVATION_ALGORITHM = "PBEWITHSHA256AND256BITAES-CBC-BC";
     private static final String PBKDF2_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA1";
     private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
 
@@ -110,7 +111,20 @@ public class RTCryptUtil {
 
     public static String encrypt(final String plaintext, final String password) {
         final byte[] salt = generateSalt();
-        final SecretKey key = deriveKeyPbkdf2(salt, password);
+        SecretKey key = null;
+
+        try {
+            key = deriveKeyPbkdf2(salt, password);
+        } catch (Throwable err)
+        {
+            Log.w(TAG,err.getMessage());
+        }
+
+        if (key == null)
+        {
+            key = deriveKeyPkcs12(salt,password);
+        }
+
         try {
             return encrypt(plaintext.getBytes("UTF-8"), key, salt);
         } catch (UnsupportedEncodingException e) {
@@ -121,7 +135,20 @@ public class RTCryptUtil {
 
     public static String encrypt(final byte[] plaintext, final String password) {
         final byte[] salt = generateSalt();
-        final SecretKey key = deriveKeyPbkdf2(salt, password);
+        SecretKey key = null;
+
+        try {
+            key = deriveKeyPbkdf2(salt, password);
+        } catch (Throwable err)
+        {
+            Log.w(TAG,err.getMessage());
+        }
+
+        if (key == null)
+        {
+            key = deriveKeyPkcs12(salt,password);
+        }
+
         return encrypt(plaintext, key, salt);
     }
 
@@ -198,6 +225,24 @@ public class RTCryptUtil {
 
             return String.format("%s%s%s", toBase64(iv), DELIMITER,
                     toBase64(cipherText));
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected static SecretKey deriveKeyPkcs12(byte[] salt, String password) {
+        try {
+            long start = System.currentTimeMillis();
+            KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt,
+                    ITERATION_COUNT, KEY_LENGTH);
+            SecretKeyFactory keyFactory = SecretKeyFactory
+                    .getInstance(PKCS12_DERIVATION_ALGORITHM);
+            SecretKey result = keyFactory.generateSecret(keySpec);
+            long elapsed = System.currentTimeMillis() - start;
+            Log.d(TAG, String.format("PKCS#12 key derivation took %d [ms].",
+                    elapsed));
+
+            return result;
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
