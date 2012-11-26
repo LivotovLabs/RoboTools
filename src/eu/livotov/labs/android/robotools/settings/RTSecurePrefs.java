@@ -14,7 +14,7 @@ import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
 public class RTSecurePrefs
 {
 
-    private static byte[] ekey;
+    private static String ekey;
 
     public static void setPassword(final Context ctx,
                                    final String password,
@@ -29,8 +29,7 @@ public class RTSecurePrefs
                                                                                           password,
                                                                                           lockToWifiAddress,
                                                                                           lockToTelephony,
-                                                                                          lockToSIM) :
-                           RTCryptUtil.generateDeviceBoundEncryptionKeyForPassword(password);
+                                                                                          lockToSIM) : ekey;
         } catch (Throwable err)
         {
             throw new RuntimeException(err);
@@ -41,7 +40,7 @@ public class RTSecurePrefs
     {
         try
         {
-            return RTCryptUtil.decrypt(ekey, RTPrefs.getString(ctx, key, ""));
+            return RTCryptUtil.decryptAsText(RTPrefs.getString(ctx, key, ""), ekey);
         } catch (Throwable err)
         {
             return defaultValue;
