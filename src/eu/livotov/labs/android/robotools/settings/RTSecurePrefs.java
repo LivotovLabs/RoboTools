@@ -34,7 +34,7 @@ public class RTSecurePrefs {
 
     public static String getString(Context ctx, int key, final String defaultValue) {
         try {
-            return RTCryptUtil.decryptAsText(ekey, RTPrefs.getString(ctx, key, ""));
+            return RTCryptUtil.decryptAsText(RTPrefs.getString(ctx, key, ""),ekey);
         } catch (Throwable err) {
             return defaultValue;
         }
