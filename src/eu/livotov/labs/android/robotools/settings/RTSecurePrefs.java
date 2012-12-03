@@ -11,8 +11,7 @@ import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
  * Time: 6:50 PM
  * To change this template use File | Settings | File Templates.
  */
-public class RTSecurePrefs
-{
+public class RTSecurePrefs {
 
     private static String ekey;
 
@@ -21,104 +20,79 @@ public class RTSecurePrefs
                                    boolean lockToDevice,
                                    boolean lockToWifiAddress,
                                    boolean lockToTelephony,
-                                   boolean lockToSIM)
-    {
-        try
-        {
+                                   boolean lockToSIM) {
+        try {
             ekey = lockToDevice ? RTCryptUtil.generateDeviceBoundEncryptionKeyForPassword(ctx,
-                                                                                          password,
-                                                                                          lockToWifiAddress,
-                                                                                          lockToTelephony,
-                                                                                          lockToSIM) : ekey;
-        } catch (Throwable err)
-        {
+                    password,
+                    lockToWifiAddress,
+                    lockToTelephony,
+                    lockToSIM) : ekey;
+        } catch (Throwable err) {
             throw new RuntimeException(err);
         }
     }
 
-    public static String getString(Context ctx, int key, final String defaultValue)
-    {
-        try
-        {
-            return RTCryptUtil.decryptAsText(ekey,RTPrefs.getString(ctx, key, ""));
-        } catch (Throwable err)
-        {
+    public static String getString(Context ctx, int key, final String defaultValue) {
+        try {
+            return RTCryptUtil.decryptAsText(ekey, RTPrefs.getString(ctx, key, ""));
+        } catch (Throwable err) {
             return defaultValue;
         }
     }
 
-    public static void setString(Context ctx, int key, String value)
-    {
-        if (TextUtils.isEmpty(value))
-        {
+    public static void setString(Context ctx, int key, String value) {
+        if (TextUtils.isEmpty(value)) {
             RTPrefs.remove(ctx, key);
-        } else
-        {
-            RTPrefs.setString(ctx, key, RTCryptUtil.encrypt(value,ekey));
+        } else {
+            RTPrefs.setString(ctx, key, RTCryptUtil.encrypt(value, ekey));
         }
     }
 
-    public static int getInt(Context ctx, int key, int defaultValue)
-    {
-        try
-        {
+    public static int getInt(Context ctx, int key, int defaultValue) {
+        try {
             return Integer.parseInt(getString(ctx, key, "" + defaultValue));
-        } catch (Throwable err)
-        {
+        } catch (Throwable err) {
             return defaultValue;
         }
     }
 
-    public static void setInt(Context ctx, int key, int value)
-    {
+    public static void setInt(Context ctx, int key, int value) {
         setString(ctx, key, "" + value);
     }
 
-    public static long getLong(Context ctx, int key, long defaultValue)
-    {
-        try
-        {
+    public static long getLong(Context ctx, int key, long defaultValue) {
+        try {
             return Long.parseLong(getString(ctx, key, "" + defaultValue));
-        } catch (Throwable err)
-        {
+        } catch (Throwable err) {
             return defaultValue;
         }
     }
 
-    public static void setLong(Context ctx, int key, long value)
-    {
+    public static void setLong(Context ctx, int key, long value) {
         setString(ctx, key, "" + value);
     }
 
-    public static void setDouble(Context ctx, int key, double value)
-    {
+    public static void setDouble(Context ctx, int key, double value) {
         setString(ctx, key, "" + value);
     }
 
-    public static double getDouble(Context ctx, int key, double defaultValue)
-    {
-        try
-        {
+    public static double getDouble(Context ctx, int key, double defaultValue) {
+        try {
             return Double.parseDouble(getString(ctx, key, "" + defaultValue));
-        } catch (Throwable err)
-        {
+        } catch (Throwable err) {
             return defaultValue;
         }
     }
 
-    public static boolean getBoolean(Context ctx, int key, boolean defaultValue)
-    {
-        try
-        {
+    public static boolean getBoolean(Context ctx, int key, boolean defaultValue) {
+        try {
             return "1".equals(getString(ctx, key, defaultValue ? "1" : "0"));
-        } catch (Throwable err)
-        {
+        } catch (Throwable err) {
             return defaultValue;
         }
     }
 
-    public static void setBoolean(Context ctx, int key, boolean value)
-    {
+    public static void setBoolean(Context ctx, int key, boolean value) {
         setString(ctx, key, value ? "1" : "0");
     }
 }
