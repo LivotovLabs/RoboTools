@@ -40,7 +40,7 @@ public class RTSecurePrefs
     {
         try
         {
-            return RTCryptUtil.decryptAsText(RTPrefs.getString(ctx, key, ""), ekey);
+            return RTCryptUtil.decryptAsText(ekey,RTPrefs.getString(ctx, key, ""));
         } catch (Throwable err)
         {
             return defaultValue;
@@ -54,7 +54,7 @@ public class RTSecurePrefs
             RTPrefs.remove(ctx, key);
         } else
         {
-            RTPrefs.setString(ctx, key, RTCryptUtil.encrypt(ekey, value));
+            RTPrefs.setString(ctx, key, RTCryptUtil.encrypt(value,ekey));
         }
     }
 
