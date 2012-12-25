@@ -2,7 +2,10 @@ package eu.livotov.labs.android.robotools.settings;
 
 import android.content.Context;
 import android.text.TextUtils;
+import eu.livotov.labs.android.robotools.crypt.RTBase64;
 import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
+
+import java.util.StringTokenizer;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,7 +29,7 @@ public class RTSecurePrefs {
                     password,
                     lockToWifiAddress,
                     lockToTelephony,
-                    lockToSIM) : ekey;
+                    lockToSIM) : password;
         } catch (Throwable err) {
             throw new RuntimeException(err);
         }
@@ -68,6 +71,36 @@ public class RTSecurePrefs {
         }
     }
 
+    public static void setIntArray(Context ctx, int key, int[] array)
+    {
+        setString(ctx,key,arrayToString(array));
+    }
+
+    public static void setLongArray(Context ctx, int key, long[] array)
+    {
+        setString(ctx,key,arrayToString(array));
+    }
+
+    public static void setByteArray(Context ctx, int key, byte[] array)
+    {
+        setString(ctx,key,RTBase64.encodeToString(array, RTBase64.NO_WRAP));
+    }
+
+    public static int[] getIntArray(Context ctx, int key)
+    {
+        return stringToIntegerArray(getString(ctx,key,""));
+    }
+
+    public static long[] getLongArray(Context ctx, int key)
+    {
+        return stringToLongArray(getString(ctx, key, ""));
+    }
+
+    public static byte[] getByteArray(Context ctx, int key)
+    {
+        return RTBase64.decode(getString(ctx,key,""),RTBase64.NO_WRAP);
+    }
+
     public static void setLong(Context ctx, int key, long value) {
         setString(ctx, key, "" + value);
     }
@@ -94,5 +127,77 @@ public class RTSecurePrefs {
 
     public static void setBoolean(Context ctx, int key, boolean value) {
         setString(ctx, key, value ? "1" : "0");
+    }
+
+    private static String arrayToString(int[] array) {
+        StringBuffer str = new StringBuffer();
+
+        for (int a : array)
+        {
+            if (str.length()>0)
+            {
+                str.append("|");
+            }
+
+            str.append("" + a);
+        }
+
+        return str.toString();
+    }
+
+    private static String arrayToString(long[] array) {
+        StringBuffer str = new StringBuffer();
+
+        for (long a : array)
+        {
+            if (str.length()>0)
+            {
+                str.append("|");
+            }
+
+            str.append("" + a);
+        }
+
+        return str.toString();
+    }
+
+    private static int[] stringToIntegerArray(final String str)
+    {
+        StringTokenizer tok = new StringTokenizer(str,"|",false);
+        if (tok.countTokens()>0)
+        {
+            int[] arr = new int[tok.countTokens()];
+            int index = 0;
+            while (tok.hasMoreTokens())
+            {
+                arr[index] = Integer.parseInt(tok.nextToken());
+                index++;
+            }
+
+            return arr;
+        } else
+        {
+            return null;
+        }
+    }
+
+    private static long[] stringToLongArray(final String str)
+    {
+        StringTokenizer tok = new StringTokenizer(str,"|",false);
+        if (tok.countTokens()>0)
+        {
+            long[] arr = new long[tok.countTokens()];
+            int index = 0;
+            while (tok.hasMoreTokens())
+            {
+                arr[index] = Long.parseLong(tok.nextToken());
+                index++;
+            }
+
+            return arr;
+        } else
+        {
+            return null;
+        }
     }
 }
