@@ -1,10 +1,13 @@
 package eu.livotov.labs.android.robotools.device;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.util.DisplayMetrics;
+import android.view.Display;
 import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
 
 /**
@@ -16,6 +19,19 @@ import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
  */
 public class RTDevice
 {
+
+    public static boolean isTablet(Activity activity)
+    {
+        Display display = activity.getWindowManager().getDefaultDisplay();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        display.getMetrics(displayMetrics);
+
+        int width = displayMetrics.widthPixels / displayMetrics.densityDpi;
+        int height = displayMetrics.heightPixels / displayMetrics.densityDpi;
+
+        double screenDiagonal = Math.sqrt(width * width + height * height);
+        return (screenDiagonal >= 6);
+    }
 
     public static String getDeviceUID(final Context ctx, boolean countOnNetworkInterfaces, boolean countOnTelephony,
                                       boolean countOnSim)

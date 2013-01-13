@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.widget.Toast;
 
+import java.util.Collection;
+
 /**
  * Created with IntelliJ IDEA.
  * User: dlivotov
@@ -24,8 +26,45 @@ public class RTDialogs
         final AlertDialog.Builder ab = new AlertDialog.Builder(ctx);
 
         ab.setTitle(title);
-
         ab.setSingleChoiceItems(options, defaultOption, new DialogInterface.OnClickListener()
+        {
+            public void onClick(DialogInterface dialog, int whichButton)
+            {
+                r.optionSelected(whichButton);
+                dialog.dismiss();
+            }
+        });
+
+        ab.setOnCancelListener(new DialogInterface.OnCancelListener()
+        {
+            public void onCancel(DialogInterface dialogInterface)
+            {
+                r.selectionCancelled();
+            }
+        });
+
+        ab.show();
+    }
+
+    public static void showOptionsDialog(final Context ctx,
+                                         final String title,
+                                         final Collection options,
+                                         final int defaultOption,
+                                         final RTOptionsDialogResultListener r)
+    {
+        final AlertDialog.Builder ab = new AlertDialog.Builder(ctx);
+
+        String[] optionsNames = new String[options.size()];
+
+        int i=0;
+        for (Object opt : options)
+        {
+            optionsNames[i] = opt.toString();
+            i++;
+        }
+
+        ab.setTitle(title);
+        ab.setSingleChoiceItems(optionsNames, defaultOption, new DialogInterface.OnClickListener()
         {
             public void onClick(DialogInterface dialog, int whichButton)
             {
