@@ -6,7 +6,6 @@ import eu.livotov.labs.android.robotools.net.multipart.MultipartEntity;
 import eu.livotov.labs.android.robotools.net.multipart.Part;
 import eu.livotov.labs.android.robotools.net.multipart.StringPart;
 import org.apache.http.*;
-import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -49,11 +48,8 @@ public class RTHTTPClient implements HttpRequestRetryHandler
 
     private DefaultHttpClient http;
 
-    private int httpConnectionTimeout = 60000;
-    private int httpDataResponseTimeout = 60000;
-    private boolean allowSelfSignedCerts = true;
-    private boolean enableGzipCompression = false;
-    private CookieStore customCookieStore;
+    private RTHTTPClientConfiguration configuration = new RTHTTPClientConfiguration();
+
 
     public RTHTTPClient()
     {
@@ -62,34 +58,25 @@ public class RTHTTPClient implements HttpRequestRetryHandler
 
     public RTHTTPClient(boolean allowSelfSignedCerts)
     {
-        this.allowSelfSignedCerts = allowSelfSignedCerts;
-        try
-        {
-            reconfigureHttpClient();
-        } catch (Throwable err)
-        {
-            throw new RTHTTPError(err);
-        }
+        configuration.setAllowSelfSignedCerts(allowSelfSignedCerts);
+    }
+
+    public RTHTTPClientConfiguration getConfiguration()
+    {
+        return configuration;
     }
 
     public HttpResponse executeGetRequest(final String url)
     {
         try
         {
+            if (configuration.isDirty())
+            {
+                reconfigureHttpClient();
+            }
+
             HttpGet get = new HttpGet(url);
             return http.execute(get);
-        } catch (Throwable err)
-        {
-            throw new RTHTTPError(err);
-        }
-    }
-
-    public void setCookieStore(CookieStore store)
-    {
-        customCookieStore = store;
-        try
-        {
-            reconfigureHttpClient();
         } catch (Throwable err)
         {
             throw new RTHTTPError(err);
@@ -116,6 +103,11 @@ public class RTHTTPClient implements HttpRequestRetryHandler
     {
         try
         {
+            if (configuration.isDirty())
+            {
+                reconfigureHttpClient();
+            }
+
             HttpPost post = new HttpPost(url);
 
             StringEntity postEntity = new StringEntity(content, encoding);
@@ -152,6 +144,11 @@ public class RTHTTPClient implements HttpRequestRetryHandler
     {
         try
         {
+            if (configuration.isDirty())
+            {
+                reconfigureHttpClient();
+            }
+
             HttpPost httppost = new HttpPost(url);
 
             List<Part> parts = new ArrayList<Part>();
@@ -184,6 +181,11 @@ public class RTHTTPClient implements HttpRequestRetryHandler
     {
         try
         {
+            if (configuration.isDirty())
+                        {
+                            reconfigureHttpClient();
+                        }
+
             HttpPost httppost = new HttpPost(url);
 
             List<Part> parts = new ArrayList<Part>();
@@ -224,74 +226,6 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         throw new RTHTTPError(response.getStatusLine());
     }
 
-    public int getHttpConnectionTimeout()
-    {
-        return httpConnectionTimeout;
-    }
-
-    public void setHttpConnectionTimeout(int httpConnectionTimeout)
-    {
-        this.httpConnectionTimeout = httpConnectionTimeout;
-        try
-        {
-            reconfigureHttpClient();
-        } catch (Throwable err)
-        {
-            throw new RTHTTPError(err);
-        }
-    }
-
-    public int getHttpDataResponseTimeout()
-    {
-        return httpDataResponseTimeout;
-    }
-
-    public void setHttpDataResponseTimeout(int httpDataResponseTimeout)
-    {
-        this.httpDataResponseTimeout = httpDataResponseTimeout;
-        try
-        {
-            reconfigureHttpClient();
-        } catch (Throwable err)
-        {
-            throw new RTHTTPError(err);
-        }
-    }
-
-    public boolean isAllowSelfSignedCerts()
-    {
-        return allowSelfSignedCerts;
-    }
-
-    public void setAllowSelfSignedCerts(boolean allowSelfSignedCerts)
-    {
-        this.allowSelfSignedCerts = allowSelfSignedCerts;
-        try
-        {
-            reconfigureHttpClient();
-        } catch (Throwable err)
-        {
-            throw new RTHTTPError(err);
-        }
-    }
-
-    public boolean isEnableGzipCompression()
-    {
-        return enableGzipCompression;
-    }
-
-    public void setEnableGzipCompression(boolean enableGzipCompression)
-    {
-        this.enableGzipCompression = enableGzipCompression;
-        try
-        {
-            reconfigureHttpClient();
-        } catch (Throwable err)
-        {
-            throw new RTHTTPError(err);
-        }
-    }
-
     protected void reconfigureHttpClient() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, CertificateException, UnrecoverableKeyException
     {
 
@@ -301,10 +235,10 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         HttpClientParams.setRedirecting(params, false);
         HttpClientParams.setCookiePolicy(params, CookiePolicy.BEST_MATCH);
         params.setParameter("http.protocol.expect-continue", false);
-        HttpConnectionParams.setConnectionTimeout(params, httpConnectionTimeout);
-        HttpConnectionParams.setSoTimeout(params, httpDataResponseTimeout);
+        HttpConnectionParams.setConnectionTimeout(params, configuration.getHttpConnectionTimeout());
+        HttpConnectionParams.setSoTimeout(params, configuration.getHttpDataResponseTimeout());
 
-        if (allowSelfSignedCerts)
+        if (configuration.isAllowSelfSignedCerts())
         {
             HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier()
             {
@@ -351,7 +285,7 @@ public class RTHTTPClient implements HttpRequestRetryHandler
 
         http.setHttpRequestRetryHandler(this);
 
-        if (enableGzipCompression)
+        if (configuration.isEnableGzipCompression())
         {
             http.addRequestInterceptor(new HttpRequestInterceptor()
             {
@@ -389,16 +323,24 @@ public class RTHTTPClient implements HttpRequestRetryHandler
             });
         }
 
-        if (customCookieStore != null)
+        if (configuration.getCookieStore() != null)
         {
-            http.setCookieStore(customCookieStore);
+            http.setCookieStore(configuration.getCookieStore());
         }
+
+        configuration.clearDirtyFlag();
     }
 
     @Override
     public boolean retryRequest(IOException e, int i, HttpContext httpContext)
     {
-        return false;
+        if (configuration.getRequestRetryCount()==0 || i > configuration.getRequestRetryCount())
+        {
+            return false;
+        } else
+        {
+            return true;
+        }
     }
 
     class DummySslSocketFactory extends org.apache.http.conn.ssl.SSLSocketFactory
