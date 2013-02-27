@@ -1,10 +1,6 @@
 package eu.livotov.labs.android.robotools.net.multipart;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+
+import java.io.*;
 
 /**
  * A PartSource that reads from a File.
@@ -12,24 +8,26 @@ import java.io.InputStream;
  * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
  * @author <a href="mailto:mdiggory@latte.harvard.edu">Mark Diggory</a>
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
- *
  * @since 2.0
  */
 public class FilePartSource implements PartSource {
 
-    /** File part file. */
+    /**
+     * File part file.
+     */
     private File file = null;
 
-    /** File part file name. */
+    /**
+     * File part file name.
+     */
     private String fileName = null;
 
     /**
      * Constructor for FilePartSource.
      *
      * @param file the FilePart source File.
-     *
      * @throws FileNotFoundException if the file does not exist or
-     * cannot be read
+     *                               cannot be read
      */
     public FilePartSource(File file) throws FileNotFoundException {
         this.file = file;
@@ -48,13 +46,12 @@ public class FilePartSource implements PartSource {
      * Constructor for FilePartSource.
      *
      * @param fileName the file name of the FilePart
-     * @param file the source File for the FilePart
-     *
+     * @param file     the source File for the FilePart
      * @throws FileNotFoundException if the file does not exist or
-     * cannot be read
+     *                               cannot be read
      */
     public FilePartSource(String fileName, File file)
-      throws FileNotFoundException {
+            throws FileNotFoundException {
         this(file);
         if (fileName != null) {
             this.fileName = fileName;
@@ -63,6 +60,7 @@ public class FilePartSource implements PartSource {
 
     /**
      * Return the length of the file
+     *
      * @return the length of the file.
      * @see PartSource#getLength()
      */
@@ -76,6 +74,7 @@ public class FilePartSource implements PartSource {
 
     /**
      * Return the current filename
+     *
      * @return the filename.
      * @see PartSource#getFileName()
      */
@@ -85,6 +84,7 @@ public class FilePartSource implements PartSource {
 
     /**
      * Return a new {@link FileInputStream} for the current filename.
+     *
      * @return the new input stream.
      * @throws IOException If an IO problem occurs.
      * @see PartSource#createInputStream()
@@ -93,7 +93,7 @@ public class FilePartSource implements PartSource {
         if (this.file != null) {
             return new FileInputStream(this.file);
         } else {
-            return new ByteArrayInputStream(new byte[] {});
+            return new ByteArrayInputStream(new byte[]{});
         }
     }
 

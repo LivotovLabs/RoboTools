@@ -37,7 +37,7 @@ public class RTSecurePrefs {
 
     public static String getString(Context ctx, int key, final String defaultValue) {
         try {
-            return RTCryptUtil.decryptAsText(RTPrefs.getString(ctx, key, ""),ekey);
+            return RTCryptUtil.decryptAsText(RTPrefs.getString(ctx, key, ""), ekey);
         } catch (Throwable err) {
             return defaultValue;
         }
@@ -71,34 +71,28 @@ public class RTSecurePrefs {
         }
     }
 
-    public static void setIntArray(Context ctx, int key, int[] array)
-    {
-        setString(ctx,key,arrayToString(array));
+    public static void setIntArray(Context ctx, int key, int[] array) {
+        setString(ctx, key, arrayToString(array));
     }
 
-    public static void setLongArray(Context ctx, int key, long[] array)
-    {
-        setString(ctx,key,arrayToString(array));
+    public static void setLongArray(Context ctx, int key, long[] array) {
+        setString(ctx, key, arrayToString(array));
     }
 
-    public static void setByteArray(Context ctx, int key, byte[] array)
-    {
-        setString(ctx,key,RTBase64.encodeToString(array, RTBase64.NO_WRAP));
+    public static void setByteArray(Context ctx, int key, byte[] array) {
+        setString(ctx, key, RTBase64.encodeToString(array, RTBase64.NO_WRAP));
     }
 
-    public static int[] getIntArray(Context ctx, int key)
-    {
-        return stringToIntegerArray(getString(ctx,key,""));
+    public static int[] getIntArray(Context ctx, int key) {
+        return stringToIntegerArray(getString(ctx, key, ""));
     }
 
-    public static long[] getLongArray(Context ctx, int key)
-    {
+    public static long[] getLongArray(Context ctx, int key) {
         return stringToLongArray(getString(ctx, key, ""));
     }
 
-    public static byte[] getByteArray(Context ctx, int key)
-    {
-        return RTBase64.decode(getString(ctx,key,""),RTBase64.NO_WRAP);
+    public static byte[] getByteArray(Context ctx, int key) {
+        return RTBase64.decode(getString(ctx, key, ""), RTBase64.NO_WRAP);
     }
 
     public static void setLong(Context ctx, int key, long value) {
@@ -132,10 +126,8 @@ public class RTSecurePrefs {
     private static String arrayToString(int[] array) {
         StringBuffer str = new StringBuffer();
 
-        for (int a : array)
-        {
-            if (str.length()>0)
-            {
+        for (int a : array) {
+            if (str.length() > 0) {
                 str.append("|");
             }
 
@@ -148,10 +140,8 @@ public class RTSecurePrefs {
     private static String arrayToString(long[] array) {
         StringBuffer str = new StringBuffer();
 
-        for (long a : array)
-        {
-            if (str.length()>0)
-            {
+        for (long a : array) {
+            if (str.length() > 0) {
                 str.append("|");
             }
 
@@ -161,42 +151,34 @@ public class RTSecurePrefs {
         return str.toString();
     }
 
-    private static int[] stringToIntegerArray(final String str)
-    {
-        StringTokenizer tok = new StringTokenizer(str,"|",false);
-        if (tok.countTokens()>0)
-        {
+    private static int[] stringToIntegerArray(final String str) {
+        StringTokenizer tok = new StringTokenizer(str, "|", false);
+        if (tok.countTokens() > 0) {
             int[] arr = new int[tok.countTokens()];
             int index = 0;
-            while (tok.hasMoreTokens())
-            {
+            while (tok.hasMoreTokens()) {
                 arr[index] = Integer.parseInt(tok.nextToken());
                 index++;
             }
 
             return arr;
-        } else
-        {
+        } else {
             return null;
         }
     }
 
-    private static long[] stringToLongArray(final String str)
-    {
-        StringTokenizer tok = new StringTokenizer(str,"|",false);
-        if (tok.countTokens()>0)
-        {
+    private static long[] stringToLongArray(final String str) {
+        StringTokenizer tok = new StringTokenizer(str, "|", false);
+        if (tok.countTokens() > 0) {
             long[] arr = new long[tok.countTokens()];
             int index = 0;
-            while (tok.hasMoreTokens())
-            {
+            while (tok.hasMoreTokens()) {
                 arr[index] = Long.parseLong(tok.nextToken());
                 index++;
             }
 
             return arr;
-        } else
-        {
+        } else {
             return null;
         }
     }

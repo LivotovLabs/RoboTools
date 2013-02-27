@@ -9,13 +9,12 @@ import org.apache.http.NameValuePair;
  * Time: 11:57 AM
  * To change this template use File | Settings | File Templates.
  */
-public class RTPostParameter implements NameValuePair{
+public class RTPostParameter implements NameValuePair {
 
     private String name;
     private String value;
 
-    public RTPostParameter(final String name, final String value)
-    {
+    public RTPostParameter(final String name, final String value) {
         this.name = name;
         this.value = value;
     }

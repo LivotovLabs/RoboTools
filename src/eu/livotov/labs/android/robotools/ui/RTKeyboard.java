@@ -15,21 +15,17 @@ import android.view.inputmethod.InputMethodManager;
  */
 public class RTKeyboard {
 
-    public static void showSoftKeyboardFor(Context ctx, View view)
-    {
+    public static void showSoftKeyboardFor(Context ctx, View view) {
         InputMethodManager mgr = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
         mgr.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
     }
 
-    public static void hideSoftKeyboardFor(Activity activity, View view)
-    {
+    public static void hideSoftKeyboardFor(Activity activity, View view) {
         InputMethodManager mgr = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        if (view != null)
-        {
+        if (view != null) {
             mgr.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        } else
-        {
+        } else {
             activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         }
     }

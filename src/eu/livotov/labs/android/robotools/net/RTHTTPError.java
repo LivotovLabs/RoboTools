@@ -1,5 +1,8 @@
 package eu.livotov.labs.android.robotools.net;
 
+import android.text.TextUtils;
+import eu.livotov.labs.android.robotools.io.RTStreamUtil;
+import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 
 /**
@@ -14,6 +17,7 @@ public class RTHTTPError extends RuntimeException
 
     private int statusCode;
     private String statusText;
+    private String responseBody;
     private String protocolVersion;
 
     public RTHTTPError(Throwable cause)
@@ -24,10 +28,25 @@ public class RTHTTPError extends RuntimeException
         protocolVersion = null;
     }
 
-    public RTHTTPError(StatusLine statusLine)
+    public RTHTTPError(HttpResponse rsp, final String responseBody)
     {
+        StatusLine statusLine = rsp.getStatusLine();
         statusCode = statusLine.getStatusCode();
         statusText = statusLine.getReasonPhrase();
+
+        if (TextUtils.isEmpty(responseBody))
+        {
+            try
+            {
+                this.responseBody = RTStreamUtil.streamToString(rsp.getEntity().getContent(), TextUtils.isEmpty(rsp.getEntity().getContentEncoding().getValue()) ? "utf-8" : rsp.getEntity().getContentEncoding().getValue(), true);
+            } catch (Throwable err)
+            {
+            }
+        } else
+        {
+            this.responseBody = responseBody;
+        }
+
         protocolVersion = statusLine.getProtocolVersion().toString();
     }
 
@@ -51,6 +70,11 @@ public class RTHTTPError extends RuntimeException
         {
             return super.getLocalizedMessage();
         }
+    }
+
+    public String getResponseBody()
+    {
+        return responseBody;
     }
 
     public static class ErrorCodes

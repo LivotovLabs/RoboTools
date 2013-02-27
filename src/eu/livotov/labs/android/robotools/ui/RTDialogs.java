@@ -14,31 +14,25 @@ import java.util.Collection;
  * Time: 13:52
  * To change this template use File | Settings | File Templates.
  */
-public class RTDialogs
-{
+public class RTDialogs {
 
     public static void showOptionsDialog(final Context ctx,
                                          final String title,
                                          final String[] options,
                                          final int defaultOption,
-                                         final RTOptionsDialogResultListener r)
-    {
+                                         final RTOptionsDialogResultListener r) {
         final AlertDialog.Builder ab = new AlertDialog.Builder(ctx);
 
         ab.setTitle(title);
-        ab.setSingleChoiceItems(options, defaultOption, new DialogInterface.OnClickListener()
-        {
-            public void onClick(DialogInterface dialog, int whichButton)
-            {
+        ab.setSingleChoiceItems(options, defaultOption, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
                 r.optionSelected(whichButton);
                 dialog.dismiss();
             }
         });
 
-        ab.setOnCancelListener(new DialogInterface.OnCancelListener()
-        {
-            public void onCancel(DialogInterface dialogInterface)
-            {
+        ab.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            public void onCancel(DialogInterface dialogInterface) {
                 r.selectionCancelled();
             }
         });
@@ -50,33 +44,27 @@ public class RTDialogs
                                          final String title,
                                          final Collection options,
                                          final int defaultOption,
-                                         final RTOptionsDialogResultListener r)
-    {
+                                         final RTOptionsDialogResultListener r) {
         final AlertDialog.Builder ab = new AlertDialog.Builder(ctx);
 
         String[] optionsNames = new String[options.size()];
 
-        int i=0;
-        for (Object opt : options)
-        {
+        int i = 0;
+        for (Object opt : options) {
             optionsNames[i] = opt.toString();
             i++;
         }
 
         ab.setTitle(title);
-        ab.setSingleChoiceItems(optionsNames, defaultOption, new DialogInterface.OnClickListener()
-        {
-            public void onClick(DialogInterface dialog, int whichButton)
-            {
+        ab.setSingleChoiceItems(optionsNames, defaultOption, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
                 r.optionSelected(whichButton);
                 dialog.dismiss();
             }
         });
 
-        ab.setOnCancelListener(new DialogInterface.OnCancelListener()
-        {
-            public void onCancel(DialogInterface dialogInterface)
-            {
+        ab.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            public void onCancel(DialogInterface dialogInterface) {
                 r.selectionCancelled();
             }
         });
@@ -84,13 +72,11 @@ public class RTDialogs
         ab.show();
     }
 
-    public static void showMessageBox(final Context ctx, int iconRes, int titleRes, int messageRes)
-    {
+    public static void showMessageBox(final Context ctx, int iconRes, int titleRes, int messageRes) {
         showMessageBox(ctx, iconRes, ctx.getString(titleRes), ctx.getString(messageRes));
     }
 
-    public static void showMessageBox(final Context ctx, int iconRes, final String title, final String msg)
-    {
+    public static void showMessageBox(final Context ctx, int iconRes, final String title, final String msg) {
         showMessageBox(ctx, iconRes, title, msg, null);
     }
 
@@ -98,49 +84,40 @@ public class RTDialogs
                                       final int iconRes,
                                       final String title,
                                       final String msg,
-                                      final RTModalDialogResultListener listener)
-    {
+                                      final RTModalDialogResultListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
         builder.setTitle(title);
         builder.setIcon(iconRes);
         builder.setMessage(msg);
 
-        if (listener != null)
-        {
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
-            {
-                public void onClick(DialogInterface dialogInterface, int i)
-                {
+        if (listener != null) {
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int i) {
                     listener.onDialogClosed();
                     dialogInterface.dismiss();
                 }
             });
-        } else
-        {
+        } else {
             builder.setPositiveButton("OK", null);
         }
 
         builder.show();
     }
 
-    public static void showNotification(final Context ctx, final String message)
-    {
+    public static void showNotification(final Context ctx, final String message) {
         Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show();
     }
 
-    public static void showNotification(final Context ctx, int message)
-    {
+    public static void showNotification(final Context ctx, int message) {
         showNotification(ctx, ctx.getString(message));
     }
 
-    public interface RTModalDialogResultListener
-    {
+    public interface RTModalDialogResultListener {
 
         void onDialogClosed();
     }
 
-    public interface RTOptionsDialogResultListener
-    {
+    public interface RTOptionsDialogResultListener {
 
         void optionSelected(int optionIndex);
 

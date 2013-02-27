@@ -8,22 +8,25 @@ import java.io.InputStream;
  * the data to post is already loaded into memory.
  *
  * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
- *
  * @since 2.0
  */
 public class ByteArrayPartSource implements PartSource {
 
-    /** Name of the source file. */
+    /**
+     * Name of the source file.
+     */
     private String fileName;
 
-    /** Byte array of the source file. */
+    /**
+     * Byte array of the source file.
+     */
     private byte[] bytes;
 
     /**
      * Constructor for ByteArrayPartSource.
      *
      * @param fileName the name of the file these bytes represent
-     * @param bytes the content of this part
+     * @param bytes    the content of this part
      */
     public ByteArrayPartSource(String fileName, byte[] bytes) {
 

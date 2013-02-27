@@ -11,59 +11,73 @@ import java.util.List;
  */
 public abstract class RTApiCommand
 {
+
     private Class resultClass;
 
-        public RTApiCommand(Class resultClass) //todo: to be cleaned up once Oracle fix #5098163 since 2004 ! %=/
-        {
-            this.resultClass = resultClass;
-        }
+    public RTApiCommand(Class resultClass) //todo: to be cleaned up once Oracle fix #5098163 since 2004 ! %=/
+    {
+        this.resultClass = resultClass;
+    }
 
-        public abstract String buildRequestUri();
+    public abstract String buildRequestUri();
 
-        public abstract void buildRequestParameters(List<RTPostParameter> params);
+    public abstract void buildRequestParameters(List<RTPostParameter> params);
+
+    public abstract void buildRequestBody(StringBuffer body);
+
+    public abstract RTApiRequestType getRequestType();
 
     public abstract RTApiClient getClient();
 
-        public RTApiCommandResult parseServerResponseData(final String data) throws RTApiError
+    public RTApiCommandResult parseServerResponseData(final String data) throws RTApiError
+    {
+        try
         {
-            try
-            {
-                RTApiCommandResult response = (RTApiCommandResult) resultClass.newInstance();
-                response.loadResponseData(this,data);
-                return response;
-            } catch (RTApiError bawError)
-            {
-                throw bawError;
-            } catch (Throwable err)
-            {
-                throw new RTApiError(err);
-            }
+            RTApiCommandResult response = (RTApiCommandResult) resultClass.newInstance();
+            response.loadResponseData(this, data);
+            return response;
+        } catch (RTApiError bawError)
+        {
+            throw bawError;
+        } catch (Throwable err)
+        {
+            throw new RTApiError(err);
         }
+    }
 
-        public RTApiCommandResult execute()
-        {
-            return getClient().execute(this);
-        }
+    public RTApiCommandResult execute()
+    {
+        return getClient().execute(this);
+    }
 
     public void execute(final RTApiCommandAsyncCallback callback)
     {
-        new AsyncTask<RTApiCommandAsyncCallback,String,Object>()
+        new AsyncTask<RTApiCommandAsyncCallback, String, Object>()
         {
             protected void onPreExecute()
             {
                 onPreAsyncExecute();
+                callback.onBeforeCommandStart(RTApiCommand.this);
             }
 
             protected void onPostExecute(final Object result)
             {
-                if (result instanceof RTApiError)
+                if (result instanceof RTApiCommandResult)
                 {
-                    onPostAsyncExecute((RTApiCommandResult)result);
-                    callback.onCommandCompleted((RTApiCommandResult)result);
+                    onPostAsyncExecute((RTApiCommandResult) result);
+                    callback.onCommandCompleted((RTApiCommandResult) result);
                 } else
                 {
-                    onAsyncExecutionError((RTApiError)result);
-                    callback.onCommandFailed((RTApiError)result);
+                    if (result instanceof RTApiError)
+                    {
+                        onAsyncExecutionError((RTApiError) result);
+                        callback.onCommandFailed((RTApiError) result);
+                    } else
+                    {
+                        final RTApiError error = new RTApiError((Throwable)result);
+                        onAsyncExecutionError(error);
+                        callback.onCommandFailed(error);
+                    }
                 }
             }
 
@@ -71,7 +85,7 @@ public abstract class RTApiCommand
             {
                 try
                 {
-                    return execute();
+                    return RTApiCommand.this.execute();
                 } catch (Throwable err)
                 {
                     return err;

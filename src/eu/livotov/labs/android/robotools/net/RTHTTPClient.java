@@ -7,8 +7,10 @@ import eu.livotov.labs.android.robotools.net.multipart.Part;
 import eu.livotov.labs.android.robotools.net.multipart.StringPart;
 import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ClientConnectionManager;
@@ -31,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.net.URLEncoder;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -83,6 +86,135 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         }
     }
 
+    public HttpResponse executeGetRequest(final String url, Collection<RTPostParameter> headers, Collection<RTPostParameter> params)
+    {
+        try
+        {
+            if (configuration.isDirty())
+            {
+                reconfigureHttpClient();
+            }
+
+            StringBuffer finalUrl = new StringBuffer(url);
+
+            int index = 1;
+            if (!url.contains("?"))
+            {
+                index = 0;
+                finalUrl.append("?");
+            }
+
+            for (RTPostParameter p : params)
+            {
+                if (index == 0)
+                {
+                    finalUrl.append("&");
+                }
+
+                finalUrl.append(String.format("%s=%s", p.getName(), URLEncoder.encode(p.getValue(), "utf-8")));
+                index++;
+            }
+
+            HttpGet get = new HttpGet(finalUrl.toString());
+
+            for (RTPostParameter h : headers)
+            {
+                get.addHeader(h.getName(), h.getValue());
+            }
+
+            return http.execute(get);
+        } catch (Throwable err)
+        {
+            throw new RTHTTPError(err);
+        }
+    }
+
+    public HttpResponse executePutRequest(final String url, Collection<RTPostParameter> headers, Collection<RTPostParameter> params)
+    {
+        try
+        {
+            if (configuration.isDirty())
+            {
+                reconfigureHttpClient();
+            }
+
+            StringBuffer finalUrl = new StringBuffer(url);
+
+            int index = 1;
+            if (!url.contains("?"))
+            {
+                index = 0;
+                finalUrl.append("?");
+            }
+
+            for (RTPostParameter p : params)
+            {
+                if (index == 0)
+                {
+                    finalUrl.append("&");
+                }
+
+                finalUrl.append(String.format("%s=%s", p.getName(), URLEncoder.encode(p.getValue(), "utf-8")));
+                index++;
+            }
+
+            HttpPut get = new HttpPut(finalUrl.toString());
+
+            for (RTPostParameter h : headers)
+            {
+                get.addHeader(h.getName(), h.getValue());
+            }
+
+            return http.execute(get);
+        } catch (Throwable err)
+        {
+            throw new RTHTTPError(err);
+        }
+    }
+
+    public HttpResponse executeDeleteRequest(final String url, Collection<RTPostParameter> headers, Collection<RTPostParameter> params)
+    {
+        try
+        {
+            if (configuration.isDirty())
+            {
+                reconfigureHttpClient();
+            }
+
+            StringBuffer finalUrl = new StringBuffer(url);
+
+            int index = 1;
+            if (!url.contains("?"))
+            {
+                index = 0;
+                finalUrl.append("?");
+            }
+
+            for (RTPostParameter p : params)
+            {
+                if (index == 0)
+                {
+                    finalUrl.append("&");
+                }
+
+                finalUrl.append(String.format("%s=%s", p.getName(), URLEncoder.encode(p.getValue(), "utf-8")));
+                index++;
+            }
+
+            HttpDelete get = new HttpDelete(finalUrl.toString());
+
+            for (RTPostParameter h : headers)
+            {
+                get.addHeader(h.getName(), h.getValue());
+            }
+
+            return http.execute(get);
+        } catch (Throwable err)
+        {
+            throw new RTHTTPError(err);
+        }
+    }
+
     public String executeGetRequestToString(final String url)
     {
         return executeGetRequestToString(url, "utf-8");
@@ -112,6 +244,7 @@ public class RTHTTPClient implements HttpRequestRetryHandler
 
             StringEntity postEntity = new StringEntity(content, encoding);
             postEntity.setContentType(contentType + "; charset=" + encoding);
+            postEntity.setContentEncoding("utf-8");
 
             if (headers != null)
             {
@@ -182,9 +315,9 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         try
         {
             if (configuration.isDirty())
-                        {
-                            reconfigureHttpClient();
-                        }
+            {
+                reconfigureHttpClient();
+            }
 
             HttpPost httppost = new HttpPost(url);
 
@@ -212,18 +345,26 @@ public class RTHTTPClient implements HttpRequestRetryHandler
 
     public String loadHttpResponseToString(HttpResponse response, final String encoding)
     {
-        if (response.getStatusLine().getStatusCode() == 200)
+        try
         {
-            try
+            final String body = RTStreamUtil.streamToString(response.getEntity().getContent(), encoding, true);
+            if (response.getStatusLine().getStatusCode() == 200)
             {
-                return RTStreamUtil.streamToString(response.getEntity().getContent(), encoding, true);
-            } catch (Throwable err)
+                return body;
+            } else
+            {
+                throw new RTHTTPError(response, body);
+            }
+        } catch (Throwable err)
+        {
+            if (err instanceof RTHTTPError)
+            {
+                throw (RTHTTPError)err;
+            }  else
             {
                 throw new RTHTTPError(err);
             }
         }
-
-        throw new RTHTTPError(response.getStatusLine());
     }
 
     protected void reconfigureHttpClient() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, CertificateException, UnrecoverableKeyException
@@ -334,7 +475,7 @@ public class RTHTTPClient implements HttpRequestRetryHandler
     @Override
     public boolean retryRequest(IOException e, int i, HttpContext httpContext)
     {
-        if (configuration.getRequestRetryCount()==0 || i > configuration.getRequestRetryCount())
+        if (configuration.getRequestRetryCount() == 0 || i > configuration.getRequestRetryCount())
         {
             return false;
         } else

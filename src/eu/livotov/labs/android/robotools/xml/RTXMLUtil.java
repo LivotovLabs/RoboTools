@@ -1,6 +1,5 @@
 package eu.livotov.labs.android.robotools.xml;
 
-import android.content.Context;
 import eu.livotov.labs.android.robotools.io.RTStreamUtil;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -22,40 +21,32 @@ import java.io.InputStream;
  */
 public class RTXMLUtil {
 
-    public static Document parse(InputStream xml) throws IOException
-    {
-        return parse(xml,"utf-8");
+    public static Document parse(InputStream xml) throws IOException {
+        return parse(xml, "utf-8");
     }
 
-    public static Document parse(InputStream xml, final String xmlEncoding) throws IOException
-    {
+    public static Document parse(InputStream xml, final String xmlEncoding) throws IOException {
         StringBuffer xmlstr = new StringBuffer();
 
-        try
-        {
+        try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             return builder.parse(new ByteArrayInputStream(RTStreamUtil.streamToString(xml, xmlEncoding, false).getBytes(xmlEncoding)));
-        } catch (Throwable err)
-        {
+        } catch (Throwable err) {
             throw new DOMException((short) 1, err.getClass().getSimpleName() + " " + err.getMessage());
         }
     }
 
-    public static String toCDATA(String text)
-    {
+    public static String toCDATA(String text) {
         return "<![CDATA[" + text + "]]>";
     }
 
-    public static String getTextContent(Node n)
-    {
+    public static String getTextContent(Node n) {
         StringBuffer b = new StringBuffer();
         NodeList l = n.getChildNodes();
 
-        for (int i = 0; i < l.getLength(); i++)
-        {
-            if (l.item(i).getNodeType() == Node.TEXT_NODE)
-            {
+        for (int i = 0; i < l.getLength(); i++) {
+            if (l.item(i).getNodeType() == Node.TEXT_NODE) {
                 b.append(l.item(i).getNodeValue());
             }
         }
@@ -63,15 +54,12 @@ public class RTXMLUtil {
         return b.toString();
     }
 
-    public static String getCDATAContent(Node n)
-    {
+    public static String getCDATAContent(Node n) {
         StringBuffer b = new StringBuffer();
         NodeList l = n.getChildNodes();
 
-        for (int i = 0; i < l.getLength(); i++)
-        {
-            if (l.item(i).getNodeType() == Node.CDATA_SECTION_NODE)
-            {
+        for (int i = 0; i < l.getLength(); i++) {
+            if (l.item(i).getNodeType() == Node.CDATA_SECTION_NODE) {
                 b.append(l.item(i).getNodeValue());
             }
         }

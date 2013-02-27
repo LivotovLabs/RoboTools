@@ -1,14 +1,13 @@
 package eu.livotov.labs.android.robotools.net.multipart;
+
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
  * An interface for providing access to data when posting MultiPart messages.
  *
- * @see FilePart
- *
  * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
- *
+ * @see FilePart
  * @since 2.0
  */
 public interface PartSource {
@@ -33,7 +32,6 @@ public interface PartSource {
      * time.
      *
      * @return a new InputStream
-     *
      * @throws IOException if an error occurs when creating the InputStream
      */
     InputStream createInputStream() throws IOException;
