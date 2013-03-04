@@ -18,7 +18,9 @@ import java.util.List;
 public abstract class RTListAdapter<T extends Object> extends BaseAdapter
 {
 
-    private List<T> data = new ArrayList<T>();
+    protected List<T> data = new ArrayList<T>();
+
+    private RTListAdapterEventListener listAdapterEventListener;
 
     protected Context ctx;
 
@@ -35,6 +37,16 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
         this.ctx = ctx;
     }
 
+    public RTListAdapterEventListener getListAdapterEventListener()
+    {
+        return listAdapterEventListener;
+    }
+
+    public void setListAdapterEventListener(final RTListAdapterEventListener listAdapterEventListener)
+    {
+        this.listAdapterEventListener = listAdapterEventListener;
+    }
+
     public void refresh()
     {
         new RTAsyncTask<Object, Object, Collection<T>>()
@@ -46,6 +58,7 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
 
             public void onExecutionStarted()
             {
+                onDataRefreshStarted();
             }
 
             public void onExecutionFinished(final Collection<T> ts)
@@ -53,14 +66,17 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
                 data.clear();
                 data.addAll(ts);
                 notifyDataSetChanged();
+                onDataRefreshEnded();
             }
 
             public void onExecutionError(final Throwable error)
             {
+                onDataRefreshEnded();
             }
 
             public void onExecutionAborted()
             {
+                onDataRefreshEnded();
             }
         }.executeAsync();
     }
@@ -93,5 +109,29 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
 
         ((RTListHolder<T>) view.getTag()).set(item);
         return view;
+    }
+
+    protected void onDataRefreshStarted()
+    {
+        if (listAdapterEventListener != null)
+        {
+            listAdapterEventListener.onDataRefreshStarted();
+        }
+    }
+
+    protected void onDataRefreshEnded()
+    {
+        if (listAdapterEventListener != null)
+        {
+            listAdapterEventListener.onDataRefreshEnded();
+        }
+    }
+
+    public interface RTListAdapterEventListener
+    {
+
+        void onDataRefreshStarted();
+
+        void onDataRefreshEnded();
     }
 }
