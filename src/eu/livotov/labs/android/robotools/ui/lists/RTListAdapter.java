@@ -117,7 +117,7 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
             createListHolder().attachToView(view);
         }
 
-        ((RTListHolder<T>) view.getTag()).set(item);
+        ((RTListHolder<T>) view.getTag()).set(item, i, this);
         return view;
     }
 

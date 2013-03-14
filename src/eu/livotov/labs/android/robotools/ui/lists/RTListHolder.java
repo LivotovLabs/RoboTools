@@ -23,5 +23,5 @@ public abstract class RTListHolder<T extends Object> implements Serializable
 
     public abstract void inflateControlsFromView(final View view);
 
-    public abstract void set(T s);
+    public abstract void set(T s, int index, RTListAdapter<T> adapter);
 }
