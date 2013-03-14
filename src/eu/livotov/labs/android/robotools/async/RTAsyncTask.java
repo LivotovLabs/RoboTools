@@ -1,6 +1,7 @@
 package eu.livotov.labs.android.robotools.async;
 
 import android.os.AsyncTask;
+import android.os.Build;
 
 /**
  * (c) Livotov Labs Ltd. 2012
@@ -8,6 +9,7 @@ import android.os.AsyncTask;
  */
 public abstract class RTAsyncTask<Params, Progress, Result> extends AsyncTask<Params, Progress, Result>
 {
+    private Throwable error;
 
     public RTAsyncTask()
     {
@@ -32,6 +34,7 @@ public abstract class RTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
     {
         try
         {
+            error = null;
             final Result res = performExecutionThread(parameters);
 
             if (isCancelled())
@@ -43,7 +46,7 @@ public abstract class RTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
             }
         } catch (Throwable err)
         {
-            onExecutionError(err);
+            error = err;
             return null;
         }
     }
@@ -60,7 +63,10 @@ public abstract class RTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 
     protected void onPostExecute(final Result result)
     {
-        if (result != null)
+        if (error != null)
+        {
+            onExecutionError(error);
+        } else
         {
             onExecutionFinished(result);
         }
@@ -68,6 +74,12 @@ public abstract class RTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 
     public void executeAsync(Params... params)
     {
-        executeOnExecutor(THREAD_POOL_EXECUTOR, params);
+        if (Build.VERSION.SDK_INT>=11)
+        {
+            executeOnExecutor(THREAD_POOL_EXECUTOR, params);
+        } else
+        {
+            execute(params);
+        }
     }
 }

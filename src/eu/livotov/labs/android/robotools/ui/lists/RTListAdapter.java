@@ -30,6 +30,8 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
 
     protected abstract int getListItemLayoutResource(int itemViewType);
 
+    protected abstract View createListItemView(int itemViewType);
+
 
     public RTListAdapter(final Context ctx)
     {
@@ -102,8 +104,16 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
 
         if (view == null)
         {
-            final int resId = getListItemLayoutResource(getItemViewType(i));
-            view = LayoutInflater.from(ctx).inflate(resId, null);
+            final int itemViewType = getItemViewType(i);
+            final int resId = getListItemLayoutResource(itemViewType);
+
+            if (resId > 0)
+            {
+                view = LayoutInflater.from(ctx).inflate(resId, null);
+            } else
+            {
+                view = createListItemView(itemViewType);
+            }
             createListHolder().attachToView(view);
         }
 
