@@ -104,6 +104,38 @@ public class RTDialogs {
         builder.show();
     }
 
+    public static void showYesNoDialog(final Context ctx, final int icon, final String title, final String message, final String yesBtnTitle, final String noBtnTitle, final RTYesNoDialogResultListener listener)
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setIcon(icon);
+
+        builder.setPositiveButton(yesBtnTitle, new DialogInterface.OnClickListener()
+        {
+            public void onClick(final DialogInterface dialogInterface, final int i)
+            {
+                if (listener!=null)
+                {
+                    listener.onYes();
+                }
+            }
+        });
+
+        builder.setNegativeButton(noBtnTitle, new DialogInterface.OnClickListener()
+        {
+            public void onClick(final DialogInterface dialogInterface, final int i)
+            {
+                if (listener!=null)
+                {
+                    listener.onNo();
+                }
+            }
+        });
+
+        builder.show();
+    }
+
     public static void showNotification(final Context ctx, final String message) {
         Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show();
     }
@@ -115,6 +147,11 @@ public class RTDialogs {
     public interface RTModalDialogResultListener {
 
         void onDialogClosed();
+    }
+
+    public interface RTYesNoDialogResultListener {
+        void onYes();
+        void onNo();
     }
 
     public interface RTOptionsDialogResultListener {
