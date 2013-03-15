@@ -100,19 +100,18 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
 
     public View getView(final int i, View view, final ViewGroup viewGroup)
     {
-        T item = data.get(i);
+        T item = getItem(i);
 
         if (view == null)
         {
-            final int itemViewType = getItemViewType(i);
-            final int resId = getListItemLayoutResource(itemViewType);
+            int resId = getListItemLayoutResource(getItemViewType(i));
 
             if (resId > 0)
             {
                 view = LayoutInflater.from(ctx).inflate(resId, null);
             } else
             {
-                view = createListItemView(itemViewType);
+                view = createListItemView(getItemViewType(i));
             }
             createListHolder().attachToView(view);
         }
