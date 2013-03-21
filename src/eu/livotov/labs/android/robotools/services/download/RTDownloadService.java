@@ -30,9 +30,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public abstract class RTDownloadService<P extends RTDownloadTask> extends Service implements Runnable
 {
 
+    private final static int ONGOING_NOTIFICATION_ID = 1;
     private Queue<P> queue = new ConcurrentLinkedQueue<P>();
     private P currentTask;
-    private final static int ONGOING_NOTIFICATION_ID = 1;
     private Thread downloadThread;
     private Handler uiHandler;
     private NotificationManager notificationManager;
@@ -57,7 +57,14 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
             if (intent.hasExtra(Extras.DownloadId))
             {
                 P payload = createNewTask(intent.getStringExtra(Extras.DownloadId));
-                queue.add(payload);
+
+                if (findDownloadTask(payload.getDownloadId()) == null)
+                {
+                    queue.add(payload);
+                } else
+                {
+                    updateNotifications();
+                }
             }
 
             if (downloadThread == null)
@@ -136,7 +143,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
     private void updateNotifications()
     {
-        if (currentTask!=null)
+        if (currentTask != null)
         {
             startForeground(ONGOING_NOTIFICATION_ID, buildNotification(currentTask));
         } else
@@ -331,7 +338,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
     {
         final String userDefinedPostProcessingMessage = getDownloadPostprocessingMessage(task);
 
-        builder.setProgress(100,0,true);
+        builder.setProgress(100, 0, true);
         builder.setContentText(TextUtils.isEmpty(userDefinedPostProcessingMessage) ? "Processing..." : userDefinedPostProcessingMessage);
         return builder;
     }
@@ -340,7 +347,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
     {
         final String userDefinedCancellingMessage = getDownloadBeingCancelledMessage(task);
 
-        builder.setProgress(100,0,true);
+        builder.setProgress(100, 0, true);
         builder.setContentText(TextUtils.isEmpty(userDefinedCancellingMessage) ? "Cancelling..." : userDefinedCancellingMessage);
         return builder;
     }
