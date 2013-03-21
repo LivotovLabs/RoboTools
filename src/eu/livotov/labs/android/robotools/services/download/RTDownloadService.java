@@ -303,11 +303,14 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
     {
         final String userDefinedTitle = getDownloadNotificationTitle(task);
         final String userDefinedFooter = getDownloadNotificationFooter(task);
+        final int queueSize = queue.size();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                                                      .setSmallIcon(getNotificationSmallIconResource(task))
                                                      .setContentTitle(TextUtils.isEmpty(userDefinedTitle) ? task.getDownloadName() : userDefinedTitle)
                                                      .setContentText(TextUtils.isEmpty(userDefinedFooter) ? task.getDownloadDescription() : userDefinedFooter)
+                                                     .setWhen(0)
+                                                     .setContentInfo(queueSize>0 ? ("" + queue.size()) : "")
                                                      .setTicker(task.getDownloadName());
 
         final Bitmap notificationPreviewBitmap = getNotificationPreviewBitmap(task);
