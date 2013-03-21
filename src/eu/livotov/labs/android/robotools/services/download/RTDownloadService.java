@@ -196,7 +196,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
         {
             public void run()
             {
-                onDownloadCompleted(task);
+                onDownloadCancelled(task);
             }
         });
     }
@@ -353,9 +353,15 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
         if (task.isCancellable())
         {
             final String userDefinedCancelButtonText = getNotificationCancelActionText(task);
+
             Intent cancelDownloadIntent = new Intent(this, this.getClass()).setAction(Commands.Cancel).putExtra(Extras.DownloadId, task.getDownloadId());
+            Intent cancelDownloadIntentViaSwipeOut = new Intent(this, this.getClass()).setAction(Commands.Cancel).putExtra(Extras.DownloadId, task.getDownloadId());
+
             PendingIntent cancelDownloadPendingIntent = PendingIntent.getService(this, 0, cancelDownloadIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent cancelDownloadPendingIntentVisSwipeOut = PendingIntent.getService(this, 0, cancelDownloadIntentViaSwipeOut, PendingIntent.FLAG_UPDATE_CURRENT);
+
             builder.addAction(getNotificationCancelIconResource(task), TextUtils.isEmpty(userDefinedCancelButtonText) ? "Cancel" : userDefinedCancelButtonText, cancelDownloadPendingIntent);
+            builder.setDeleteIntent(cancelDownloadPendingIntentVisSwipeOut);
         }
 
         return builder;
