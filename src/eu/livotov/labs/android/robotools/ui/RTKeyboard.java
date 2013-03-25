@@ -15,18 +15,35 @@ import android.view.inputmethod.InputMethodManager;
  */
 public class RTKeyboard {
 
-    public static void showSoftKeyboardFor(Context ctx, View view) {
-        InputMethodManager mgr = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
-        mgr.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+    public static void showSoftKeyboardFor(final Context ctx, final View view) {
+        view.postDelayed(new Runnable()
+        {
+            public void run()
+            {
+                InputMethodManager mgr = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
+                mgr.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+            }
+        }, 200);
     }
 
-    public static void hideSoftKeyboardFor(Activity activity, View view) {
-        InputMethodManager mgr = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-
+    public static void hideSoftKeyboardFor(final Activity activity, final View view) {
         if (view != null) {
-            mgr.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            view.postDelayed(new Runnable()
+            {
+                public void run()
+                {
+                    InputMethodManager mgr = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                    mgr.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+            }, 200);
         } else {
-            activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+            activity.runOnUiThread(new Runnable()
+            {
+                public void run()
+                {
+                    activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+                }
+            });
         }
     }
 }
