@@ -12,15 +12,16 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
+import eu.livotov.labs.android.robotools.net.RTHTTPClient;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -36,6 +37,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
     private Thread downloadThread;
     private Handler uiHandler;
     private NotificationManager notificationManager;
+    private RTHTTPClient http = new RTHTTPClient();
 
     public IBinder onBind(final Intent intent)
     {
@@ -57,20 +59,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
             if (intent.hasExtra(Extras.DownloadId))
             {
                 P payload = createNewTask(intent.getStringExtra(Extras.DownloadId));
-
-                if (findDownloadTask(payload.getDownloadId()) == null)
-                {
-                    queue.add(payload);
-                } else
-                {
-                    updateNotifications();
-                }
-            }
-
-            if (downloadThread == null)
-            {
-                downloadThread = new Thread(this);
-                downloadThread.start();
+                addDownloadTask(payload);
             }
 
             return START_STICKY;
@@ -93,6 +82,23 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
         stopSelf();
         return START_NOT_STICKY;
+    }
+
+    public void addDownloadTask(P payload)
+    {
+        if (findDownloadTask(payload.getDownloadId()) == null)
+        {
+            queue.add(payload);
+        } else
+        {
+            updateNotifications();
+        }
+
+        if (downloadThread == null)
+        {
+            downloadThread = new Thread(this);
+            downloadThread.start();
+        }
     }
 
     private P findDownloadTask(final String id)
@@ -122,7 +128,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
         return null;
     }
 
-    private void cancelTask(final P task)
+    public void cancelTask(final P task)
     {
         if (task != null && task.status == RTDownloadStatus.Downloading)
         {
@@ -131,14 +137,23 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
         }
     }
 
-    private void cancelAll()
+    public void cancelAll()
     {
-        Iterator<P> tasks = queue.iterator();
-        while (tasks.hasNext())
-        {
-            tasks.next().status = RTDownloadStatus.Cancelling;
-        }
+        queue.clear();
+        cancelTask(getCurrentTask());
         updateNotifications();
+    }
+
+    public Collection<P> getDownloadQueue()
+    {
+        List<P> tasks = new ArrayList<P>();
+        tasks.addAll(queue);
+        return tasks;
+    }
+
+    public P getCurrentTask()
+    {
+        return currentTask;
     }
 
     private void updateNotifications()
@@ -162,7 +177,36 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
             {
                 try
                 {
-                    processSingleDownload(downloadTask);
+                    boolean retryDownload = true;
+
+                    while (retryDownload)
+                    {
+                        final String url = downloadTask.getDownloadUrl();
+
+                        if (TextUtils.isEmpty(url))
+                        {
+                            Log.e(RTDownloadService.class.getSimpleName(), String.format("No more mirrors left for task %s, failing download.", downloadTask.getDownloadId()));
+                            downloadTask.status = RTDownloadStatus.Failed;
+                            retryDownload = false;
+                        } else
+                        {
+                            try
+                            {
+                                processSingleDownload(downloadTask, url);
+                                retryDownload = false;
+                            } catch (Throwable err)
+                            {
+                                retryDownload = downloadTask.supportsMirrors();
+                                if (!retryDownload)
+                                {
+                                    downloadTask.status = RTDownloadStatus.Failed;
+                                } else
+                                {
+                                    Log.e(RTDownloadService.class.getSimpleName(), String.format("Failed download for task %s , url %s , will  now try another mirror.", downloadTask.getDownloadId(), url));
+                                }
+                            }
+                        }
+                    }
 
                     switch (downloadTask.status)
                     {
@@ -230,11 +274,15 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
         });
     }
 
-    private void processSingleDownload(final P job) throws Throwable
+    private void processSingleDownload(final P job, final String urlString) throws Throwable
     {
         currentTask = job;
         currentTask.targetFile = getLocationOnDevice(currentTask);
         currentTask.status = RTDownloadStatus.Downloading;
+
+        http.getConfiguration().setHttpConnectionTimeout(job.getHttpConnectionTimeoutMs());
+        http.getConfiguration().setHttpDataResponseTimeout(job.getHttpDataResponseTimeoutMs());
+        http.getConfiguration().setEnableGzipCompression(true);
 
         updateNotifications();
 
@@ -246,19 +294,24 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
             }
         });
 
-        URL url = new URL(currentTask.getDownloadUrl());
-        URLConnection urlConn = url.openConnection();
-        urlConn.setUseCaches(false);
-        urlConn.setConnectTimeout(4000);
 
-        currentTask.contentType = urlConn.getContentType();
-        final int contentLength = urlConn.getContentLength();
+        HttpResponse response = http.executeGetRequest(urlString);
+        int status = response.getStatusLine().getStatusCode();
+        HttpEntity resEntity = response.getEntity();
+
+        if (resEntity != null && status != 200)
+        {
+            throw new Exception("server returned error, status: " + status);
+        }
+
+        currentTask.contentType = resEntity.getContentType().getValue();
+        final long contentLength = resEntity.getContentLength();
         currentTask.contentLength = contentLength > 0 ? contentLength : currentTask.getDownloadSize();
 
-        verifyStream(currentTask, urlConn);
+        verifyStream(currentTask, response);
 
         FileOutputStream writer = new FileOutputStream(currentTask.targetFile);
-        InputStream inStream = urlConn.getInputStream();
+        InputStream inStream = resEntity.getContent();
         byte[] buffer = new byte[1024];
         int count = 0;
         long lastNotificationUpdateTime = 0;
@@ -278,6 +331,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
             if (System.currentTimeMillis() - lastNotificationUpdateTime > 3000)
             {
                 updateNotifications();
+                onDownloadProgressUpdate(currentTask);
                 lastNotificationUpdateTime = System.currentTimeMillis();
             }
         }
@@ -310,7 +364,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
                                                      .setContentTitle(TextUtils.isEmpty(userDefinedTitle) ? task.getDownloadName() : userDefinedTitle)
                                                      .setContentText(TextUtils.isEmpty(userDefinedFooter) ? task.getDownloadDescription() : userDefinedFooter)
                                                      .setWhen(0)
-                                                     .setContentInfo(queueSize>0 ? ("" + queue.size()) : "")
+                                                     .setContentInfo(queueSize > 0 ? ("" + queue.size()) : "")
                                                      .setTicker(task.getDownloadName());
 
         final Bitmap notificationPreviewBitmap = getNotificationPreviewBitmap(task);
@@ -363,14 +417,22 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
         if (task.isCancellable())
         {
             final String userDefinedCancelButtonText = getNotificationCancelActionText(task);
+            final String userDefinedCancelAllButtonText = getNotificationCancelAllActionText(task);
 
             Intent cancelDownloadIntent = new Intent(this, this.getClass()).setAction(Commands.Cancel).putExtra(Extras.DownloadId, task.getDownloadId());
+            Intent cancelAllDownloadIntent = new Intent(this, this.getClass()).setAction(Commands.CancelAll);
             Intent cancelDownloadIntentViaSwipeOut = new Intent(this, this.getClass()).setAction(Commands.Cancel).putExtra(Extras.DownloadId, task.getDownloadId());
 
             PendingIntent cancelDownloadPendingIntent = PendingIntent.getService(this, 0, cancelDownloadIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent cancelAllDownloadPendingIntent = PendingIntent.getService(this, 0, cancelAllDownloadIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             PendingIntent cancelDownloadPendingIntentVisSwipeOut = PendingIntent.getService(this, 0, cancelDownloadIntentViaSwipeOut, PendingIntent.FLAG_UPDATE_CURRENT);
 
             builder.addAction(getNotificationCancelIconResource(task), TextUtils.isEmpty(userDefinedCancelButtonText) ? "Cancel" : userDefinedCancelButtonText, cancelDownloadPendingIntent);
+            if (getDownloadQueue().size() > 0)
+            {
+                builder.addAction(getNotificationCancelAllIconResource(task), TextUtils.isEmpty(userDefinedCancelAllButtonText) ? "Cancel All" : userDefinedCancelAllButtonText, cancelAllDownloadPendingIntent);
+            }
+
             builder.setDeleteIntent(cancelDownloadPendingIntentVisSwipeOut);
         }
 
@@ -420,17 +482,23 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
     protected abstract String getNotificationCancelActionText(final P task);
 
+    protected abstract String getNotificationCancelAllActionText(final P task);
+
     protected abstract String getDownloadPostprocessingMessage(final P task);
 
     protected abstract String getDownloadBeingCancelledMessage(final P task);
 
     protected abstract int getNotificationCancelIconResource(final P task);
 
+    protected abstract int getNotificationCancelAllIconResource(final P task);
+
     protected abstract void performDownloadPostprocess(P task);
 
     protected abstract void onDownloadStarted(P task);
 
     protected abstract void onDownloadCompleted(P task);
+
+    protected abstract void onDownloadProgressUpdate(P task);
 
     protected abstract void onDownloadFailed(P task, Throwable err);
 
@@ -442,7 +510,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
     protected abstract String getDownloadNotificationFooter(P task);
 
-    protected abstract void verifyStream(P task, URLConnection connection) throws Exception;
+    protected abstract void verifyStream(P task, HttpResponse connection) throws Exception;
 
     public final static class Commands
     {

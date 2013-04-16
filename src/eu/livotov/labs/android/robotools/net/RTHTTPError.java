@@ -54,7 +54,7 @@ public class RTHTTPError extends RuntimeException
     {
         if (statusCode != ErrorCodes.InternalApplicationError)
         {
-            return (statusText == null || statusText.isEmpty()) ? ("HTTP Error: " + statusCode) : statusText;
+            return (statusText == null || TextUtils.isEmpty(statusText)) ? ("HTTP Error: " + statusCode) : statusText;
         } else
         {
             return super.getMessage();

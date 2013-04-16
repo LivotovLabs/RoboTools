@@ -9,6 +9,9 @@ import java.io.Serializable;
  */
 public abstract class RTDownloadTask implements Serializable
 {
+    public final static int DEFAULT_CONNECTION_TIMEOUT_MS = 20000;
+    public final static int DEFAULT_DATA_TIMEOUT_MS = 20000;
+
     RTDownloadStatus status = RTDownloadStatus.Idle;
 
     File targetFile;
@@ -27,6 +30,18 @@ public abstract class RTDownloadTask implements Serializable
     public abstract long getDownloadSize();
 
     public abstract boolean isCancellable();
+
+    public abstract boolean supportsMirrors();
+
+    public int getHttpConnectionTimeoutMs()
+    {
+        return DEFAULT_CONNECTION_TIMEOUT_MS;
+    }
+
+    public int getHttpDataResponseTimeoutMs()
+    {
+        return DEFAULT_DATA_TIMEOUT_MS;
+    }
 
     public RTDownloadStatus getStatus()
     {

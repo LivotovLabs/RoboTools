@@ -9,9 +9,9 @@
 # IDE Output #
 out
 tmp
+bin
 
 
 # Package Files #
-*.jar
 *.war
 *.ear

@@ -10,6 +10,7 @@ import java.io.IOException;
  */
 public class RTApiError extends RuntimeException {
     private int errorCode;
+    private String responseBody;
 
     public RTApiError(Throwable internal) {
         super("Internal application error: " + internal.getMessage(), internal);
@@ -28,6 +29,7 @@ public class RTApiError extends RuntimeException {
 
     public RTApiError(RTHTTPError httpError) {
         super(httpError.getMessage(), httpError);
+        this.responseBody = httpError.getResponseBody();
         analyzeAndSetErrorCode();
     }
 
@@ -88,5 +90,10 @@ public class RTApiError extends RuntimeException {
         } else {
             return new RTApiError(err);
         }
+    }
+
+    public String getResponseBody()
+    {
+        return responseBody;
     }
 }

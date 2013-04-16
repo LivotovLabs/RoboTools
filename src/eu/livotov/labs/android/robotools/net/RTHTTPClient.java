@@ -1,10 +1,8 @@
 package eu.livotov.labs.android.robotools.net;
 
 import eu.livotov.labs.android.robotools.io.RTStreamUtil;
-import eu.livotov.labs.android.robotools.net.multipart.FilePart;
-import eu.livotov.labs.android.robotools.net.multipart.MultipartEntity;
-import eu.livotov.labs.android.robotools.net.multipart.Part;
-import eu.livotov.labs.android.robotools.net.multipart.StringPart;
+import eu.livotov.labs.android.robotools.net.multipart.*;
+
 import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpDelete;
@@ -373,8 +371,8 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
-        HttpClientParams.setRedirecting(params, false);
         HttpClientParams.setCookiePolicy(params, CookiePolicy.BEST_MATCH);
+        HttpClientParams.setRedirecting(params, configuration.isAllowRedirects());
         params.setParameter("http.protocol.expect-continue", false);
         HttpConnectionParams.setConnectionTimeout(params, configuration.getHttpConnectionTimeout());
         HttpConnectionParams.setSoTimeout(params, configuration.getHttpDataResponseTimeout());
@@ -472,7 +470,6 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         configuration.clearDirtyFlag();
     }
 
-    @Override
     public boolean retryRequest(IOException e, int i, HttpContext httpContext)
     {
         if (configuration.getRequestRetryCount() == 0 || i > configuration.getRequestRetryCount())
