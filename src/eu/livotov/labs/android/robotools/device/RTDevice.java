@@ -28,19 +28,7 @@ public class RTDevice
 
         int shortSizeDp = (int) px2dp(activity, Math.min(displayMetrics.widthPixels, displayMetrics.heightPixels));
 
-        if (shortSizeDp < 600)
-        {
-            // 0-599dp: "phone" UI with a separate status & navigation bar
-            return false;
-        } else if (shortSizeDp < 720)
-        {
-            // 600-719dp: "phone" UI with modifications for larger screens
-            return false;
-        } else
-        {
-            // 720dp: "tablet" UI with a single combined status & navigation bar
-            return true;
-        }
+        return shortSizeDp > 1024;
     }
 
     public static float dp2px(Context ctx, float px)

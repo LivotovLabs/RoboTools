@@ -61,6 +61,21 @@ public class RTHTTPError extends RuntimeException
         }
     }
 
+    public int getStatusCode()
+    {
+        return statusCode;
+    }
+
+    public String getStatusText()
+    {
+        return statusText;
+    }
+
+    public String getProtocolVersion()
+    {
+        return protocolVersion;
+    }
+
     public String getLocalizedMessage()
     {
         if (statusCode != ErrorCodes.InternalApplicationError)
