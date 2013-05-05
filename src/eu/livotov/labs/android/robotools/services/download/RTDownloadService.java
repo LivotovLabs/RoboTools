@@ -19,8 +19,6 @@ import org.apache.http.HttpResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -54,30 +52,33 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
-        if (Commands.Download.equalsIgnoreCase(intent.getAction()))
+        if (intent != null && intent.getAction() != null)
         {
-            if (intent.hasExtra(Extras.DownloadId))
+            if (Commands.Download.equalsIgnoreCase(intent.getAction()))
             {
-                P payload = createNewTask(intent.getStringExtra(Extras.DownloadId));
-                addDownloadTask(payload);
-            }
+                if (intent.hasExtra(Extras.DownloadId))
+                {
+                    P payload = createNewTask(intent.getStringExtra(Extras.DownloadId));
+                    addDownloadTask(payload);
+                }
 
-            return START_STICKY;
-        }
-
-        if (Commands.Cancel.equalsIgnoreCase(intent.getAction()))
-        {
-            if (intent != null && intent.hasExtra(Extras.DownloadId))
-            {
-                P task = findDownloadTask(intent.getStringExtra(Extras.DownloadId));
-                cancelTask(task);
                 return START_STICKY;
             }
-        }
 
-        if (Commands.CancelAll.equalsIgnoreCase(intent.getAction()))
-        {
-            cancelAll();
+            if (Commands.Cancel.equalsIgnoreCase(intent.getAction()))
+            {
+                if (intent != null && intent.hasExtra(Extras.DownloadId))
+                {
+                    P task = findDownloadTask(intent.getStringExtra(Extras.DownloadId));
+                    cancelTask(task);
+                    return START_STICKY;
+                }
+            }
+
+            if (Commands.CancelAll.equalsIgnoreCase(intent.getAction()))
+            {
+                cancelAll();
+            }
         }
 
         stopSelf();
@@ -386,6 +387,13 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
             case Postprocessing:
                 setupDownloadPostprocessingNotificationOptions(task, builder);
                 break;
+        }
+
+        if (Build.VERSION.SDK_INT < 14)
+        {
+            // Androids <4.0 does not support notifications with empty content intent
+            PendingIntent contentIntent = PendingIntent.getBroadcast(this, 0, new Intent("empty"), 0);
+            builder.setContentIntent(contentIntent);
         }
 
         return builder.build();

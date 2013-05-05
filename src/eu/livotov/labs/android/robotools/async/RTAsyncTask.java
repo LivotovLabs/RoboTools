@@ -34,6 +34,7 @@ public abstract class RTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
     {
         try
         {
+            Thread.sleep(100);
             error = null;
             final Result res = performExecutionThread(parameters);
 
