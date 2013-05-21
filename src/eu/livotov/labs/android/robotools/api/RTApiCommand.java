@@ -11,6 +11,11 @@ import java.util.List;
  */
 public abstract class RTApiCommand
 {
+    public final static class ContentTypes
+    {
+        public final static String Json = "application/json";
+        public final static String Xml = "text/xml";
+    }
 
     private Class resultClass;
 
@@ -28,6 +33,11 @@ public abstract class RTApiCommand
     public abstract RTApiRequestType getRequestType();
 
     public abstract RTApiClient getClient();
+
+    public String getContentType()
+    {
+        return ContentTypes.Json;
+    }
 
     public RTApiCommandResult parseServerResponseData(final String data) throws RTApiError
     {

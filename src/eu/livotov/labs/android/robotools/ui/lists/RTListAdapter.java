@@ -19,19 +19,8 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
 {
 
     protected List<T> data = new ArrayList<T>();
-
-    private RTListAdapterEventListener listAdapterEventListener;
-
     protected Context ctx;
-
-    protected abstract RTListHolder<T> createListHolder();
-
-    protected abstract Collection<T> loadDataInBackgroundThread();
-
-    protected abstract int getListItemLayoutResource(int itemViewType);
-
-    protected abstract View createListItemView(int itemViewType);
-
+    private List<RTListAdapterEventListener> listAdapterEventListeners = new ArrayList<RTListAdapterEventListener>();
 
     public RTListAdapter(final Context ctx)
     {
@@ -39,14 +28,27 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
         this.ctx = ctx;
     }
 
-    public RTListAdapterEventListener getListAdapterEventListener()
+    protected abstract RTListHolder<T> createListHolder(final int itemViewType);
+
+    protected abstract Collection<T> loadDataInBackgroundThread();
+
+    protected abstract int getListItemLayoutResource(final int itemViewType);
+
+    protected abstract View createListItemView(final int itemViewType);
+
+    public void addListAdapterEventListener(final RTListAdapterEventListener listAdapterEventListener)
     {
-        return listAdapterEventListener;
+        this.listAdapterEventListeners.add(listAdapterEventListener);
     }
 
-    public void setListAdapterEventListener(final RTListAdapterEventListener listAdapterEventListener)
+    public void setListAdapterEventListeners(final RTListAdapterEventListener listAdapterEventListeners)
     {
-        this.listAdapterEventListener = listAdapterEventListener;
+        addListAdapterEventListener(listAdapterEventListeners);
+    }
+
+    public void removeListAdapterEventListener(final RTListAdapterEventListener listAdapterEventListener)
+    {
+        this.listAdapterEventListeners.remove(listAdapterEventListener);
     }
 
     public void refresh()
@@ -73,7 +75,7 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
 
             public void onExecutionError(final Throwable error)
             {
-                onDataRefreshEnded();
+                onDataRefreshFailed(error);
             }
 
             public void onExecutionAborted()
@@ -101,19 +103,21 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
     public View getView(final int i, View view, final ViewGroup viewGroup)
     {
         T item = getItem(i);
+        final int itemType = getItemViewType(i);
 
         if (view == null)
         {
-            int resId = getListItemLayoutResource(getItemViewType(i));
+            int resId = getListItemLayoutResource(itemType);
 
             if (resId > 0)
             {
                 view = LayoutInflater.from(ctx).inflate(resId, null);
             } else
             {
-                view = createListItemView(getItemViewType(i));
+                view = createListItemView(itemType);
             }
-            createListHolder().attachToView(view);
+
+            createListHolder(itemType).attachToView(view);
         }
 
         ((RTListHolder<T>) view.getTag()).set(item, i, this);
@@ -122,17 +126,25 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
 
     protected void onDataRefreshStarted()
     {
-        if (listAdapterEventListener != null)
+        for (RTListAdapterEventListener listener : listAdapterEventListeners)
         {
-            listAdapterEventListener.onDataRefreshStarted();
+            listener.onDataRefreshStarted();
         }
     }
 
     protected void onDataRefreshEnded()
     {
-        if (listAdapterEventListener != null)
+        for (RTListAdapterEventListener listener : listAdapterEventListeners)
         {
-            listAdapterEventListener.onDataRefreshEnded();
+            listener.onDataRefreshEnded();
+        }
+    }
+
+    protected void onDataRefreshFailed(Throwable err)
+    {
+        for (RTListAdapterEventListener listener : listAdapterEventListeners)
+        {
+            listener.onDataRefreshFailed(err);
         }
     }
 
@@ -142,5 +154,7 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
         void onDataRefreshStarted();
 
         void onDataRefreshEnded();
+
+        void onDataRefreshFailed(Throwable err);
     }
 }

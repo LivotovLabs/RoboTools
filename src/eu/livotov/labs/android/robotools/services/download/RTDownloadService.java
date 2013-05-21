@@ -222,7 +222,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
                             break;
 
                         case Failed:
-                            failDownload(downloadTask, new Exception("Internal Silent Fail. Look at your download code."));
+                            failDownload(downloadTask, new Exception("Download Failed"));
                             break;
                     }
 
@@ -255,6 +255,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
     private void failDownload(final P task, final Throwable err)
     {
+        currentTask = null;
         uiHandler.post(new Runnable()
         {
             public void run()
@@ -266,6 +267,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
     private void finishDownload(final P task)
     {
+        currentTask = null;
         uiHandler.post(new Runnable()
         {
             public void run()

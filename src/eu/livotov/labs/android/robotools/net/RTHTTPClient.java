@@ -104,7 +104,7 @@ public class RTHTTPClient implements HttpRequestRetryHandler
 
             for (RTPostParameter p : params)
             {
-                if (index == 0)
+                if (index != 0)
                 {
                     finalUrl.append("&");
                 }
@@ -199,14 +199,14 @@ public class RTHTTPClient implements HttpRequestRetryHandler
                 index++;
             }
 
-            HttpDelete get = new HttpDelete(finalUrl.toString());
+            HttpDelete delete = new HttpDelete(finalUrl.toString());
 
             for (RTPostParameter h : headers)
             {
-                get.addHeader(h.getName(), h.getValue());
+                delete.addHeader(h.getName(), h.getValue());
             }
 
-            return http.execute(get);
+            return http.execute(delete);
         } catch (Throwable err)
         {
             throw new RTHTTPError(err);

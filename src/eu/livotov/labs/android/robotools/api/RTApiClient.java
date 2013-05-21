@@ -1,5 +1,6 @@
 package eu.livotov.labs.android.robotools.api;
 
+import android.util.Log;
 import eu.livotov.labs.android.robotools.net.RTHTTPClient;
 import eu.livotov.labs.android.robotools.net.RTHTTPError;
 import eu.livotov.labs.android.robotools.net.RTPostParameter;
@@ -50,11 +51,31 @@ public abstract class RTApiClient extends RTHTTPClient
 
             if (debugMode)
             {
-                System.err.println("Calling API method via " + rtType.name() + " : " + url);
-                System.err.println("With headers: ");
-                for (RTPostParameter p : headers)
+                Log.d(RTApiClient.class.getSimpleName(), "Calling API method via " + rtType.name() + " : " + url);
+                Log.d(RTApiClient.class.getSimpleName(), "Content-type: " + cmd.getContentType());
+
+                if (headers.size() > 0)
                 {
-                    System.err.println(String.format("  %s = %s", p.getName(), p.getValue()));
+                    Log.d(RTApiClient.class.getSimpleName(), "With headers: ");
+                    for (RTPostParameter p : headers)
+                    {
+                        Log.d(RTApiClient.class.getSimpleName(), String.format("  %s = %s", p.getName(), p.getValue()));
+                    }
+                } else
+                {
+                    Log.d(RTApiClient.class.getSimpleName(), "Without headers");
+                }
+
+                if (parameters.size() > 0)
+                {
+                    Log.d(RTApiClient.class.getSimpleName(), "With parameters: ");
+                    for (RTPostParameter p : parameters)
+                    {
+                        Log.d(RTApiClient.class.getSimpleName(), String.format("%s: %s = %s", rtType.name(), p.getName(), p.getValue()));
+                    }
+                } else
+                {
+                    Log.d(RTApiClient.class.getSimpleName(), "Without parameters");
                 }
             }
 
@@ -63,19 +84,19 @@ public abstract class RTApiClient extends RTHTTPClient
             switch (rtType)
             {
                 case POST:
-                    response = processPost(cmd,url,parameters,headers);
+                    response = processPost(cmd, url, parameters, headers);
                     break;
 
                 case GET:
-                    response = executeGetRequest(url,headers,parameters);
+                    response = executeGetRequest(url, headers, parameters);
                     break;
 
                 case PUT:
-                    response = executePutRequest(url,headers,parameters);
+                    response = executePutRequest(url, headers, parameters);
                     break;
 
                 case DELETE:
-                    response = executeDeleteRequest(url,headers,parameters);
+                    response = executeDeleteRequest(url, headers, parameters);
                     break;
 
                 default:
@@ -87,8 +108,8 @@ public abstract class RTApiClient extends RTHTTPClient
 
             if (debugMode)
             {
-                System.err.println(">> Server returned status code: " + response.getStatusLine().getStatusCode());
-                System.err.println(">> " + response.getStatusLine().getReasonPhrase());
+                Log.d(RTApiClient.class.getSimpleName(), "<< Server returned status code: " + response.getStatusLine().getStatusCode());
+                Log.d(RTApiClient.class.getSimpleName(), "<< " + response.getStatusLine().getReasonPhrase());
             }
 
             final String data = loadHttpResponseToString(response, transportEncoding);
@@ -97,9 +118,9 @@ public abstract class RTApiClient extends RTHTTPClient
 
             if (debugMode)
             {
-                System.err.println("\n\n<< " + url);
-                System.err.println(data);
-                System.err.println("\n\n\n\n");
+                Log.d(RTApiClient.class.getSimpleName(), "\n\n<< " + url);
+                Log.d(RTApiClient.class.getSimpleName(), data);
+                Log.d(RTApiClient.class.getSimpleName(), "\n\n");
             }
 
             RTApiCommandResult result = cmd.parseServerResponseData(data);
@@ -124,22 +145,15 @@ public abstract class RTApiClient extends RTHTTPClient
 
         if (debugMode)
         {
-            if (body.length()<=0)
+            if (body.length() > 0)
             {
-            for (RTPostParameter p : parameters)
-            {
-                System.err.println("Form submitted:\n");
-                System.err.println(String.format("  %s = %s", p.getName(), p.getValue()));
-            }
-            } else
-            {
-                System.err.println("Request body:\n" + body.toString());
+                Log.d(RTApiClient.class.getSimpleName(), "POST Body:\n" + body.toString());
             }
         }
 
-        if (body.length()>0)
+        if (body.length() > 0)
         {
-            return executePostRequest(url, "Content-Type: application/json", "utf-8", body.toString(), headers.toArray(new RTPostParameter[headers.size()]));
+            return executePostRequest(url, "Content-Type: " + cmd.getContentType(), "utf-8", body.toString(), headers.toArray(new RTPostParameter[headers.size()]));
         } else
         {
             return submitForm(url, headers, parameters);
