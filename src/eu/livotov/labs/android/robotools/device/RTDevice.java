@@ -2,6 +2,7 @@ package eu.livotov.labs.android.robotools.device;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.provider.Settings;
@@ -89,5 +90,71 @@ public class RTDevice
         }
 
         return RTCryptUtil.md5(id.toString());
+    }
+
+    public static boolean supportsCamera(Context ctx)
+    {
+        PackageManager pm = ctx.getPackageManager();
+
+        if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean supportsTelephony(Context ctx)
+    {
+        PackageManager pm = ctx.getPackageManager();
+
+        if (pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean supportsGps(Context ctx)
+    {
+        PackageManager pm = ctx.getPackageManager();
+
+        if (pm.hasSystemFeature(PackageManager.FEATURE_LOCATION))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean supportsSms(Context ctx)
+    {
+        try
+        {
+            if (ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY))
+            {
+                TelephonyManager telMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
+                int simState = telMgr.getSimState();
+                switch (simState)
+                {
+                    case TelephonyManager.SIM_STATE_ABSENT:
+                    case TelephonyManager.SIM_STATE_NETWORK_LOCKED:
+                    case TelephonyManager.SIM_STATE_PIN_REQUIRED:
+                    case TelephonyManager.SIM_STATE_PUK_REQUIRED:
+                    case TelephonyManager.SIM_STATE_UNKNOWN:
+                        return false;
+
+                    case TelephonyManager.SIM_STATE_READY:
+                        return true;
+
+                    default:
+                        return true;
+                }
+            }
+
+            return false;
+        } catch (Throwable err)
+        {
+            err.printStackTrace();
+            return false;
+        }
     }
 }
