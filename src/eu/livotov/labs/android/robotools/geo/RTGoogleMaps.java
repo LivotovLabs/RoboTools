@@ -68,7 +68,7 @@ public class RTGoogleMaps
 
     public static boolean intiMapForInlinePreview(GoogleMap map, Activity activity)
     {
-        if (activity != null && isGoogleMapsAvailable(activity))
+        if (activity != null && !isGoogleMapsAvailable(activity))
         {
             return false;
         }
