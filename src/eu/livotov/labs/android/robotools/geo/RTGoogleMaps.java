@@ -33,7 +33,7 @@ public class RTGoogleMaps
 
     public static boolean intiMap(GoogleMap map, Activity activity)
     {
-        if (activity != null && isGoogleMapsAvailable(activity))
+        if (activity != null && !isGoogleMapsAvailable(activity))
         {
             return false;
         }
