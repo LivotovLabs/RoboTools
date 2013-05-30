@@ -6,7 +6,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import eu.livotov.labs.android.robotools.device.RTDevice;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -43,11 +42,6 @@ public class RTGps implements LocationListener
     public RTGps(Context ctx)
     {
         this.ctx = ctx;
-    }
-
-    public boolean supportsGps()
-    {
-        return RTDevice.supportsGps(ctx);
     }
 
     public double getMinimumDistance()
