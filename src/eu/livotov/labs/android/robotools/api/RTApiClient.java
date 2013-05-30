@@ -6,6 +6,7 @@ import eu.livotov.labs.android.robotools.net.RTHTTPError;
 import eu.livotov.labs.android.robotools.net.RTPostParameter;
 import org.apache.http.HttpResponse;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,11 +44,26 @@ public abstract class RTApiClient extends RTHTTPClient
         {
             final String url = String.format("%s%s", getEndpointUrlFor(cmd), secureSlash(cmd.buildRequestUri()));
             final List<RTPostParameter> parameters = new ArrayList<RTPostParameter>();
-            cmd.buildRequestParameters(parameters);
+            final List<RTPostParameter> headers = new ArrayList<RTPostParameter>();
 
-            List<RTPostParameter> headers = new ArrayList<RTPostParameter>();
-            onCommandPreExecute(cmd, url, parameters, headers);
             RTApiRequestType rtType = cmd.getRequestType();
+
+            cmd.buildRequestParameters(parameters);
+            onCommandPreExecute(cmd, url, parameters, headers);
+
+            boolean hasAttachments = false;
+
+            if (rtType == RTApiRequestType.POST)
+            {
+                for (RTPostParameter parameter : parameters)
+                {
+                    if (parameter.getAttachment()!=null && parameter.getAttachment().exists() && parameter.getAttachment().length()>0)
+                    {
+                        hasAttachments = true;
+                        break;
+                    }
+                }
+            }
 
             if (debugMode)
             {
@@ -71,7 +87,13 @@ public abstract class RTApiClient extends RTHTTPClient
                     Log.d(RTApiClient.class.getSimpleName(), "With parameters: ");
                     for (RTPostParameter p : parameters)
                     {
-                        Log.d(RTApiClient.class.getSimpleName(), String.format("%s: %s = %s", rtType.name(), p.getName(), p.getValue()));
+                        if (rtType == RTApiRequestType.POST)
+                        {
+                            Log.d(RTApiClient.class.getSimpleName(), String.format("%s: %s = %s", rtType.name(), p.getName(), p.getAttachment()!=null ? p.getAttachment().getAbsolutePath() : p.getValue()));
+                        } else
+                        {
+                            Log.d(RTApiClient.class.getSimpleName(), String.format("%s: %s = %s", rtType.name(), p.getName(), p.getValue()));
+                        }
                     }
                 } else
                 {
@@ -84,7 +106,13 @@ public abstract class RTApiClient extends RTHTTPClient
             switch (rtType)
             {
                 case POST:
-                    response = processPost(cmd, url, parameters, headers);
+                    if (!hasAttachments)
+                    {
+                        response = processPost(cmd, url, parameters, headers);
+                    } else
+                    {
+                        response = submitForm(url, headers, parameters);
+                    }
                     break;
 
                 case GET:

@@ -2,6 +2,8 @@ package eu.livotov.labs.android.robotools.net;
 
 import org.apache.http.NameValuePair;
 
+import java.io.File;
+
 /**
  * Created with IntelliJ IDEA.
  * User: dlivotov
@@ -13,6 +15,7 @@ public class RTPostParameter implements NameValuePair {
 
     private String name;
     private String value;
+    private File attachment;
 
     public RTPostParameter(final String name, final String value) {
         this.name = name;
@@ -27,5 +30,15 @@ public class RTPostParameter implements NameValuePair {
     @Override
     public String getValue() {
         return value;
+    }
+
+    public File getAttachment()
+    {
+        return attachment;
+    }
+
+    public void setAttachment(final File attachment)
+    {
+        this.attachment = attachment;
     }
 }

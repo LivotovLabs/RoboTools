@@ -3,6 +3,7 @@ package eu.livotov.labs.android.robotools.api;
 import android.os.AsyncTask;
 import eu.livotov.labs.android.robotools.net.RTPostParameter;
 
+import java.io.File;
 import java.util.List;
 
 /**

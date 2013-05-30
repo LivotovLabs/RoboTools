@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import eu.livotov.labs.android.robotools.device.RTStorage;
 
@@ -26,14 +27,52 @@ public class RTPhotoPickup
     public static final int REQUEST_CODE_SELECT_IMAGE_CAMERA = 83;
     private static File photoFile = null;
 
-    public static void pickPictureFromGallery(Activity ctx, final String chooserTitle)
+    public static void pickPictureFromGallery(Activity ctx)
     {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT, null);
         intent.setType("image/*");
-        ctx.startActivityForResult(Intent.createChooser(intent, chooserTitle != null ? chooserTitle : "Select Picture"), REQUEST_CODE_SELECT_IMAGE_GALLERY);
+        ctx.startActivityForResult(Intent.createChooser(intent, "Select Picture"), REQUEST_CODE_SELECT_IMAGE_GALLERY);
     }
 
-    public static void pickPictureFromCamera(Activity ctx, final String chooserTitle, boolean frontalCamera)
+    public static void pickPictureFromGallery(Fragment ctx)
+    {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT, null);
+        intent.setType("image/*");
+        ctx.startActivityForResult(Intent.createChooser(intent, "Select Picture"), REQUEST_CODE_SELECT_IMAGE_GALLERY);
+    }
+
+    public static void pickPictureFromCamera(Activity ctx, boolean frontalCamera)
+    {
+        File path = RTStorage.getExternalStorage("photos");
+
+        if (RTStorage.isExternalStorageReady() && path != null && path.exists())
+        {
+            photoFile = new File(path, UUID.randomUUID().toString().replaceAll("-", "") + ".jpg");
+
+            try
+            {
+                photoFile.createNewFile();
+                Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+
+                if (frontalCamera)
+                {
+                    intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
+                }
+
+                ctx.startActivityForResult(intent, REQUEST_CODE_SELECT_IMAGE_CAMERA);
+            } catch (IOException e)
+            {
+                Log.e(RTPhotoPickup.class.getSimpleName(), e.getMessage(), e);
+                throw new RuntimeException(e);
+            }
+        } else
+        {
+            throw new RuntimeException("Storage is not writable");
+        }
+    }
+
+    public static void pickPictureFromCamera(Fragment ctx, boolean frontalCamera)
     {
         File path = RTStorage.getExternalStorage("photos");
 

@@ -323,7 +323,18 @@ public class RTHTTPClient implements HttpRequestRetryHandler
 
             for (RTPostParameter field : formFields)
             {
-                parts.add(new StringPart(field.getName(), field.getValue(), "utf-8"));
+                if (field.getAttachment()!=null)
+                {
+                    File attachment = field.getAttachment();
+                    if (attachment.exists() && attachment.length()>0 && attachment.canRead())
+                    {
+                        FilePart filePart = new FilePart(field.getName(),attachment);
+                        parts.add(filePart);
+                    }
+                } else
+                {
+                    parts.add(new StringPart(field.getName(), field.getValue(), "utf-8"));
+                }
             }
 
             MultipartEntity mpEntity = new MultipartEntity(parts.toArray(new Part[parts.size()]));

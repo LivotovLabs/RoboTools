@@ -8,8 +8,13 @@ import android.os.Build;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -20,6 +25,8 @@ import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
  */
 public class RTDevice
 {
+
+    private static int cachedCoresCount = 0;
 
     public static boolean isTablet(Activity activity)
     {
@@ -154,6 +161,38 @@ public class RTDevice
         } catch (Throwable err)
         {
             err.printStackTrace();
+            return false;
+        }
+    }
+
+    public synchronized static int getCpuCoresCount()
+    {
+        if (cachedCoresCount == 0)
+        {
+            try
+            {
+                File dir = new File("/sys/devices/system/cpu/");
+                File[] files = dir.listFiles(new CpuFilter());
+                cachedCoresCount = files.length;
+            } catch (Exception e)
+            {
+                Log.e(RTDevice.class.getSimpleName(), e.getMessage(), e);
+                cachedCoresCount = 1;
+            }
+        }
+
+        return cachedCoresCount;
+    }
+
+    private static class CpuFilter implements FileFilter
+    {
+
+        public boolean accept(File pathname)
+        {
+            if (Pattern.matches("cpu[0-9]", pathname.getName()))
+            {
+                return true;
+            }
             return false;
         }
     }
