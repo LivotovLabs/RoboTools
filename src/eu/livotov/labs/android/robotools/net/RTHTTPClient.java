@@ -139,6 +139,9 @@ public class RTHTTPClient implements HttpRequestRetryHandler
     {
         try
         {
+            final String finalEncoding = TextUtils.isEmpty(encoding) ? "utf-8" : encoding;
+            final String finalContentType = TextUtils.isEmpty(contentType) ? "application/binary" : contentType;
+
             if (configuration.isDirty())
             {
                 reconfigureHttpClient();
@@ -164,25 +167,24 @@ public class RTHTTPClient implements HttpRequestRetryHandler
                 index++;
             }
 
-            HttpPut get = new HttpPut(finalUrl.toString());
+            HttpPut put = new HttpPut(finalUrl.toString());
 
             for (RTPostParameter h : headers)
             {
-                get.addHeader(h.getName(), h.getValue());
+                put.addHeader(h.getName(), h.getValue());
             }
+
+            put.addHeader("Content-type", finalContentType);
 
             if (!TextUtils.isEmpty(body))
             {
-                final String finalEncoding = TextUtils.isEmpty(encoding)  ? "utf-8" : encoding;
-                final String finalContentType = TextUtils.isEmpty(contentType)  ? "application/binary" : contentType;
-
                 StringEntity putEntity = new StringEntity(body, encoding);
                 putEntity.setContentType(finalContentType + "; charset=" + finalEncoding);
                 putEntity.setContentEncoding(finalEncoding);
-                get.setEntity(putEntity);
+                put.setEntity(putEntity);
             }
 
-            return http.execute(get);
+            return http.execute(put);
         } catch (Throwable err)
         {
             throw new RTHTTPError(err);

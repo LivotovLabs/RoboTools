@@ -188,7 +188,7 @@ public abstract class RTApiClient extends RTHTTPClient
         }
     }
 
-    private HttpResponse processPut(final RTApiCommand cmd, final String url, final List<RTPostParameter> parameters, final List<RTPostParameter> headers)
+    private HttpResponse processPut(final RTApiCommand cmd, final String url, final List<RTPostParameter> headers, final List<RTPostParameter> parameters)
     {
         StringBuffer body = new StringBuffer();
         cmd.buildRequestBody(body);
