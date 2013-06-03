@@ -213,7 +213,7 @@ public class RTAsyncImageLoader
             }
 
             return bitmap;
-        } catch (FileNotFoundException e)
+        } catch (Throwable e)
         {
             e.printStackTrace();
             return null;

@@ -34,7 +34,10 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
 
     protected abstract int getListItemLayoutResource(final int itemViewType);
 
-    protected abstract View createListItemView(final int itemViewType);
+    protected View createListItemView(final int itemViewType)
+    {
+        return null;
+    }
 
     public void addListAdapterEventListener(final RTListAdapterEventListener listAdapterEventListener)
     {
@@ -124,6 +127,11 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
         return view;
     }
 
+    public Context getContext()
+    {
+        return ctx;
+    }
+
     protected void onDataRefreshStarted()
     {
         for (RTListAdapterEventListener listener : listAdapterEventListeners)
@@ -146,6 +154,12 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
         {
             listener.onDataRefreshFailed(err);
         }
+    }
+
+    public void appendInstantData(final Collection<T> res)
+    {
+        data.addAll(res);
+        notifyDataSetChanged();
     }
 
     public interface RTListAdapterEventListener

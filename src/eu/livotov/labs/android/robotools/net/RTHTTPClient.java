@@ -1,8 +1,11 @@
 package eu.livotov.labs.android.robotools.net;
 
+import android.text.TextUtils;
 import eu.livotov.labs.android.robotools.io.RTStreamUtil;
-import eu.livotov.labs.android.robotools.net.multipart.*;
-
+import eu.livotov.labs.android.robotools.net.multipart.FilePart;
+import eu.livotov.labs.android.robotools.net.multipart.MultipartEntity;
+import eu.livotov.labs.android.robotools.net.multipart.Part;
+import eu.livotov.labs.android.robotools.net.multipart.StringPart;
 import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpDelete;
@@ -129,6 +132,11 @@ public class RTHTTPClient implements HttpRequestRetryHandler
 
     public HttpResponse executePutRequest(final String url, Collection<RTPostParameter> headers, Collection<RTPostParameter> params)
     {
+        return executePutRequest(url, null, null, null, headers, params);
+    }
+
+    public HttpResponse executePutRequest(final String url, final String contentType, final String encoding, final String body, Collection<RTPostParameter> headers, Collection<RTPostParameter> params)
+    {
         try
         {
             if (configuration.isDirty())
@@ -161,6 +169,17 @@ public class RTHTTPClient implements HttpRequestRetryHandler
             for (RTPostParameter h : headers)
             {
                 get.addHeader(h.getName(), h.getValue());
+            }
+
+            if (!TextUtils.isEmpty(body))
+            {
+                final String finalEncoding = TextUtils.isEmpty(encoding)  ? "utf-8" : encoding;
+                final String finalContentType = TextUtils.isEmpty(contentType)  ? "application/binary" : contentType;
+
+                StringEntity putEntity = new StringEntity(body, encoding);
+                putEntity.setContentType(finalContentType + "; charset=" + finalEncoding);
+                putEntity.setContentEncoding(finalEncoding);
+                get.setEntity(putEntity);
             }
 
             return http.execute(get);
@@ -323,12 +342,12 @@ public class RTHTTPClient implements HttpRequestRetryHandler
 
             for (RTPostParameter field : formFields)
             {
-                if (field.getAttachment()!=null)
+                if (field.getAttachment() != null)
                 {
                     File attachment = field.getAttachment();
-                    if (attachment.exists() && attachment.length()>0 && attachment.canRead())
+                    if (attachment.exists() && attachment.length() > 0 && attachment.canRead())
                     {
-                        FilePart filePart = new FilePart(field.getName(),attachment);
+                        FilePart filePart = new FilePart(field.getName(), attachment);
                         parts.add(filePart);
                     }
                 } else
@@ -368,8 +387,8 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         {
             if (err instanceof RTHTTPError)
             {
-                throw (RTHTTPError)err;
-            }  else
+                throw (RTHTTPError) err;
+            } else
             {
                 throw new RTHTTPError(err);
             }

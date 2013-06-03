@@ -120,7 +120,7 @@ public abstract class RTApiClient extends RTHTTPClient
                     break;
 
                 case PUT:
-                    response = executePutRequest(url, headers, parameters);
+                    response = processPut(cmd, url, headers, parameters);
                     break;
 
                 case DELETE:
@@ -185,6 +185,28 @@ public abstract class RTApiClient extends RTHTTPClient
         } else
         {
             return submitForm(url, headers, parameters);
+        }
+    }
+
+    private HttpResponse processPut(final RTApiCommand cmd, final String url, final List<RTPostParameter> parameters, final List<RTPostParameter> headers)
+    {
+        StringBuffer body = new StringBuffer();
+        cmd.buildRequestBody(body);
+
+        if (debugMode)
+        {
+            if (body.length() > 0)
+            {
+                Log.d(RTApiClient.class.getSimpleName(), "PUT Body:\n" + body.toString());
+            }
+        }
+
+        if (body.length() > 0)
+        {
+            return executePutRequest(url,cmd.getContentType(), "utf-8", body.toString(), headers, parameters);
+        } else
+        {
+            return executePutRequest(url, headers, parameters);
         }
     }
 
