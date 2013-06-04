@@ -210,6 +210,28 @@ public abstract class RTApiClient extends RTHTTPClient
         }
     }
 
+    private HttpResponse processDelete(final RTApiCommand cmd, final String url, final List<RTPostParameter> headers, final List<RTPostParameter> parameters)
+    {
+        StringBuffer body = new StringBuffer();
+        cmd.buildRequestBody(body);
+
+        if (debugMode)
+        {
+            if (body.length() > 0)
+            {
+                Log.d(RTApiClient.class.getSimpleName(), "DELETE Body:\n" + body.toString());
+            }
+        }
+
+        if (body.length() > 0)
+        {
+            return executeDeleteRequest(url,cmd.getContentType(), "utf-8", body.toString(), headers, parameters);
+        } else
+        {
+            return executeDeleteRequest(url, headers, parameters);
+        }
+    }
+
     protected abstract void onCommandHttpRequestDone(RTApiCommand cmd, String url, List<RTPostParameter> parameters, HttpResponse response);
 
     protected abstract void onCommandResponseDataLoaded(RTApiCommand cmd, String url, List<RTPostParameter> parameters, HttpResponse response, String data);

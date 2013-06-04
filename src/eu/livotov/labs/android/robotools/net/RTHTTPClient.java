@@ -2,6 +2,7 @@ package eu.livotov.labs.android.robotools.net;
 
 import android.text.TextUtils;
 import eu.livotov.labs.android.robotools.io.RTStreamUtil;
+import eu.livotov.labs.android.robotools.net.method.HttpDeleteWithBody;
 import eu.livotov.labs.android.robotools.net.multipart.FilePart;
 import eu.livotov.labs.android.robotools.net.multipart.MultipartEntity;
 import eu.livotov.labs.android.robotools.net.multipart.Part;
@@ -174,13 +175,12 @@ public class RTHTTPClient implements HttpRequestRetryHandler
                 put.addHeader(h.getName(), h.getValue());
             }
 
-            put.addHeader("Content-type", finalContentType);
-
             if (!TextUtils.isEmpty(body))
             {
                 StringEntity putEntity = new StringEntity(body, encoding);
                 putEntity.setContentType(finalContentType + "; charset=" + finalEncoding);
                 putEntity.setContentEncoding(finalEncoding);
+                put.addHeader("Content-type", finalContentType);
                 put.setEntity(putEntity);
             }
 
@@ -193,8 +193,16 @@ public class RTHTTPClient implements HttpRequestRetryHandler
 
     public HttpResponse executeDeleteRequest(final String url, Collection<RTPostParameter> headers, Collection<RTPostParameter> params)
     {
+        return executeDeleteRequest(url, null, null, null, headers, params);
+    }
+
+    public HttpResponse executeDeleteRequest(final String url, final String contentType, final String encoding, final String body, Collection<RTPostParameter> headers, Collection<RTPostParameter> params)
+    {
         try
         {
+            final String finalEncoding = TextUtils.isEmpty(encoding) ? "utf-8" : encoding;
+            final String finalContentType = TextUtils.isEmpty(contentType) ? "application/binary" : contentType;
+
             if (configuration.isDirty())
             {
                 reconfigureHttpClient();
@@ -220,11 +228,20 @@ public class RTHTTPClient implements HttpRequestRetryHandler
                 index++;
             }
 
-            HttpDelete delete = new HttpDelete(finalUrl.toString());
+            HttpDeleteWithBody delete = new HttpDeleteWithBody(finalUrl.toString());
 
             for (RTPostParameter h : headers)
             {
                 delete.addHeader(h.getName(), h.getValue());
+            }
+
+            if (!TextUtils.isEmpty(body))
+            {
+                StringEntity putEntity = new StringEntity(body, encoding);
+                putEntity.setContentType(finalContentType + "; charset=" + finalEncoding);
+                putEntity.setContentEncoding(finalEncoding);
+                delete.addHeader("Content-type", finalContentType);
+                delete.setEntity(putEntity);
             }
 
             return http.execute(delete);
