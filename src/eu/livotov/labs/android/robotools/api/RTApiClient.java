@@ -124,7 +124,7 @@ public abstract class RTApiClient extends RTHTTPClient
                     break;
 
                 case DELETE:
-                    response = executeDeleteRequest(url, headers, parameters);
+                    response = processDelete(cmd, url, headers, parameters);
                     break;
 
                 default:
