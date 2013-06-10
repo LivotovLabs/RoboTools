@@ -2,7 +2,6 @@ package eu.livotov.labs.android.robotools.imaging;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.support.v4.util.LruCache;
 import android.util.Log;
@@ -26,29 +25,16 @@ import java.util.concurrent.ExecutorService;
 public class RTAsyncImageLoader
 {
 
-    private static RTAsyncImageLoader singleton = null;
+    private static final int DEFAULT_IMAGE_SIZE = 180;
+
+    private int defaultImageDownscaledSize = DEFAULT_IMAGE_SIZE;
     private final ExecutorService executor;
     private LruCache<String, Bitmap> cache;
-
-    /**
-     * Internal flag to indicate background thread that we need to shutdown
-     */
-    private volatile boolean mustTerminate = false;
-
-    /**
-     * If set to >0, means the width in pixels in case we want to post-scale all loaded images.
-     */
-    private int explicitWidth = 0;
-
-    /**
-     * If set to >0, means the height in pixels in case we want to post-scale all loaded images.
-     */
-    private int explicitHeight = 0;
-
+    private Handler handler;
     private File cacheDir = null;
 
-    private int loadingStub;
-    private int failoverStub;
+    private int loadingStubResource;
+    private int failoverStubResource;
 
     private ImageView.ScaleType finalImageScaleType = ImageView.ScaleType.CENTER_CROP;
     private ImageView.ScaleType loadingImageScaleType = ImageView.ScaleType.CENTER_INSIDE;
@@ -56,53 +42,53 @@ public class RTAsyncImageLoader
 
     protected Context context;
 
-    private static final int MAX_ENTRIES = 150;
 
-
-    /**
-     * Constructs image loader and starts a loading thread. No post-scaling will be applied
-     */
     public RTAsyncImageLoader(Context ctx)
     {
-        this(ctx, 128, 0, 0);
+        this(ctx, DEFAULT_IMAGE_SIZE);
     }
 
-    /**
-     * Constructs image loader and starts a loading thread. Sets the post-scaling parameters to apply
-     * to all loaded images.
-     *
-     * @param explicitWidth  desired image width in pixels, you want to scale any loaded image to. Set to 0 to disable scaling on this axis.
-     * @param explicitHeight desired image height in pixels, you want to scale any loaded image to. Set to 0 to disable scaling on this axis.
-     */
-    public RTAsyncImageLoader(Context ctx, int maxCacheSizeKb, int explicitWidth, int explicitHeight)
+    public RTAsyncImageLoader(Context ctx, int defaultImageDownscaledSize)
     {
-        this.explicitWidth = explicitWidth;
-        this.explicitHeight = explicitHeight;
+        this(ctx, 0, defaultImageDownscaledSize, 0);
+    }
+
+    public RTAsyncImageLoader(Context ctx, int maxCacheSizeKb, int defaultImageDownscaledSize, int numberOfWorkers)
+    {
+        this.defaultImageDownscaledSize = defaultImageDownscaledSize;
         this.cacheDir = ctx.getCacheDir();
         this.context = ctx;
-        this.cache = new LruCache<String, Bitmap>(maxCacheSizeKb);
-        executor = RTQueueExecutor.create(RTDevice.getCpuCoresCount() * 2);
+        this.handler = new Handler();
+
+        setMemoryCacheSizeKb(((int) (Runtime.getRuntime().maxMemory() / 1024)) / 8);
+
+        executor = RTQueueExecutor.create(numberOfWorkers > 0 ? numberOfWorkers : RTDevice.getCpuCoresCount() * 2);
     }
 
-    public static synchronized RTAsyncImageLoader getDefaultImagesLoader(Context ctx)
+    public synchronized void setMemoryCacheSizeKb(final int kb)
     {
-        if (singleton == null)
+        if (cache != null)
         {
-            singleton = new RTAsyncImageLoader(ctx);
+            cache.evictAll();
         }
 
-        return singleton;
+        this.cache = new LruCache<String, Bitmap>(kb)
+        {
+            protected int sizeOf(final String key, final Bitmap value)
+            {
+                return value.getByteCount() / 1024;
+            }
+        };
     }
 
-    public static synchronized RTAsyncImageLoader getDefaultImagesLoader(Context ctx, int defaultImgResId)
+    public void setLoadingImageStubResource(final int res)
     {
-        if (singleton == null)
-        {
-            singleton = new RTAsyncImageLoader(ctx);
-            singleton.cacheForEmptyUrl(defaultImgResId);
-        }
+        this.loadingStubResource = res;
+    }
 
-        return singleton;
+    public void setFailoverImageStubResource(final int res)
+    {
+        this.failoverStubResource = res;
     }
 
     public ImageView.ScaleType getFinalImageScaleType()
@@ -135,31 +121,26 @@ public class RTAsyncImageLoader
         this.failoverImageScaleType = failoverImageScaleType;
     }
 
-    public void loadImage(ImageView view, String url, int width, int height)
+    public void loadImage(ImageView view, String url, int width)
     {
-        loadImage(view, url, width, height, null);
+        loadImage(view, url, width, null);
     }
 
     public void loadImage(ImageView view, String url)
     {
-        loadImage(view, url, explicitWidth, explicitHeight, null);
+        loadImage(view, url, defaultImageDownscaledSize, null);
     }
 
-    /**
-     * Posts a request to load an image. Requests will be put into a queue and processed in background.
-     *
-     * @param view TouchImageView instance you need to load and set image to
-     * @param url  image url
-     */
-    public void loadImage(ImageView view, String url, int width, int height, ImageLoadListener onLoadListener)
+    public synchronized void loadImage(ImageView view, String url, int maxSize, ImageLoadListener onLoadListener)
     {
+        final String tag = UUID.randomUUID().toString();
+        final int sz = maxSize>0 ? maxSize : defaultImageDownscaledSize;
 
-        String tag;
-        tag = UUID.randomUUID().toString();
         view.setTag(tag);
-        if (hasCachedImage(url))
+
+        if (hasMemoryCachedImage(url, sz))
         {
-            loadCachedImage(view, url, width, height); // RTAsyncImageLoader.getDefaultImagesLoader(context).loadCachedImage(view,url, width, height);
+            loadPreCachedImage(view, url, sz);
 
             if (onLoadListener != null)
             {
@@ -167,17 +148,17 @@ public class RTAsyncImageLoader
             }
         } else
         {
-            if (loadingStub > 0)
+            if (loadingStubResource > 0)
             {
                 if (loadingImageScaleType != null)
                 {
                     view.setScaleType(loadingImageScaleType);
                 }
 
-                view.setImageResource(loadingStub);
+                view.setImageResource(loadingStubResource);
             }
 
-            ImageLoadRequest request = new ImageLoadRequest(view, url, onLoadListener, width, height);
+            ImageLoadRequest request = new ImageLoadRequest(view, url, onLoadListener, sz);
             request.tag = tag;
             executor.execute(new SingleImageLoadTask(request));
         }
@@ -189,9 +170,14 @@ public class RTAsyncImageLoader
      * @param url image url to load
      * @return <code>true</code> if the local cache has the image
      */
-    public boolean hasCachedImage(String url)
+    public boolean hasCachedImageonDisk(String url)
     {
         return generateLocalCacheFileName(url).exists();
+    }
+
+    public boolean hasMemoryCachedImage(String url, int reqSize)
+    {
+        return cache.get(url + reqSize) != null;
     }
 
     /**
@@ -200,16 +186,18 @@ public class RTAsyncImageLoader
      * @param url url of the remote image
      * @return image instance as a Bitmap. If image is not chached, a null will be returned
      */
-    public Bitmap getCachedImage(String url, int width, int height)
+    public Bitmap getCachedImage(String url, int reqSize)
     {
+        final String key = url + reqSize;
+
         try
         {
-            Bitmap bitmap = cache.get(url);
+            Bitmap bitmap = cache.get(key);
 
             if (bitmap == null)
             {
-                bitmap = decodeFile(generateLocalCacheFileName(url), width, height);
-                cache.put(url, bitmap);
+                bitmap = decodeFile(generateLocalCacheFileName(url), reqSize);
+                cache.put(key, bitmap);
             }
 
             return bitmap;
@@ -220,16 +208,9 @@ public class RTAsyncImageLoader
         }
     }
 
-    /**
-     * Immideately loads the cahced image. If image is not cached, image view will receive a null bitmap. This method is a
-     * equivalent of ImageView.setImageBitmap ( ImageLoader.getCachedImage ( url ));
-     *
-     * @param view TouchImageView to set cached image to
-     * @param url  image remote url.
-     */
-    public void loadCachedImage(ImageView view, String url, int widht, int height)
+    protected void loadPreCachedImage(ImageView view, String url, int reqSize)
     {
-        Bitmap bitmap = getCachedImage(url, widht, height);
+        Bitmap bitmap = getCachedImage(url, reqSize);
 
         if (finalImageScaleType != null)
         {
@@ -250,34 +231,11 @@ public class RTAsyncImageLoader
         executor.shutdown();
     }
 
-    public void cacheForEmptyUrl(int imgResId)
-    {
-        Bitmap image = BitmapFactory.decodeResource(context.getResources(), imgResId);
-        FileOutputStream fos = null;
-        try
-        {
-            fos = new FileOutputStream(generateLocalCacheFileName(""));
-            image.compress(Bitmap.CompressFormat.PNG, 50, fos);
-            fos.close();
-        } catch (Throwable err)
-        {
-            System.err.println("Error loading local img");
-            err.printStackTrace();
-        }
-
-    }
-
-
-    protected Bitmap decodeBitmapStream(InputStream is)
-    {
-        return BitmapFactory.decodeStream(is);
-    }
-
     private void loadToView(final ImageLoadRequest request, final Bitmap image)
     {
         if (request.getView() != null && request.tag != null && request.tag.equals(request.view.getTag()))
         {
-            request.getHandler().post(new Runnable()
+            handler.post(new Runnable()
             {
 
                 public void run()
@@ -289,32 +247,6 @@ public class RTAsyncImageLoader
 
                     disposeOldImageState(request.getView());
                     request.getView().setImageBitmap(image);
-
-                    if (request.imageLoadListener != null)
-                    {
-                        request.imageLoadListener.onImageLoaded(request.getView());
-                    }
-                }
-            });
-
-        }
-    }
-
-    private void loadToView(final ImageLoadRequest request, final int res)
-    {
-        if (request.getView() != null && request.tag != null && request.tag.equals(request.view.getTag()))
-        {
-            request.getHandler().post(new Runnable()
-            {
-
-                public void run()
-                {
-                    if (finalImageScaleType != null)
-                    {
-                        request.getView().setScaleType(finalImageScaleType);
-                    }
-
-                    request.getView().setImageResource(res);
 
                     if (request.imageLoadListener != null)
                     {
@@ -352,11 +284,11 @@ public class RTAsyncImageLoader
                 md5 = "0" + md5;
             }
 
-            return new File(cacheDir, "ILCACHE-" + md5);
+            return new File(cacheDir, "ILC-" + md5);
         } catch (NoSuchAlgorithmException e)
         {
             Log.e("MD5", e.getMessage());
-            return new File("ILCACHE-" + UUID.randomUUID().toString());
+            return new File("ILC-" + UUID.randomUUID().toString());
         }
     }
 
@@ -366,7 +298,7 @@ public class RTAsyncImageLoader
 
         for (File file : tempFiles)
         {
-            if (file.isFile() && file.getName().startsWith("ILCACHE"))
+            if (file.isFile() && file.getName().startsWith("ILC"))
             {
                 file.delete();
             }
@@ -375,84 +307,31 @@ public class RTAsyncImageLoader
         cache.evictAll();
     }
 
-    public void setLoadingImage(final int res)
-    {
-        this.loadingStub = res;
-    }
-
-    public void setFailoverImage(final int res)
-    {
-        this.failoverStub = res;
-    }
-
     /**
      * Container to hold a single image loasing request. Used internally to manage the queue.
      */
     public class ImageLoadRequest
     {
 
-        /**
-         * Tag to identify request and view
-         */
         private String tag;
-
-        /**
-         * View to load image for
-         */
         private ImageView view;
-        /**
-         * Url to load image from
-         */
         private String url;
-
-        private long lastModifiedDate;
-
-        private ImageLoadListener imageLoadListener;
-        /**
-         * Handler object for UI thread synchronization when setting a newly loaded image to an ImageView
-         */
-        private Handler handler;
-
-        private int width;
-
-        private int height;
-
+        private int reqSize;
         private int retryCount = 0;
+        private ImageLoadListener imageLoadListener;
 
-        /**
-         * Creates the load request instance
-         *
-         * @param view view to load image for
-         * @param url  remote image url
-         */
-//        public ImageLoadRequest(TouchImageView view, String url, ImageLoadListener imageLoadListener)
-//        {
-//            this.view = view;
-//            this.url = url;
-//            this.handler = new Handler();
-//            this.imageLoadListener = imageLoadListener;
-//        }
-        public ImageLoadRequest(ImageView view, String url, ImageLoadListener imageLoadListener, int width, int height)
+        public ImageLoadRequest(ImageView view, String url, ImageLoadListener imageLoadListener, int reqSize)
         {
             this.view = view;
             this.url = url;
-            this.handler = new Handler();
             this.imageLoadListener = imageLoadListener;
-            this.width = width;
-            this.height = height;
+            this.reqSize = reqSize;
         }
 
-        /**
-         * Creates viewless request that can be used just to pre-load an image silently, without
-         * interacting then with UI.
-         *
-         * @param url Image url to preload and cache
-         */
         public ImageLoadRequest(String url)
         {
             this.view = null;
             this.url = url;
-            this.handler = null;
         }
 
 
@@ -464,11 +343,6 @@ public class RTAsyncImageLoader
         public ImageView getView()
         {
             return view;
-        }
-
-        public Handler getHandler()
-        {
-            return handler;
         }
 
         public int getRetryCount()
@@ -483,26 +357,14 @@ public class RTAsyncImageLoader
         }
     }
 
-    public static Bitmap decodeFile(File file, int width, int height)
+    public static Bitmap decodeFile(File file, int reqSize)
             throws IllegalArgumentException, FileNotFoundException
     {
-        return RTBitmaps.loadBitmapFromFile(file.getPath(), width, height);
+        return RTBitmaps.loadBitmapFromFile(file, reqSize);
     }
 
     private void disposeOldImageState(ImageView view)
     {
-//        try
-//        {
-//            final Drawable drawable = view.getDrawable();
-//            if (drawable instanceof BitmapDrawable)
-//            {
-//                final BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-//                final Bitmap bitmap = bitmapDrawable.getBitmap();
-//                bitmap.recycle();
-//            }
-//        } catch (Throwable err)
-//        {
-//        }
     }
 
     public interface ImageLoadListener
@@ -527,12 +389,12 @@ public class RTAsyncImageLoader
 
             try
             {
-                if (!hasCachedImage(request.url))
+                if (!hasCachedImageonDisk(request.url))
                 {
                     InputStream is = new BufferedHttpEntity(executeHttpRequest(request.getUrl())).getContent();
                     FileOutputStream fos = new FileOutputStream(generateLocalCacheFileName(request.url));
 
-                    final byte buffer[] = new byte[1024];
+                    final byte buffer[] = new byte[8192];
                     int read = 1;
 
                     while (read > 0)
@@ -549,7 +411,7 @@ public class RTAsyncImageLoader
                     fos.close();
                 }
 
-                loadToView(request, getCachedImage(request.url, request.width, request.height));
+                loadToView(request, getCachedImage(request.url, request.reqSize));
             } catch (Throwable err)
             {
                 if (request.incrementAndGetRetryCount() < 3)

@@ -2,6 +2,10 @@ package eu.livotov.labs.android.robotools.imaging;
 
 import android.graphics.*;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
 /**
  * Created with IntelliJ IDEA.
  * User: dlivotov
@@ -12,34 +16,37 @@ import android.graphics.*;
 public class RTBitmaps
 {
 
-    public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight)
+    public static int calculateInSampleSize(BitmapFactory.Options options, int reqSize)
     {
-
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth)
+        int scale = 1;
+        if (options.outHeight > reqSize || options.outWidth > reqSize)
         {
-            if (width > height)
-            {
-                inSampleSize = Math.round((float) height / (float) reqHeight);
-            } else
-            {
-                inSampleSize = Math.round((float) width / (float) reqWidth);
-            }
+            scale = (int) Math.pow(2, (int) Math.round(Math.log(reqSize / (double) Math.max(options.outHeight, options.outWidth)) / Math.log(0.5)));
         }
-        return inSampleSize;
+        return scale;
     }
 
-    public static Bitmap loadBitmapFromFile(String path, int reqWidth, int reqHeight)
+    public static Bitmap loadBitmapFromFile(File file, int reqSize)
     {
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(path, options);
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(path, options);
+        try
+        {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            FileInputStream fis = new FileInputStream(file);
+            BitmapFactory.decodeStream(fis, null, options);
+            fis.close();
+
+            int inSampleSize = calculateInSampleSize(options, reqSize);
+            options = new BitmapFactory.Options();
+            options.inSampleSize = inSampleSize;
+            fis = new FileInputStream(file);
+            final Bitmap bitmap = BitmapFactory.decodeStream(fis, null, options);
+            fis.close();
+            return bitmap;
+        } catch (IOException err)
+        {
+            return null;
+        }
     }
 
     public static Bitmap toGrayscale(Bitmap bmpOriginal)
