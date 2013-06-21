@@ -1,12 +1,9 @@
 package eu.livotov.labs.android.robotools.ui.lists;
 
 import android.content.Context;
-import android.database.DataSetObserver;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ListAdapter;
 import eu.livotov.labs.android.robotools.async.RTAsyncTask;
 
 import java.util.Collection;
@@ -20,7 +17,7 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
 {
 
     private View pendingView = null;
-    private AtomicBoolean keepOnAppending = new AtomicBoolean(true);
+    private AtomicBoolean keepOnAppending = new AtomicBoolean(false);
     private boolean isSerialized = false;
 
 
@@ -30,8 +27,11 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
     }
 
     abstract protected int getLoadingViewItemLayoutResource();
+
     abstract protected Collection<T> loadEndlessBatchInBackground(int currentPayloadItemsCount);
+
     abstract protected int getRealViewTypeCount();
+
     abstract protected int getRealItemViewType(int position);
 
     public T getItem(int position)
@@ -99,6 +99,47 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
         return (super.getView(position, convertView, parent));
     }
 
+    public void refresh()
+    {
+        new RTAsyncTask<Object, Object, Collection<T>>()
+        {
+            public Collection<T> performExecutionThread(final Object... parameters)
+            {
+                return loadDataInBackgroundThread();
+            }
+
+            public void onExecutionStarted()
+            {
+                setKeepOnAppending(false);
+                onDataRefreshStarted();
+            }
+
+            public void onExecutionFinished(final Collection<T> ts)
+            {
+                data.clear();
+                data.addAll(ts);
+
+                if (data.size() > 0)
+                {
+                    setKeepOnAppending(true);
+                }
+
+                notifyDataSetChanged();
+                onDataRefreshEnded();
+            }
+
+            public void onExecutionError(final Throwable error)
+            {
+                onDataRefreshFailed(error);
+            }
+
+            public void onExecutionAborted()
+            {
+                onDataRefreshEnded();
+            }
+        }.executeAsync();
+    }
+
     private void executeAsyncTask()
     {
         final int realCount = super.getCount();
@@ -108,7 +149,7 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
 
             public Collection<T> performExecutionThread(final Void... parameters)
             {
-                if (realCount==0)
+                if (realCount == 0)
                 {
                     return loadDataInBackgroundThread();
                 } else
@@ -125,15 +166,7 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
             public void onExecutionFinished(final Collection<T> res)
             {
                 onDataRefreshEnded();
-
-                if (res.size() > 0)
-                {
-                    setKeepOnAppending(true);
-                } else
-                {
-                    setKeepOnAppending(false);
-                }
-
+                setKeepOnAppending(res.size() > 0);
                 data.addAll(res);
                 pendingView = null;
                 notifyDataSetChanged();
@@ -142,12 +175,13 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
             public void onExecutionError(final Throwable error)
             {
                 onDataRefreshFailed(error);
-                setKeepOnAppending(true);
+                setKeepOnAppending(false);
             }
 
             public void onExecutionAborted()
             {
                 onDataRefreshEnded();
+                setKeepOnAppending(false);
             }
         }.executeAsync();
     }

@@ -2,6 +2,7 @@ package eu.livotov.labs.android.robotools.imaging;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Handler;
 import android.support.v4.util.LruCache;
 import android.util.Log;
@@ -60,7 +61,7 @@ public class RTAsyncImageLoader
         this.context = ctx;
         this.handler = new Handler();
 
-        setMemoryCacheSizeKb(((int) (Runtime.getRuntime().maxMemory() / 1024)) / 8);
+        setMemoryCacheSizeKb(maxCacheSizeKb > 0 ? maxCacheSizeKb : (((int) (Runtime.getRuntime().maxMemory() / 1024)) / 8));
 
         executor = RTQueueExecutor.create(numberOfWorkers > 0 ? numberOfWorkers : RTDevice.getCpuCoresCount() * 2);
     }
@@ -76,7 +77,13 @@ public class RTAsyncImageLoader
         {
             protected int sizeOf(final String key, final Bitmap value)
             {
-                return value.getByteCount() / 1024;
+                if (Build.VERSION.SDK_INT < 12)
+                {
+                    return (value.getRowBytes() * value.getHeight()) / 1024;
+                } else
+                {
+                    return value.getByteCount() / 1024;
+                }
             }
         };
     }
@@ -134,7 +141,7 @@ public class RTAsyncImageLoader
     public synchronized void loadImage(ImageView view, String url, int maxSize, ImageLoadListener onLoadListener)
     {
         final String tag = UUID.randomUUID().toString();
-        final int sz = maxSize>0 ? maxSize : defaultImageDownscaledSize;
+        final int sz = maxSize > 0 ? maxSize : defaultImageDownscaledSize;
 
         view.setTag(tag);
 
@@ -203,7 +210,7 @@ public class RTAsyncImageLoader
             return bitmap;
         } catch (Throwable e)
         {
-            e.printStackTrace();
+            Log.e(RTAsyncImageLoader.class.getSimpleName(), "Failed to decode loaded image: " + url + " > " + e.getMessage(), e);
             return null;
         }
     }
@@ -240,17 +247,37 @@ public class RTAsyncImageLoader
 
                 public void run()
                 {
-                    if (finalImageScaleType != null)
-                    {
-                        request.getView().setScaleType(finalImageScaleType);
-                    }
-
                     disposeOldImageState(request.getView());
-                    request.getView().setImageBitmap(image);
 
-                    if (request.imageLoadListener != null)
+                    if (image == null)
                     {
-                        request.imageLoadListener.onImageLoaded(request.getView());
+                        if (failoverStubResource!=0)
+                        {
+                            if (failoverImageScaleType!=null)
+                            {
+                                request.getView().setScaleType(failoverImageScaleType);
+                            }
+
+                            request.getView().setImageResource(failoverStubResource);
+                        }
+
+                        if (request.imageLoadListener != null)
+                        {
+                            request.imageLoadListener.onImageFailedToLoad(request.getUrl());
+                        }
+                    } else
+                    {
+                        if (finalImageScaleType != null)
+                        {
+                            request.getView().setScaleType(finalImageScaleType);
+                        }
+
+                        request.getView().setImageBitmap(image);
+
+                        if (request.imageLoadListener != null)
+                        {
+                            request.imageLoadListener.onImageLoaded(request.getView());
+                        }
                     }
                 }
             });
@@ -274,6 +301,8 @@ public class RTAsyncImageLoader
     {
         try
         {
+            final String extension = url.contains(".") ? url.substring(url.lastIndexOf(".")) : url.substring(url.lastIndexOf("/") + 1);
+
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] messageDigest = md.digest((url).getBytes());
             BigInteger number = new BigInteger(1, messageDigest);
@@ -284,7 +313,7 @@ public class RTAsyncImageLoader
                 md5 = "0" + md5;
             }
 
-            return new File(cacheDir, "ILC-" + md5);
+            return new File(cacheDir, "ILC-" + md5 + extension);
         } catch (NoSuchAlgorithmException e)
         {
             Log.e("MD5", e.getMessage());
@@ -371,6 +400,7 @@ public class RTAsyncImageLoader
     {
 
         void onImageLoaded(ImageView view);
+        void onImageFailedToLoad(final String imageUrl);
     }
 
     public class SingleImageLoadTask implements Runnable
