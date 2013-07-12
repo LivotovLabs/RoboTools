@@ -128,7 +128,7 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
                 onDataRefreshEnded();
             }
 
-            public void onExecutionError(final Throwable error)
+            public void onExecutionFailed(final Throwable error)
             {
                 onDataRefreshFailed(error);
             }
@@ -172,7 +172,7 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
                 notifyDataSetChanged();
             }
 
-            public void onExecutionError(final Throwable error)
+            public void onExecutionFailed(final Throwable error)
             {
                 onDataRefreshFailed(error);
                 setKeepOnAppending(false);

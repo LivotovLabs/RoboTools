@@ -76,7 +76,7 @@ public abstract class RTListAdapter<T extends Object> extends BaseAdapter
                 onDataRefreshEnded();
             }
 
-            public void onExecutionError(final Throwable error)
+            public void onExecutionFailed(final Throwable error)
             {
                 onDataRefreshFailed(error);
             }

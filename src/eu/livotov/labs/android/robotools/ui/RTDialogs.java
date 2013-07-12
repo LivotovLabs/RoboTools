@@ -1,5 +1,6 @@
 package eu.livotov.labs.android.robotools.ui;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,7 +21,7 @@ import java.util.Collection;
 public class RTDialogs
 {
 
-    public static void showOptionsDialog(final Context ctx,
+    public static void showOptionsDialog(final Activity ctx,
                                          final String title,
                                          final String[] options,
                                          final int defaultOption,
@@ -49,7 +50,7 @@ public class RTDialogs
         ab.show();
     }
 
-    public static void showOptionsDialog(final Context ctx,
+    public static void showOptionsDialog(final Activity ctx,
                                          final String title,
                                          final Collection options,
                                          final int defaultOption,
@@ -87,17 +88,17 @@ public class RTDialogs
         ab.show();
     }
 
-    public static void showMessageBox(final Context ctx, int iconRes, int titleRes, int messageRes)
+    public static void showMessageBox(final Activity ctx, int iconRes, int titleRes, int messageRes)
     {
         showMessageBox(ctx, iconRes, ctx.getString(titleRes), ctx.getString(messageRes));
     }
 
-    public static void showMessageBox(final Context ctx, int iconRes, final String title, final String msg)
+    public static void showMessageBox(final Activity ctx, int iconRes, final String title, final String msg)
     {
         showMessageBox(ctx, iconRes, title, msg, null);
     }
 
-    public static void showMessageBox(final Context ctx,
+    public static void showMessageBox(final Activity ctx,
                                       final int iconRes,
                                       final String title,
                                       final String msg,
@@ -126,7 +127,7 @@ public class RTDialogs
         builder.show();
     }
 
-    public static void showYesNoDialog(final Context ctx, final int icon, final String title, final String message, final String yesBtnTitle, final String noBtnTitle, final RTYesNoDialogResultListener listener)
+    public static void showYesNoDialog(final Activity ctx, final int icon, final String title, final String message, final String yesBtnTitle, final String noBtnTitle, final RTYesNoDialogResultListener listener)
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
         builder.setTitle(title);
@@ -158,7 +159,7 @@ public class RTDialogs
         builder.show();
     }
 
-    public static RTInputDialogBuilder buildInputDialog(final Context ctx)
+    public static RTInputDialogBuilder buildInputDialog(final Activity ctx)
     {
         return new RTInputDialogBuilder(ctx);
     }

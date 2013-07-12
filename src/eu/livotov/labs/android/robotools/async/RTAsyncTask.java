@@ -15,13 +15,13 @@ public abstract class RTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
     {
     }
 
-    public abstract Result performExecutionThread(final Params... parameters);
+    public abstract Result performExecutionThread(final Params... parameters) throws Exception;
 
     public abstract void onExecutionStarted();
 
     public abstract void onExecutionFinished(final Result result);
 
-    public abstract void onExecutionError(final Throwable error);
+    public abstract void onExecutionFailed(final Throwable error);
 
     public abstract void onExecutionAborted();
 
@@ -66,7 +66,7 @@ public abstract class RTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
     {
         if (error != null)
         {
-            onExecutionError(error);
+            onExecutionFailed(error);
         } else
         {
             onExecutionFinished(result);
