@@ -395,7 +395,9 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         try
         {
             final String body = RTStreamUtil.streamToString(response.getEntity().getContent(), encoding, true);
-            if (response.getStatusLine().getStatusCode() == 200)
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 200 || statusCode == 201 || statusCode == 202
+            	|| statusCode == 203 || statusCode == 205 || statusCode == 206)
             {
                 return body;
             } else
