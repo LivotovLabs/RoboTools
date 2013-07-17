@@ -26,13 +26,13 @@ import java.util.concurrent.ExecutorService;
 public class RTAsyncImageLoader
 {
 
-    private static final int DEFAULT_IMAGE_SIZE = 180;
+    protected static final int DEFAULT_IMAGE_SIZE = 180;
 
-    private int defaultImageDownscaledSize = DEFAULT_IMAGE_SIZE;
-    private final ExecutorService executor;
-    private LruCache<String, Bitmap> cache;
-    private Handler handler;
-    private File cacheDir = null;
+    protected int defaultImageDownscaledSize = DEFAULT_IMAGE_SIZE;
+    protected final ExecutorService executor;
+    protected LruCache<String, Bitmap> cache;
+    protected Handler handler;
+    protected File cacheDir = null;
 
     private int loadingStubResource;
     private int failoverStubResource;
@@ -337,7 +337,7 @@ public class RTAsyncImageLoader
     }
 
     /**
-     * Container to hold a single image loasing request. Used internally to manage the queue.
+     * Container to hold a single image loading request. Used internally to manage the queue.
      */
     public class ImageLoadRequest
     {
@@ -347,6 +347,7 @@ public class RTAsyncImageLoader
         private String url;
         private int reqSize;
         private int retryCount = 0;
+
         private ImageLoadListener imageLoadListener;
 
         public ImageLoadRequest(ImageView view, String url, ImageLoadListener imageLoadListener, int reqSize)
@@ -384,6 +385,7 @@ public class RTAsyncImageLoader
             retryCount++;
             return retryCount;
         }
+
     }
 
     public static Bitmap decodeFile(File file, int reqSize)
@@ -422,7 +424,7 @@ public class RTAsyncImageLoader
                 if (!hasCachedImageonDisk(request.url))
                 {
                     InputStream is = new BufferedHttpEntity(executeHttpRequest(request.getUrl())).getContent();
-                    FileOutputStream fos = new FileOutputStream(generateLocalCacheFileName(request.url));
+                    FileOutputStream fos = new FileOutputStream(generateLocalCacheFileName(request.getUrl()));
 
                     final byte buffer[] = new byte[8192];
                     int read = 1;
