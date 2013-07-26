@@ -30,6 +30,10 @@ public class RTHTTPClientConfiguration
 
     private SocketFactory sslSocketFactory;
 
+    private int defaultSslPort = 443;
+
+    private int defaultHttpPort = 80;
+
 
     public int getHttpConnectionTimeout()
     {
@@ -122,6 +126,28 @@ public class RTHTTPClientConfiguration
             allowSelfSignedCerts = false;
         }
 
+        dirty = true;
+    }
+
+    public int getDefaultSslPort()
+    {
+        return defaultSslPort;
+    }
+
+    public void setDefaultSslPort(final int defaultSslPort)
+    {
+        this.defaultSslPort = defaultSslPort;
+        dirty = true;
+    }
+
+    public int getDefaultHttpPort()
+    {
+        return defaultHttpPort;
+    }
+
+    public void setDefaultHttpPort(final int defaultHttpPort)
+    {
+        this.defaultHttpPort = defaultHttpPort;
         dirty = true;
     }
 

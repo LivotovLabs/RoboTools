@@ -431,8 +431,8 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         if (configuration.getSslSocketFactory()!=null)
         {
             SchemeRegistry registry = new SchemeRegistry();
-            registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-            registry.register(new Scheme("https", configuration.getSslSocketFactory(), 443));
+            registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), configuration.getDefaultHttpPort()));
+            registry.register(new Scheme("https", configuration.getSslSocketFactory(), configuration.getDefaultSslPort()));
             ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, registry);
 
             http = new DefaultHttpClient(ccm, params);
@@ -471,8 +471,8 @@ public class RTHTTPClient implements HttpRequestRetryHandler
             sf.setHostnameVerifier(org.apache.http.conn.ssl.SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
             SchemeRegistry registry = new SchemeRegistry();
-            registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-            registry.register(new Scheme("https", sf, 443));
+            registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), configuration.getDefaultHttpPort()));
+            registry.register(new Scheme("https", sf, configuration.getDefaultSslPort()));
             ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, registry);
 
             http = new DefaultHttpClient(ccm, params);
