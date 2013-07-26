@@ -151,8 +151,6 @@ public class RTAsyncImageLoader
         final String tag = UUID.randomUUID().toString();
         final int sz = maxSize > 0 ? maxSize : defaultImageDownscaledSize;
 
-        view.setTag(tag);
-
         if (hasMemoryCachedImage(url, sz))
         {
             loadPreCachedImage(view, url, sz);

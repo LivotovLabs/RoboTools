@@ -428,7 +428,15 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         HttpConnectionParams.setConnectionTimeout(params, configuration.getHttpConnectionTimeout());
         HttpConnectionParams.setSoTimeout(params, configuration.getHttpDataResponseTimeout());
 
-        if (configuration.isAllowSelfSignedCerts())
+        if (configuration.getSslSocketFactory()!=null)
+        {
+            SchemeRegistry registry = new SchemeRegistry();
+            registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+            registry.register(new Scheme("https", configuration.getSslSocketFactory(), 443));
+            ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, registry);
+
+            http = new DefaultHttpClient(ccm, params);
+        } else if (configuration.isAllowSelfSignedCerts())
         {
             HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier()
             {
