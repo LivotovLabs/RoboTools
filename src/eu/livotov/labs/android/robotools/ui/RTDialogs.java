@@ -166,12 +166,22 @@ public class RTDialogs
 
     public static void showNotification(final Context ctx, final String message)
     {
-        Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show();
+        showNotification(ctx, message, Toast.LENGTH_SHORT);
     }
 
     public static void showNotification(final Context ctx, int message)
     {
         showNotification(ctx, ctx.getString(message));
+    }
+
+    public static void showNotification(final Context ctx, final String message, int length)
+    {
+        Toast.makeText(ctx, message, length).show();
+    }
+
+    public static void showNotification(final Context ctx, int message, int length)
+    {
+        showNotification(ctx, ctx.getString(message), length);
     }
 
     public interface RTModalDialogResultListener
