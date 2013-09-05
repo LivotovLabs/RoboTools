@@ -45,6 +45,8 @@ public class RTApiError extends RuntimeException {
                         errorCode = ErrorCodes.NetworkError;
                         return;
                     }
+                }  else{
+                    errorCode = ((RTHTTPError) cause).getStatusCode();
                 }
             }
 
