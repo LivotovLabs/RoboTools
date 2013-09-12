@@ -18,7 +18,7 @@ public abstract class RTApiCommand
         public final static String Xml = "text/xml";
     }
 
-    private Class resultClass;
+    protected Class resultClass;
 
     public RTApiCommand(Class resultClass) //todo: to be cleaned up once Oracle fix #5098163 since 2004 ! %=/
     {

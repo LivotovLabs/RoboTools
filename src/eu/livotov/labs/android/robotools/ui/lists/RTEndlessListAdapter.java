@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import com.google.android.gms.internal.v;
 import eu.livotov.labs.android.robotools.async.RTAsyncTask;
 
 import java.util.Collection;
@@ -17,8 +18,9 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
 {
 
     private View pendingView = null;
+    private View tapToLoadView = null;
     private AtomicBoolean keepOnAppending = new AtomicBoolean(false);
-    private boolean isSerialized = false;
+    private AtomicBoolean appendingInProgress = new AtomicBoolean(false);
 
 
     public RTEndlessListAdapter(Context ctx)
@@ -27,6 +29,8 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
     }
 
     abstract protected int getLoadingViewItemLayoutResource();
+
+    abstract protected int getTapToLoadViewItemLayoutResource();
 
     abstract protected Collection<T> loadEndlessBatchInBackground(int currentPayloadItemsCount);
 
@@ -90,13 +94,30 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
             if (pendingView == null)
             {
                 pendingView = getPendingView(parent);
-                executeAsyncTask();
             }
 
-            return (pendingView);
+            if (tapToLoadView == null && getTapToLoadViewItemLayoutResource() > 0)
+            {
+                tapToLoadView = getTapToLoadView(parent);
+            }
+
+            if (getTapToLoadViewItemLayoutResource() <= 0)
+            {
+                executeAsyncTask();
+                return pendingView;
+            } else
+            {
+                if (appendingInProgress.get())
+                {
+                    return pendingView;
+                } else
+                {
+                    return tapToLoadView;
+                }
+            }
         }
 
-        return (super.getView(position, convertView, parent));
+        return super.getView(position, convertView, parent);
     }
 
     public void refresh()
@@ -142,6 +163,11 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
 
     private void executeAsyncTask()
     {
+        if (appendingInProgress.get())
+        {
+            return;
+        }
+
         final int realCount = super.getCount();
 
         new RTAsyncTask<Void, Void, Collection<T>>()
@@ -160,11 +186,13 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
 
             public void onExecutionStarted()
             {
+                appendingInProgress.set(true);
                 onDataRefreshStarted();
             }
 
             public void onExecutionFinished(final Collection<T> res)
             {
+                appendingInProgress.set(false);
                 onDataRefreshEnded();
                 setKeepOnAppending(res.size() > 0);
                 data.addAll(res);
@@ -174,12 +202,14 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
 
             public void onExecutionFailed(final Throwable error)
             {
+                appendingInProgress.set(false);
                 onDataRefreshFailed(error);
                 setKeepOnAppending(false);
             }
 
             public void onExecutionAborted()
             {
+                appendingInProgress.set(false);
                 onDataRefreshEnded();
                 setKeepOnAppending(false);
             }
@@ -192,14 +222,20 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
         return inflater.inflate(getLoadingViewItemLayoutResource(), parent, false);
     }
 
-    public void stopAppending()
+    protected View getTapToLoadView(ViewGroup parent)
     {
-        setKeepOnAppending(false);
-    }
+        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(getTapToLoadViewItemLayoutResource(), parent, false);
+        view.setOnClickListener(new View.OnClickListener()
+        {
+            public void onClick(final View v)
+            {
+                executeAsyncTask();
+                notifyDataSetChanged();
+            }
+        });
 
-    public void restartAppending()
-    {
-        setKeepOnAppending(true);
+        return view;
     }
 
     private void setKeepOnAppending(boolean newValue)
