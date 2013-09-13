@@ -22,10 +22,7 @@ import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.params.*;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 
@@ -68,6 +65,11 @@ public class RTHTTPClient implements HttpRequestRetryHandler
     public RTHTTPClientConfiguration getConfiguration()
     {
         return configuration;
+    }
+
+    public DefaultHttpClient getRawHttpClient()
+    {
+        return http;
     }
 
     public HttpResponse executeGetRequest(final String url)
@@ -525,6 +527,13 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         {
             http.setCookieStore(configuration.getCookieStore());
         }
+
+        if (!TextUtils.isEmpty(configuration.getUserAgent()))
+        {
+            http.getParams().setParameter("http.useragent", configuration.getUserAgent());
+        }
+
+        http.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, configuration.isUseExpectContinue());
 
         configuration.clearDirtyFlag();
     }
