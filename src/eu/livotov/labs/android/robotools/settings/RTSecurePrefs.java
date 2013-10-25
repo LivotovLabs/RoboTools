@@ -3,7 +3,6 @@ package eu.livotov.labs.android.robotools.settings;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
-import com.google.android.gms.internal.ca;
 import eu.livotov.labs.android.robotools.crypt.RTBase64;
 import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
 import eu.livotov.labs.android.robotools.device.RTDevice;
@@ -46,6 +45,7 @@ public class RTSecurePrefs extends RTPrefs
     public RTSecurePrefs(final Context ctx, final String preferenceStorageName)
     {
         super(ctx, preferenceStorageName, true);
+        lock();
     }
 
     public RTSecurePrefs(final Context ctx, final String preferenceStorageName, final boolean bindToDevice, boolean bindToWifi, boolean bindToTelephony, boolean bindToSim)
@@ -55,6 +55,7 @@ public class RTSecurePrefs extends RTPrefs
         this.lockToSIM = bindToSim;
         this.lockToTelephony = bindToTelephony;
         this.lockToWifiAddress = bindToWifi;
+        lock();
     }
 
     public boolean isLocked()
@@ -62,10 +63,10 @@ public class RTSecurePrefs extends RTPrefs
         try
         {
             ensureKeychainUnlocked();
-            return true;
+            return false;
         } catch (Throwable err)
         {
-            return false;
+            return true;
         }
     }
 
@@ -83,23 +84,15 @@ public class RTSecurePrefs extends RTPrefs
 
         // This keychain is not empty or was already initialized previously but non yet unlocked
         // We simply trying to unlock it with the given password
-        if (TextUtils.isEmpty(keychainKey))
-        {
-            checkVerificationValue(newKeychainKey);
-            keychainKey = password;
-            return;
-        }
-
-        // This keychain is not empty or was already initialized previously and already unlocked
-        // We need to veryfy old password validity
         checkVerificationValue(newKeychainKey);
+        keychainKey = newKeychainKey;
     }
 
     public void changePassword(final String newPassword)
     {
         ensureKeychainUnlocked();
 
-        final String newKeychainKey = generateKeychainKey(newPassword);
+        final String newKeychainKey = TextUtils.isEmpty(newPassword) ? generateDefaultKeychainKeyPassword() : generateKeychainKey(newPassword);
 
         Set<String> keychainKeys = preferences.getAll().keySet();
         SharedPreferences.Editor editor = preferences.edit();
@@ -143,13 +136,18 @@ public class RTSecurePrefs extends RTPrefs
      */
     public void reset()
     {
-        keychainKey = null;
+        lock();
         super.clear();
     }
 
     public void lock()
     {
-        keychainKey = null;
+        keychainKey = generateDefaultKeychainKeyPassword();
+    }
+
+    protected String generateDefaultKeychainKeyPassword()
+    {
+        return generateKeychainKey(RTSecurePrefs.class.getSimpleName());
     }
 
     private String generateKeychainKey(final String password)

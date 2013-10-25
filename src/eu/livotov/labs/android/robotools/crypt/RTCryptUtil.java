@@ -115,7 +115,6 @@ public class RTCryptUtil {
         try {
             key = deriveKeyPbkdf2(salt, password);
         } catch (Throwable err) {
-            Log.w(TAG, err.getMessage());
         }
 
         if (key == null) {
@@ -137,7 +136,6 @@ public class RTCryptUtil {
         try {
             key = deriveKeyPbkdf2(salt, password);
         } catch (Throwable err) {
-            Log.w(TAG, err.getMessage());
         }
 
         if (key == null) {
@@ -169,7 +167,6 @@ public class RTCryptUtil {
         try {
             key = deriveKeyPbkdf2(salt, password);
         } catch (Throwable err) {
-            Log.w(TAG, err.getMessage());
         }
 
         if (key == null) {
@@ -193,7 +190,6 @@ public class RTCryptUtil {
         try {
             key = deriveKeyPbkdf2(salt, password);
         } catch (Throwable err) {
-            Log.w(TAG, err.getMessage());
         }
 
         if (key == null) {

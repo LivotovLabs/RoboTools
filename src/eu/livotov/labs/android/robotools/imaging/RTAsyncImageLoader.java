@@ -601,10 +601,11 @@ public class RTAsyncImageLoader
                         is.close();
                         fos.flush();
                         fos.close();
+                        loadToView(request, request.cacheOnly ? null : getCachedImage(request.url, request.reqSize));
                     }
                 } else
                 {
-                    loadToView(request, getCachedImage(request.url, request.reqSize));
+                    loadToView(request, request.cacheOnly ? null : getCachedImage(request.url, request.reqSize));
                 }
             } catch (Throwable err)
             {

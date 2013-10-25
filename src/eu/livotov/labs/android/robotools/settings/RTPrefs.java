@@ -164,6 +164,11 @@ public class RTPrefs
         preferences.edit().clear().commit();
     }
 
+    public SharedPreferences getPreferences()
+    {
+        return preferences;
+    }
+
     protected static int getPrefsMode(boolean privateMode)
     {
         if (Build.VERSION.SDK_INT >= 11 && !privateMode)
