@@ -73,14 +73,14 @@ public abstract class RTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
         }
     }
 
-    public void executeAsync(Params... params)
+    public AsyncTask<Params, Progress, Result> executeAsync(Params... params)
     {
         if (Build.VERSION.SDK_INT>=11)
         {
-            executeOnExecutor(THREAD_POOL_EXECUTOR, params);
+            return executeOnExecutor(THREAD_POOL_EXECUTOR, params);
         } else
         {
-            execute(params);
+            return execute(params);
         }
     }
 }
