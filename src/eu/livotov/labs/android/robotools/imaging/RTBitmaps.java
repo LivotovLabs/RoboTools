@@ -28,24 +28,30 @@ public class RTBitmaps
 
     public static Bitmap loadBitmapFromFile(File file, int reqSize)
     {
-        try
+        if (reqSize > 0)
         {
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            FileInputStream fis = new FileInputStream(file);
-            BitmapFactory.decodeStream(fis, null, options);
-            fis.close();
+            try
+            {
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                FileInputStream fis = new FileInputStream(file);
+                BitmapFactory.decodeStream(fis, null, options);
+                fis.close();
 
-            int inSampleSize = calculateInSampleSize(options, reqSize);
-            options = new BitmapFactory.Options();
-            options.inSampleSize = inSampleSize;
-            fis = new FileInputStream(file);
-            final Bitmap bitmap = BitmapFactory.decodeStream(fis, null, options);
-            fis.close();
-            return bitmap;
-        } catch (IOException err)
+                int inSampleSize = calculateInSampleSize(options, reqSize);
+                options = new BitmapFactory.Options();
+                options.inSampleSize = inSampleSize;
+                fis = new FileInputStream(file);
+                final Bitmap bitmap = BitmapFactory.decodeStream(fis, null, options);
+                fis.close();
+                return bitmap;
+            } catch (IOException err)
+            {
+                return null;
+            }
+        } else
         {
-            return null;
+            return BitmapFactory.decodeFile(file.getAbsolutePath());
         }
     }
 

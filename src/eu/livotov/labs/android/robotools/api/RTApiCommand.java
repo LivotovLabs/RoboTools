@@ -15,10 +15,10 @@ public abstract class RTApiCommand
     public final static class ContentTypes
     {
         public final static String Json = "application/json";
-        public final static String Xml = "text/xml";
+        public final static String Xml = "application/xml";
     }
 
-    private Class resultClass;
+    protected Class resultClass;
 
     public RTApiCommand(Class resultClass) //todo: to be cleaned up once Oracle fix #5098163 since 2004 ! %=/
     {

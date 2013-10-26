@@ -197,6 +197,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
                                 retryDownload = false;
                             } catch (Throwable err)
                             {
+                                Log.e(RTDownloadService.class.getSimpleName(), err.getMessage(), err);
                                 retryDownload = downloadTask.supportsMirrors();
                                 if (!retryDownload)
                                 {

@@ -6,7 +6,6 @@ import eu.livotov.labs.android.robotools.net.RTHTTPError;
 import eu.livotov.labs.android.robotools.net.RTPostParameter;
 import org.apache.http.HttpResponse;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,7 +56,7 @@ public abstract class RTApiClient extends RTHTTPClient
             {
                 for (RTPostParameter parameter : parameters)
                 {
-                    if (parameter.getAttachment()!=null && parameter.getAttachment().exists() && parameter.getAttachment().length()>0)
+                    if (parameter.getAttachment() != null && parameter.getAttachment().exists() && parameter.getAttachment().length() > 0)
                     {
                         hasAttachments = true;
                         break;
@@ -89,7 +88,7 @@ public abstract class RTApiClient extends RTHTTPClient
                     {
                         if (rtType == RTApiRequestType.POST)
                         {
-                            Log.d(RTApiClient.class.getSimpleName(), String.format("%s: %s = %s", rtType.name(), p.getName(), p.getAttachment()!=null ? p.getAttachment().getAbsolutePath() : p.getValue()));
+                            Log.d(RTApiClient.class.getSimpleName(), String.format("%s: %s = %s", rtType.name(), p.getName(), p.getAttachment() != null ? p.getAttachment().getAbsolutePath() : p.getValue()));
                         } else
                         {
                             Log.d(RTApiClient.class.getSimpleName(), String.format("%s: %s = %s", rtType.name(), p.getName(), p.getValue()));
@@ -203,7 +202,7 @@ public abstract class RTApiClient extends RTHTTPClient
 
         if (body.length() > 0)
         {
-            return executePutRequest(url,cmd.getContentType(), "utf-8", body.toString(), headers, parameters);
+            return executePutRequest(url, cmd.getContentType(), "utf-8", body.toString(), headers, parameters);
         } else
         {
             return executePutRequest(url, headers, parameters);
@@ -225,7 +224,7 @@ public abstract class RTApiClient extends RTHTTPClient
 
         if (body.length() > 0)
         {
-            return executeDeleteRequest(url,cmd.getContentType(), "utf-8", body.toString(), headers, parameters);
+            return executeDeleteRequest(url, cmd.getContentType(), "utf-8", body.toString(), headers, parameters);
         } else
         {
             return executeDeleteRequest(url, headers, parameters);
@@ -247,7 +246,7 @@ public abstract class RTApiClient extends RTHTTPClient
 
     protected String secureSlash(String path)
     {
-        if (path != null && path.length() > 1 && !path.startsWith("/"))
+        if (path != null && path.length() > 1 && !path.startsWith("/") && !path.toLowerCase().startsWith("http"))
         {
             return "/" + path;
         }

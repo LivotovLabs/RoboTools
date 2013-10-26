@@ -20,6 +20,8 @@ public class RTHTTPClientConfiguration
 
     private boolean enableGzipCompression = false;
 
+    private boolean useExpectContinue = false;
+
     private int requestRetryCount = 0;
 
     private boolean allowRedirects = true;
@@ -33,6 +35,8 @@ public class RTHTTPClientConfiguration
     private int defaultSslPort = 443;
 
     private int defaultHttpPort = 80;
+
+    private String userAgent;
 
 
     public int getHttpConnectionTimeout()
@@ -148,6 +152,28 @@ public class RTHTTPClientConfiguration
     public void setDefaultHttpPort(final int defaultHttpPort)
     {
         this.defaultHttpPort = defaultHttpPort;
+        dirty = true;
+    }
+
+    public String getUserAgent()
+    {
+        return userAgent;
+    }
+
+    public void setUserAgent(final String userAgent)
+    {
+        this.userAgent = userAgent;
+        dirty = true;
+    }
+
+    public boolean isUseExpectContinue()
+    {
+        return useExpectContinue;
+    }
+
+    public void setUseExpectContinue(final boolean useExpectContinue)
+    {
+        this.useExpectContinue = useExpectContinue;
         dirty = true;
     }
 

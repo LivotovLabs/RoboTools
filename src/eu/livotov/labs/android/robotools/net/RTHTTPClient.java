@@ -9,7 +9,6 @@ import eu.livotov.labs.android.robotools.net.multipart.Part;
 import eu.livotov.labs.android.robotools.net.multipart.StringPart;
 import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -23,10 +22,7 @@ import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.params.*;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 
@@ -69,6 +65,11 @@ public class RTHTTPClient implements HttpRequestRetryHandler
     public RTHTTPClientConfiguration getConfiguration()
     {
         return configuration;
+    }
+
+    public DefaultHttpClient getRawHttpClient()
+    {
+        return http;
     }
 
     public HttpResponse executeGetRequest(final String url)
@@ -395,9 +396,10 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         try
         {
             final String body = RTStreamUtil.streamToString(response.getEntity().getContent(), encoding, true);
+            response.getEntity().consumeContent();
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == 200 || statusCode == 201 || statusCode == 202
-            	|| statusCode == 203 || statusCode == 205 || statusCode == 206)
+                        || statusCode == 203 || statusCode == 205 || statusCode == 206)
             {
                 return body;
             } else
@@ -428,7 +430,7 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         HttpConnectionParams.setConnectionTimeout(params, configuration.getHttpConnectionTimeout());
         HttpConnectionParams.setSoTimeout(params, configuration.getHttpDataResponseTimeout());
 
-        if (configuration.getSslSocketFactory()!=null)
+        if (configuration.getSslSocketFactory() != null)
         {
             SchemeRegistry registry = new SchemeRegistry();
             registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), configuration.getDefaultHttpPort()));
@@ -525,6 +527,13 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         {
             http.setCookieStore(configuration.getCookieStore());
         }
+
+        if (!TextUtils.isEmpty(configuration.getUserAgent()))
+        {
+            http.getParams().setParameter("http.useragent", configuration.getUserAgent());
+        }
+
+        http.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, configuration.isUseExpectContinue());
 
         configuration.clearDirtyFlag();
     }

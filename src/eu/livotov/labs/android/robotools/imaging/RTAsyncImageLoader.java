@@ -25,10 +25,14 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 
+/**
+ * Now deprecated, use great Android-Universal-Image-Loader for such things !
+ */
+@Deprecated
 public class RTAsyncImageLoader
 {
 
-    protected static final int DEFAULT_IMAGE_SIZE = 180;
+    protected static final int DEFAULT_IMAGE_SIZE = 0;
     private static final String DRAWABLE_STUB_SCHEMA = "drawable://";
 
     protected int defaultImageDownscaledSize = DEFAULT_IMAGE_SIZE;
@@ -146,12 +150,18 @@ public class RTAsyncImageLoader
         loadImage(view, url, defaultImageDownscaledSize, loadListener);
     }
 
-    public synchronized void loadImage(ImageView view, String url, int maxSize, ImageLoadListener onLoadListener)
+    public void loadImage(ImageView view, String url, int maxSize, ImageLoadListener onLoadListener)
+    {
+        loadImage(view, url, maxSize, false, onLoadListener);
+    }
+
+    public void loadImage(ImageView view, String url, int maxSize, boolean cacheOnly, ImageLoadListener onLoadListener)
     {
         final String tag = UUID.randomUUID().toString();
-        final int sz = maxSize > 0 ? maxSize : defaultImageDownscaledSize;
 
-        if (hasMemoryCachedImage(url, sz))
+        final int sz = maxSize >= 0 ? maxSize : defaultImageDownscaledSize;
+
+        if (sz > 0 && hasMemoryCachedImage(url, sz))
         {
             loadPreCachedImage(view, url, sz);
 
@@ -173,6 +183,8 @@ public class RTAsyncImageLoader
 
             ImageLoadRequest request = new ImageLoadRequest(view, url, onLoadListener, sz);
             request.tag = tag;
+            request.view.setTag(tag);
+            request.cacheOnly = cacheOnly;
             executor.execute(new SingleImageLoadTask(request));
         }
     }
@@ -205,7 +217,7 @@ public class RTAsyncImageLoader
      */
     public boolean hasCachedImageonDisk(String url)
     {
-        return generateLocalCacheFileName(url).exists();
+        return generateLocalCacheFileName(url).exists() && generateLocalCacheFileName(url).length() > 0;
     }
 
     public boolean hasMemoryCachedImage(String url, int reqSize)
@@ -256,7 +268,7 @@ public class RTAsyncImageLoader
 
             if (bitmap == null)
             {
-                bitmap = BitmapFactory.decodeResource(context.getResources(),resourceId);
+                bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId);
                 cache.put(key, bitmap);
             }
 
@@ -264,6 +276,26 @@ public class RTAsyncImageLoader
         } catch (Throwable e)
         {
             Log.e(RTAsyncImageLoader.class.getSimpleName(), "Failed to decode resource: " + key + " > " + e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public Bitmap getCachedFileImage(String fileUrl)
+    {
+        try
+        {
+            Bitmap bitmap = cache.get(fileUrl);
+
+            if (bitmap == null)
+            {
+                bitmap = BitmapFactory.decodeFile(fileUrl.substring(7));
+                cache.put(fileUrl, bitmap);
+            }
+
+            return bitmap;
+        } catch (Throwable e)
+        {
+            Log.e(RTAsyncImageLoader.class.getSimpleName(), "Failed to decode resource: " + fileUrl + " > " + e.getMessage(), e);
             return null;
         }
     }
@@ -300,9 +332,68 @@ public class RTAsyncImageLoader
 
                 public void run()
                 {
+                    if (!request.cacheOnly)
+                    {
+                        disposeOldImageState(request.getView());
+
+                        if (image == null)
+                        {
+                            if (failoverStubResource != 0)
+                            {
+                                if (failoverImageScaleType != null)
+                                {
+                                    request.getView().setScaleType(failoverImageScaleType);
+                                }
+
+                                request.getView().setImageResource(failoverStubResource);
+                            } else
+                            {
+                                request.getView().setImageResource(0);
+                            }
+
+                            if (request.imageLoadListener != null)
+                            {
+                                request.imageLoadListener.onImageFailedToLoad(request.getUrl());
+                            }
+                        } else
+                        {
+                            if (finalImageScaleType != null)
+                            {
+                                request.getView().setScaleType(finalImageScaleType);
+                            }
+
+                            request.getView().setImageBitmap(image);
+
+                            if (request.imageLoadListener != null)
+                            {
+                                request.imageLoadListener.onImageLoaded(request.getView());
+                            }
+                        }
+                    } else
+                    {
+                        if (request.imageLoadListener != null)
+                        {
+                            request.imageLoadListener.onImageCached(generateLocalCacheFileName(request.url));
+                        }
+                    }
+                }
+            });
+
+        }
+    }
+
+    private void loadToView(final ImageLoadRequest request, final Uri uri)
+    {
+        if (request.getView() != null && request.tag != null && request.tag.equals(request.view.getTag()))
+        {
+            handler.post(new Runnable()
+            {
+
+                public void run()
+                {
                     disposeOldImageState(request.getView());
 
-                    if (image == null)
+                    if (uri == null)
                     {
                         if (failoverStubResource != 0)
                         {
@@ -328,7 +419,7 @@ public class RTAsyncImageLoader
                             request.getView().setScaleType(finalImageScaleType);
                         }
 
-                        request.getView().setImageBitmap(image);
+                        request.getView().setImageURI(uri);
 
                         if (request.imageLoadListener != null)
                         {
@@ -403,6 +494,7 @@ public class RTAsyncImageLoader
         private String url;
         private int reqSize;
         private int retryCount = 0;
+        private boolean cacheOnly;
 
         private ImageLoadListener imageLoadListener;
 
@@ -457,6 +549,8 @@ public class RTAsyncImageLoader
     public interface ImageLoadListener
     {
 
+        void onImageCached(File imageFile);
+
         void onImageLoaded(ImageView view);
 
         void onImageFailedToLoad(final String imageUrl);
@@ -482,8 +576,11 @@ public class RTAsyncImageLoader
                 {
                     if (request.url.startsWith(DRAWABLE_STUB_SCHEMA))
                     {
-                        int drawable = Integer.parseInt(request.url.substring(request.url.lastIndexOf("/")+1));
+                        int drawable = Integer.parseInt(request.url.substring(request.url.lastIndexOf("/") + 1));
                         loadToView(request, getCachedDrawableImage(drawable));
+                    } else if (request.url.startsWith("file://"))
+                    {
+                        loadToView(request, getCachedFileImage(request.url));
                     } else
                     {
                         InputStream is = new BufferedHttpEntity(executeHttpRequest(request.url)).getContent();
@@ -504,8 +601,11 @@ public class RTAsyncImageLoader
                         is.close();
                         fos.flush();
                         fos.close();
-                        loadToView(request, getCachedImage(request.url, request.reqSize));
+                        loadToView(request, request.cacheOnly ? null : getCachedImage(request.url, request.reqSize));
                     }
+                } else
+                {
+                    loadToView(request, request.cacheOnly ? null : getCachedImage(request.url, request.reqSize));
                 }
             } catch (Throwable err)
             {

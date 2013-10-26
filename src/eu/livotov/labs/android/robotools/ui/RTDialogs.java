@@ -16,7 +16,6 @@ import java.util.Collection;
  * User: dlivotov
  * Date: 27.10.12
  * Time: 13:52
- * To change this template use File | Settings | File Templates.
  */
 public class RTDialogs
 {
