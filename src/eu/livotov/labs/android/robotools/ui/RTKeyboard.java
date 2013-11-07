@@ -19,20 +19,23 @@ public class RTKeyboard
 
     public static void showSoftKeyboardFor(final Context ctx, final View view)
     {
-        view.postDelayed(new Runnable()
+        if (view != null)
         {
-            public void run()
+            view.postDelayed(new Runnable()
             {
-                try
+                public void run()
                 {
-                    InputMethodManager mgr = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
-                    mgr.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
-                } catch (Throwable err)
-                {
-                    Log.e(RTKeyboard.class.getName(), err.getMessage(), err);
+                    try
+                    {
+                        InputMethodManager mgr = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
+                        mgr.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+                    } catch (Throwable err)
+                    {
+                        Log.e(RTKeyboard.class.getName(), err.getMessage(), err);
+                    }
                 }
-            }
-        }, 200);
+            }, 200);
+        }
     }
 
     public static void hideSoftKeyboardFor(final Activity activity, final View view)
