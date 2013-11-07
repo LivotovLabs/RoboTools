@@ -139,12 +139,12 @@ public class RTGoogleMaps
         return GooglePlayServicesUtil.isGooglePlayServicesAvailable(ctx) == ConnectionResult.SUCCESS && checkGmsServiceInstalled(ctx);
     }
 
-    public String getStaticMapPictureUrl(final double lat,final double lon)
+    public static String getStaticMapPictureUrl(final double lat,final double lon)
     {
         return getStaticMapPictureUrl(lat, lon, 350, 110);
     }
 
-    public String getStaticMapPictureUrl(final double lat,final double lon, final int width, final int height)
+    public static String getStaticMapPictureUrl(final double lat,final double lon, final int width, final int height)
     {
         final String coordPair = String.format("%s,%s", lat, lon);
         final String sizePair = String.format("%sx%s", width,height);
