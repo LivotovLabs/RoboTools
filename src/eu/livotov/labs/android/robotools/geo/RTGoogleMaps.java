@@ -139,6 +139,23 @@ public class RTGoogleMaps
         return GooglePlayServicesUtil.isGooglePlayServicesAvailable(ctx) == ConnectionResult.SUCCESS && checkGmsServiceInstalled(ctx);
     }
 
+    public String getStaticMapPictureUrl(final double lat,final double lon)
+    {
+        return getStaticMapPictureUrl(lat, lon, 350, 110);
+    }
+
+    public String getStaticMapPictureUrl(final double lat,final double lon, final int width, final int height)
+    {
+        final String coordPair = String.format("%s,%s", lat, lon);
+        final String sizePair = String.format("%sx%s", width,height);
+        return  "http://maps.googleapis.com/maps/api/staticmap?"
+                                      + "&zoom=16"
+                                      + "&size=" + sizePair
+                                      + "&maptype=roadmap&sensor=true"
+                                      + "&center=" + coordPair
+                                      + "&markers=color:black|" + coordPair;
+    }
+
     private static boolean checkGmsServiceInstalled(final Context ctx)
     {
         try

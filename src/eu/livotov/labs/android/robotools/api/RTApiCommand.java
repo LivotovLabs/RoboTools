@@ -15,7 +15,7 @@ public abstract class RTApiCommand
     public final static class ContentTypes
     {
         public final static String Json = "application/json";
-        public final static String Xml = "application/xml";
+        public final static String Xml = "text/xml; charset=utf-8";
     }
 
     protected Class resultClass;
