@@ -94,9 +94,7 @@ public class RTCreditCards
                 {
                     return CreditCardType.Diners;
                 }
-            } else if (digit4.equals("5018") || digit4.equals("5020") || digit4.equals("5038") || digit4.equals("5893")
-                    || digit4.equals("6304") || digit4.equals("6759") || digit4.equals("6761") || digit4.equals("6762")
-                    || digit4.equals("6763") || digit4.equals("0604"))
+            } else if (digit1.equals("5") || digit1.equals("6"))
             {
                 if (number.length() >= 12 && number.length() <= 19)
                 {
@@ -138,9 +136,7 @@ public class RTCreditCards
             } else if (digit2.equals("36") || digit2.equals("38") || (digit3.compareTo("300") >= 0 && digit3.compareTo("305") <= 0))
             {
                 return CreditCardType.Diners;
-            } else if (digit4.equals("5018") || digit4.equals("5020") || digit4.equals("5038") || digit4.equals("5893")
-                    || digit4.equals("6304") || digit4.equals("6759") || digit4.equals("6761") || digit4.equals("6762")
-                    || digit4.equals("6763") || digit4.equals("0604"))
+            } else if (digit1.equals("5") || digit1.equals("6"))
             {
                 return CreditCardType.Maestro;
             }
