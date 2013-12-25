@@ -126,7 +126,12 @@ public class RTDialogs
         builder.show();
     }
 
-    public static void showYesNoDialog(final Activity ctx, final int icon, final String title, final String message, final String yesBtnTitle, final String noBtnTitle, final RTYesNoDialogResultListener listener)
+    public static void showYesNoDialog(final Activity ctx, final int icon,
+                                       final String title,
+                                       final String message,
+                                       final String yesBtnTitle,
+                                       final String noBtnTitle,
+                                       final RTYesNoDialogResultListener listener)
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
         builder.setTitle(title);
@@ -156,6 +161,19 @@ public class RTDialogs
         });
 
         builder.show();
+    }
+
+    public static void showYesNoDialog(final Activity ctx, final int icon,
+                                       final int titleRes,
+                                       final int messageRes,
+                                       final int yesBtnTitleRes,
+                                       final int noBtnTitleRes,
+                                       final RTYesNoDialogResultListener listener)
+    {
+        showYesNoDialog(ctx, icon, ctx.getString(titleRes),
+                        ctx.getString(messageRes),
+                        ctx.getString(yesBtnTitleRes),
+                        ctx.getString(noBtnTitleRes), listener);
     }
 
     public static RTInputDialogBuilder buildInputDialog(final Activity ctx)
