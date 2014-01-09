@@ -19,7 +19,8 @@ public class RTCreditCards
         MasterCard,
         AmericanExpress,
         EnRoute,
-        Diners
+        Diners,
+        Maestro
     }
 
     /**
@@ -36,7 +37,7 @@ public class RTCreditCards
         StringBuffer buf = new StringBuffer();
 
         //todo: add spaces according to credit card type
-        for (int i = 0; i<num.length(); i++)
+        for (int i = 0; i < num.length(); i++)
         {
             buf.append(num.charAt(i));
             if (i == 3 || i == 7 || i == 11)
@@ -93,6 +94,12 @@ public class RTCreditCards
                 {
                     return CreditCardType.Diners;
                 }
+            } else if (digit1.equals("5") || digit1.equals("6"))
+            {
+                if (number.length() >= 12 && number.length() <= 19)
+                {
+                    return CreditCardType.Maestro;
+                }
             }
         }
 
@@ -129,6 +136,9 @@ public class RTCreditCards
             } else if (digit2.equals("36") || digit2.equals("38") || (digit3.compareTo("300") >= 0 && digit3.compareTo("305") <= 0))
             {
                 return CreditCardType.Diners;
+            } else if (digit1.equals("5") || digit1.equals("6"))
+            {
+                return CreditCardType.Maestro;
             }
         }
 
@@ -165,7 +175,7 @@ public class RTCreditCards
                     {
                         String s = "" + k;
                         k = Integer.valueOf(s.substring(0, 1)).intValue() +
-                                    Integer.valueOf(s.substring(1)).intValue();
+                                Integer.valueOf(s.substring(1)).intValue();
                     }
                     checksum += Integer.valueOf(s1[i]).intValue() + k;
                 } else
