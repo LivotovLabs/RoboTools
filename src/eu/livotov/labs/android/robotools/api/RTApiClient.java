@@ -37,14 +37,14 @@ public abstract class RTApiClient extends RTHTTPClient
 
     public abstract String getEndpointUrlFor(RTApiCommand cmd);
 
-    public RTApiCommandResult execute(RTApiCommand cmd)
+    public RTApiCommandResult execute(final RTApiCommand cmd)
     {
+        final String url = String.format("%s%s", getEndpointUrlFor(cmd), secureSlash(cmd.buildRequestUri()));
+        final List<RTPostParameter> parameters = new ArrayList<RTPostParameter>();
+        final List<RTPostParameter> headers = new ArrayList<RTPostParameter>();
+
         try
         {
-            final String url = String.format("%s%s", getEndpointUrlFor(cmd), secureSlash(cmd.buildRequestUri()));
-            final List<RTPostParameter> parameters = new ArrayList<RTPostParameter>();
-            final List<RTPostParameter> headers = new ArrayList<RTPostParameter>();
-
             RTApiRequestType rtType = cmd.getRequestType();
 
             cmd.buildRequestParameters(parameters);
@@ -155,7 +155,9 @@ public abstract class RTApiClient extends RTHTTPClient
             return result;
         } catch (RTHTTPError httpError)
         {
-            throw new RTApiError(httpError);
+            onCommandPostExecureWithError(cmd, url, parameters, httpError.getStatusCode(), httpError.getStatusText(), httpError.getResponseBody());
+            RTApiCommandResult result = cmd.parseServerErrorResponseData(httpError.getStatusCode(),httpError.getStatusText(),httpError.getResponseBody());
+            return result;
         } catch (RTApiError baw)
         {
             throw baw;
@@ -238,6 +240,8 @@ public abstract class RTApiClient extends RTHTTPClient
     protected abstract void onCommandPostExecure(RTApiCommand cmd, String url, List<RTPostParameter> parameters, HttpResponse response, RTApiCommandResult result);
 
     protected abstract void onCommandPreExecute(RTApiCommand cmd, String finalUrl, List<RTPostParameter> parameters, List<RTPostParameter> headers);
+
+    protected abstract void onCommandPostExecureWithError(final RTApiCommand cmd, final String url, final List<RTPostParameter> parameters, final int statusCode, final String statusText, final String responseBody);
 
     public void resetCookies()
     {

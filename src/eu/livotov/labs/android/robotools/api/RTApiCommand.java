@@ -56,6 +56,22 @@ public abstract class RTApiCommand
         }
     }
 
+    public RTApiCommandResult parseServerErrorResponseData(final int httpCode, final String httpStatus, final String data) throws RTApiError
+    {
+        try
+        {
+            RTApiCommandResult response = (RTApiCommandResult) resultClass.newInstance();
+            response.loadErrorResponseData(this, httpCode, httpStatus, data);
+            return response;
+        } catch (RTApiError bawError)
+        {
+            throw bawError;
+        } catch (Throwable err)
+        {
+            throw new RTApiError(err);
+        }
+    }
+
     public RTApiCommandResult execute()
     {
         return getClient().execute(this);

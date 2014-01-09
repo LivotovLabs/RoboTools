@@ -14,12 +14,19 @@ import java.io.StringReader;
 public abstract class RTApiCommandResult {
     private RTApiCommand command;
 
-    protected void loadResponseData(RTApiCommand command, String data) {
+    protected void loadResponseData(RTApiCommand command, final String data) {
         this.command = command;
         processCommandSpecificData(data);
     }
 
-    protected abstract void processCommandSpecificData(final String json);
+    protected void loadErrorResponseData(RTApiCommand command, final int httpCode, final String httpStatusText, final String data) {
+        this.command = command;
+        processCommandSpecificErrorData(httpCode, httpStatusText, data);
+    }
+
+    protected abstract void processCommandSpecificData(final String data);
+
+    protected abstract void processCommandSpecificErrorData(final int httpCode, final String statusText, final String data);
 
     public RTApiCommand getCommand() {
         return command;
