@@ -32,6 +32,12 @@ public class RTApiError extends RuntimeException
         errorCode = bawErrorCode;
     }
 
+    public RTApiError(int bawErrorCode, final String details, String responseBody)
+    {
+        this(bawErrorCode, details);
+        this.responseBody = responseBody;
+    }
+
     public RTApiError(RTHTTPError httpError)
     {
         super(httpError.getMessage(), httpError);
