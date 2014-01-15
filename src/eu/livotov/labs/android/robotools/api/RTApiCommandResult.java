@@ -1,6 +1,7 @@
 package eu.livotov.labs.android.robotools.api;
 
 import android.util.Xml;
+import eu.livotov.labs.android.robotools.net.RTHTTPError;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -19,14 +20,15 @@ public abstract class RTApiCommandResult {
         processCommandSpecificData(data);
     }
 
-    protected void loadErrorResponseData(RTApiCommand command, final int httpCode, final String httpStatusText, final String data) {
+    protected void loadErrorResponseData(RTApiCommand command,
+                                         RTHTTPError error) {
         this.command = command;
-        processCommandSpecificErrorData(httpCode, httpStatusText, data);
+        processCommandSpecificErrorData(error);
     }
 
     protected abstract void processCommandSpecificData(final String data);
 
-    protected abstract void processCommandSpecificErrorData(final int httpCode, final String statusText, final String data);
+    protected abstract void processCommandSpecificErrorData (RTHTTPError error);
 
     public RTApiCommand getCommand() {
         return command;

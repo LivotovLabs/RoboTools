@@ -1,6 +1,7 @@
 package eu.livotov.labs.android.robotools.api;
 
 import android.os.AsyncTask;
+import eu.livotov.labs.android.robotools.net.RTHTTPError;
 import eu.livotov.labs.android.robotools.net.RTPostParameter;
 
 import java.io.File;
@@ -56,12 +57,12 @@ public abstract class RTApiCommand
         }
     }
 
-    public RTApiCommandResult parseServerErrorResponseData(final int httpCode, final String httpStatus, final String data) throws RTApiError
+    public RTApiCommandResult parseServerErrorResponseData(RTHTTPError error) throws RTApiError
     {
         try
         {
             RTApiCommandResult response = (RTApiCommandResult) resultClass.newInstance();
-            response.loadErrorResponseData(this, httpCode, httpStatus, data);
+            response.loadErrorResponseData(this, error);
             return response;
         } catch (RTApiError bawError)
         {
