@@ -194,7 +194,7 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
             {
                 appendingInProgress.set(false);
                 onDataRefreshEnded();
-                setKeepOnAppending(res.size() > 0);
+                setKeepOnAppending(showAppendingAfterLoad(res));
                 data.addAll(res);
                 pendingView = null;
                 notifyDataSetChanged();
@@ -214,6 +214,11 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
                 setKeepOnAppending(false);
             }
         }.executeAsync();
+    }
+
+    private boolean showAppendingAfterLoad(Collection<T> res)
+    {
+        return res.size() > 0;
     }
 
     protected View getPendingView(ViewGroup parent)
