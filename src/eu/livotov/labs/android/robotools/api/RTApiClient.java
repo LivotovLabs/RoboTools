@@ -155,7 +155,12 @@ public abstract class RTApiClient extends RTHTTPClient
             return result;
         } catch (RTHTTPError httpError)
         {
-            onCommandPostExecureWithError(cmd, url, parameters, httpError.getStatusCode(), httpError.getStatusText(), httpError.getResponseBody());
+            onCommandPostExecureWithError(cmd, url, parameters, httpError.getStatusCode(), httpError.getStatusText(),
+                                          httpError.getResponseBody());
+            if (debugMode)
+            {
+                Log.d(RTApiClient.class.getSimpleName(), "<< " + httpError.getResponseBody());
+            }
             RTApiCommandResult result = cmd.parseServerErrorResponseData(httpError);
             return result;
         } catch (RTApiError baw)
