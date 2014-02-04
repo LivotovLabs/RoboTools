@@ -216,7 +216,7 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
         }.executeAsync();
     }
 
-    private boolean showAppendingAfterLoad(Collection<T> res)
+    protected boolean showAppendingAfterLoad(Collection<T> res)
     {
         return res.size() > 0;
     }
