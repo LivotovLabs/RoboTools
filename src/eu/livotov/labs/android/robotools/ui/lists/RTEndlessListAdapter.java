@@ -138,7 +138,7 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
             public void onExecutionFinished(final Collection<T> ts)
             {
                 data.clear();
-                if (data.size() > 0)
+                if (ts.size() > 0)
                 {
                     setKeepOnAppending(true);
                 }
