@@ -138,7 +138,7 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
             public void onExecutionFinished(final Collection<T> ts)
             {
                 data.clear();
-                data.addAll(ts);
+                addData(ts);
 
                 if (data.size() > 0)
                 {
@@ -195,7 +195,7 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
                 appendingInProgress.set(false);
                 onDataRefreshEnded();
                 setKeepOnAppending(showAppendingAfterLoad(res));
-                data.addAll(res);
+                addData(res);
                 pendingView = null;
                 notifyDataSetChanged();
             }
@@ -214,6 +214,11 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
                 setKeepOnAppending(false);
             }
         }.executeAsync();
+    }
+
+    protected void addData(Collection<T> res)
+    {
+        data.addAll(res);
     }
 
     protected boolean showAppendingAfterLoad(Collection<T> res)
@@ -255,4 +260,8 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
         }
     }
 
+    public boolean isKeepOnAppending()
+    {
+        return keepOnAppending.get();
+    }
 }
