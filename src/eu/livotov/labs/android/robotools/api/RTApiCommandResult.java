@@ -18,7 +18,7 @@ public abstract class RTApiCommandResult {
     protected void loadResponseData(RTApiCommand command, final String data) {
         this.command = command;
         processCommandSpecificData(data);
-    }
+        }
 
     protected void loadErrorResponseData(RTApiCommand command,
                                          RTHTTPError error) {
