@@ -4,7 +4,6 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import com.google.android.gms.internal.v;
 import eu.livotov.labs.android.robotools.async.RTAsyncTask;
 
 import java.util.Collection;
@@ -131,7 +130,11 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
 
             public void onExecutionStarted()
             {
-                setKeepOnAppending(false);
+                if (showProgressAtFirstLoad())
+                {
+                    setKeepOnAppending(true);
+                    appendingInProgress.set(true);
+                }
                 onDataRefreshStarted();
             }
 
@@ -143,16 +146,20 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
                     setKeepOnAppending(true);
                 }
                 addData(ts);
+                appendingInProgress.set(false);
+
                 onDataRefreshEnded();
             }
 
             public void onExecutionFailed(final Throwable error)
             {
+                appendingInProgress.set(false);
                 onDataRefreshFailed(error);
             }
 
             public void onExecutionAborted()
             {
+                appendingInProgress.set(false);
                 onDataRefreshEnded();
             }
         }.executeAsync();
@@ -216,6 +223,11 @@ public abstract class RTEndlessListAdapter<T extends Object> extends RTListAdapt
     {
         data.addAll(res);
         notifyDataSetChanged();
+    }
+
+    public boolean showProgressAtFirstLoad()
+    {
+        return false;
     }
 
     protected boolean showAppendingAfterLoad(Collection<T> res)
