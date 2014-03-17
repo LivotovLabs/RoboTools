@@ -4,7 +4,6 @@ import android.os.AsyncTask;
 import eu.livotov.labs.android.robotools.net.RTHTTPError;
 import eu.livotov.labs.android.robotools.net.RTPostParameter;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -13,11 +12,15 @@ import java.util.List;
  */
 public abstract class RTApiCommand
 {
+
     public final static class ContentTypes
     {
+
         public final static String Json = "application/json";
         public final static String Xml = "text/xml; charset=utf-8";
     }
+
+    protected int retryCount = 3;
 
     protected Class resultClass;
 
@@ -48,6 +51,16 @@ public abstract class RTApiCommand
             RTApiCommandResult response = (RTApiCommandResult) resultClass.newInstance();
             response.loadResponseData(this, data);
             return response;
+        } catch (RTApiRetryRequiredException retry)
+        {
+            retryCount--;
+            if (retryCount>0)
+            {
+                return execute();
+            } else
+            {
+                throw new RTApiError(RTApiError.ErrorCodes.TooMuchRetries);
+            }
         } catch (RTApiError bawError)
         {
             throw bawError;
@@ -102,7 +115,7 @@ public abstract class RTApiCommand
                         callback.onCommandFailed((RTApiError) result);
                     } else
                     {
-                        final RTApiError error = new RTApiError((Throwable)result);
+                        final RTApiError error = new RTApiError((Throwable) result);
                         onAsyncExecutionError(error);
                         callback.onCommandFailed(error);
                     }
@@ -137,4 +150,13 @@ public abstract class RTApiCommand
 
     }
 
+    public int getRetryCount()
+    {
+        return retryCount;
+    }
+
+    public void setRetryCount(final int retryCount)
+    {
+        this.retryCount = retryCount;
+    }
 }

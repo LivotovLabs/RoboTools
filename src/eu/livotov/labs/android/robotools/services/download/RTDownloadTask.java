@@ -1,5 +1,7 @@
 package eu.livotov.labs.android.robotools.services.download;
 
+import android.graphics.Bitmap;
+
 import java.io.File;
 import java.io.Serializable;
 
@@ -32,6 +34,36 @@ public abstract class RTDownloadTask implements Serializable
     public abstract boolean isCancellable();
 
     public abstract boolean supportsMirrors();
+
+    protected abstract boolean requiresVisibleNotification();
+
+    protected abstract Bitmap getLargeIconIcsBitmap();
+
+    protected abstract int getNotificationIconPreIcsResource();
+
+    protected abstract int getNotificationIconIcsResource();
+
+    protected abstract String getNotificationCancelActionText();
+
+    protected abstract String getNotificationCancelAllActionText();
+
+    protected abstract String getDownloadPostprocessingMessage();
+
+    protected abstract String getDownloadBeingCancelledMessage();
+
+    protected abstract int getNotificationCancelIconResource();
+
+    protected abstract int getNotificationCancelAllIconResource();
+
+    protected abstract void performDownloadPreprocess();
+
+    protected abstract void performDownloadPostprocess();
+
+    protected abstract File createDownloadReceiverFile();
+
+    protected abstract String getDownloadNotificationTitle();
+
+    protected abstract String getDownloadNotificationFooter();
 
     public int getHttpConnectionTimeoutMs()
     {

@@ -99,19 +99,14 @@ public class RTApiError extends RuntimeException
         public final static int InternalError = 100000;
         public final static int NetworkError = InternalError + 1;
         public final static int JsonError = InternalError + 2;
+        public final static int TooMuchRetries = InternalError + 3;
     }
 
     public static void rethrow(Object err)
     {
         if (err instanceof Throwable)
         {
-            if (err instanceof RTApiError)
-            {
-                throw (RTApiError) err;
-            } else
-            {
-                throw new RTApiError((Throwable) err);
-            }
+            throw wrap((Throwable)err);
         }
     }
 

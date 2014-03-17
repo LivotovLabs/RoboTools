@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Build;
@@ -161,7 +162,12 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
     {
         if (currentTask != null)
         {
-            startForeground(ONGOING_NOTIFICATION_ID, buildNotification(currentTask));
+            if (currentTask.requiresVisibleNotification())
+            {
+                startForeground(ONGOING_NOTIFICATION_ID, buildNotification(currentTask));
+            } else
+            {
+            }
         } else
         {
             stopForeground(true);
@@ -182,6 +188,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
                     while (retryDownload)
                     {
+                        downloadTask.performDownloadPreprocess();
                         final String url = downloadTask.getDownloadUrl();
 
                         if (TextUtils.isEmpty(url))
@@ -281,7 +288,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
     private void processSingleDownload(final P job, final String urlString) throws Throwable
     {
         currentTask = job;
-        currentTask.targetFile = getLocationOnDevice(currentTask);
+        currentTask.targetFile = currentTask.createDownloadReceiverFile();
         currentTask.status = RTDownloadStatus.Downloading;
 
         http.getConfiguration().setHttpConnectionTimeout(job.getHttpConnectionTimeoutMs());
@@ -350,7 +357,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
         {
             currentTask.status = RTDownloadStatus.Postprocessing;
             updateNotifications();
-            performDownloadPostprocess(currentTask);
+            currentTask.performDownloadPostprocess();
             currentTask.status = RTDownloadStatus.Finished;
         }
 
@@ -359,8 +366,8 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
     private Notification buildNotification(P task)
     {
-        final String userDefinedTitle = getDownloadNotificationTitle(task);
-        final String userDefinedFooter = getDownloadNotificationFooter(task);
+        final String userDefinedTitle = task.getDownloadNotificationTitle();
+        final String userDefinedFooter = task.getDownloadNotificationFooter();
         final int queueSize = queue.size();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
@@ -404,7 +411,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
     private NotificationCompat.Builder setupDownloadPostprocessingNotificationOptions(final P task, final NotificationCompat.Builder builder)
     {
-        final String userDefinedPostProcessingMessage = getDownloadPostprocessingMessage(task);
+        final String userDefinedPostProcessingMessage = task.getDownloadPostprocessingMessage();
 
         builder.setProgress(100, 0, true);
         builder.setContentText(TextUtils.isEmpty(userDefinedPostProcessingMessage) ? "Processing..." : userDefinedPostProcessingMessage);
@@ -413,7 +420,7 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
     private NotificationCompat.Builder setupDownloadBeingCancelledNotificationOptions(final P task, final NotificationCompat.Builder builder)
     {
-        final String userDefinedCancellingMessage = getDownloadBeingCancelledMessage(task);
+        final String userDefinedCancellingMessage = task.getDownloadBeingCancelledMessage();
 
         builder.setProgress(100, 0, true);
         builder.setContentText(TextUtils.isEmpty(userDefinedCancellingMessage) ? "Cancelling..." : userDefinedCancellingMessage);
@@ -427,8 +434,8 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
 
         if (task.isCancellable())
         {
-            final String userDefinedCancelButtonText = getNotificationCancelActionText(task);
-            final String userDefinedCancelAllButtonText = getNotificationCancelAllActionText(task);
+            final String userDefinedCancelButtonText = task.getNotificationCancelActionText();
+            final String userDefinedCancelAllButtonText = task.getNotificationCancelAllActionText();
 
             Intent cancelDownloadIntent = new Intent(this, this.getClass()).setAction(Commands.Cancel).putExtra(Extras.DownloadId, task.getDownloadId());
             Intent cancelAllDownloadIntent = new Intent(this, this.getClass()).setAction(Commands.CancelAll);
@@ -438,10 +445,10 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
             PendingIntent cancelAllDownloadPendingIntent = PendingIntent.getService(this, 0, cancelAllDownloadIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             PendingIntent cancelDownloadPendingIntentVisSwipeOut = PendingIntent.getService(this, 0, cancelDownloadIntentViaSwipeOut, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            builder.addAction(getNotificationCancelIconResource(task), TextUtils.isEmpty(userDefinedCancelButtonText) ? "Cancel" : userDefinedCancelButtonText, cancelDownloadPendingIntent);
+            builder.addAction(task.getNotificationCancelIconResource(), TextUtils.isEmpty(userDefinedCancelButtonText) ? "Cancel" : userDefinedCancelButtonText, cancelDownloadPendingIntent);
             if (getDownloadQueue().size() > 0)
             {
-                builder.addAction(getNotificationCancelAllIconResource(task), TextUtils.isEmpty(userDefinedCancelAllButtonText) ? "Cancel All" : userDefinedCancelAllButtonText, cancelAllDownloadPendingIntent);
+                builder.addAction(task.getNotificationCancelAllIconResource(), TextUtils.isEmpty(userDefinedCancelAllButtonText) ? "Cancel All" : userDefinedCancelAllButtonText, cancelAllDownloadPendingIntent);
             }
 
             builder.setDeleteIntent(cancelDownloadPendingIntentVisSwipeOut);
@@ -465,10 +472,10 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
     {
         if (Build.VERSION.SDK_INT < 11)
         {
-            return getNotificationIconPreIcsResource(task);
+            return task.getNotificationIconPreIcsResource();
         } else
         {
-            return getNotificationIconIcsResource(task);
+            return task.getNotificationIconIcsResource();
         }
     }
 
@@ -479,31 +486,11 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
             return null;
         } else
         {
-            return getLargeIconIcsBitmap(task);
+            return task.getLargeIconIcsBitmap();
         }
     }
 
     protected abstract P createNewTask(final String id);
-
-    protected abstract Bitmap getLargeIconIcsBitmap(final P task);
-
-    protected abstract int getNotificationIconPreIcsResource(final P task);
-
-    protected abstract int getNotificationIconIcsResource(final P task);
-
-    protected abstract String getNotificationCancelActionText(final P task);
-
-    protected abstract String getNotificationCancelAllActionText(final P task);
-
-    protected abstract String getDownloadPostprocessingMessage(final P task);
-
-    protected abstract String getDownloadBeingCancelledMessage(final P task);
-
-    protected abstract int getNotificationCancelIconResource(final P task);
-
-    protected abstract int getNotificationCancelAllIconResource(final P task);
-
-    protected abstract void performDownloadPostprocess(P task);
 
     protected abstract void onDownloadStarted(P task);
 
@@ -514,12 +501,6 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
     protected abstract void onDownloadFailed(P task, Throwable err);
 
     protected abstract void onDownloadCancelled(P task);
-
-    protected abstract File getLocationOnDevice(P task);
-
-    protected abstract String getDownloadNotificationTitle(P task);
-
-    protected abstract String getDownloadNotificationFooter(P task);
 
     protected abstract void verifyStream(P task, HttpResponse connection) throws Exception;
 
@@ -537,5 +518,19 @@ public abstract class RTDownloadService<P extends RTDownloadTask> extends Servic
         public final static String DownloadId = "downloadId";
     }
 
+    public static void submitDownload(Context ctx, Class serviceClass, final String downloadId)
+    {
+        ctx.startService(new Intent(ctx,serviceClass).setAction(Commands.Download).putExtra(Extras.DownloadId,downloadId));
+    }
+
+    public static void cancelDownload(Context ctx, Class serviceClass, final String downloadId)
+    {
+        ctx.startService(new Intent(ctx,serviceClass).setAction(Commands.Cancel).putExtra(Extras.DownloadId,downloadId));
+    }
+
+    public static void cancelAllDownloads(Context ctx, Class serviceClass, final String downloadId)
+    {
+        ctx.startService(new Intent(ctx,serviceClass).setAction(Commands.CancelAll));
+    }
 
 }

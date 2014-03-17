@@ -3,15 +3,13 @@ package eu.livotov.labs.android.robotools.net;
 import android.text.TextUtils;
 import eu.livotov.labs.android.robotools.io.RTStreamUtil;
 import eu.livotov.labs.android.robotools.net.method.HttpDeleteWithBody;
-import eu.livotov.labs.android.robotools.net.multipart.FilePart;
-import eu.livotov.labs.android.robotools.net.multipart.MultipartEntity;
-import eu.livotov.labs.android.robotools.net.multipart.Part;
-import eu.livotov.labs.android.robotools.net.multipart.StringPart;
+import eu.livotov.labs.android.robotools.net.multipart.*;
 import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ClientConnectionManager;
@@ -158,17 +156,6 @@ public class RTHTTPClient implements HttpRequestRetryHandler
                 finalUrl.append("?");
             }
 
-            for (RTPostParameter p : params)
-            {
-                if (index == 0)
-                {
-                    finalUrl.append("&");
-                }
-
-                finalUrl.append(String.format("%s=%s", p.getName(), URLEncoder.encode(p.getValue(), "utf-8")));
-                index++;
-            }
-
             HttpPut put = new HttpPut(finalUrl.toString());
 
             for (RTPostParameter h : headers)
@@ -183,6 +170,19 @@ public class RTHTTPClient implements HttpRequestRetryHandler
                 putEntity.setContentEncoding(finalEncoding);
                 put.addHeader("Content-type", finalContentType);
                 put.setEntity(putEntity);
+            } else
+            {
+                StringPart[] parts = new StringPart[params.size()];
+                int i=0;
+
+                for (RTPostParameter p : params)
+                {
+                    parts[i] = new StringPart(p.getName(),p.getValue());
+                    i++;
+                }
+
+                MultipartEntity mp = new MultipartEntity(parts);
+                put.setEntity(mp);
             }
 
             return http.execute(put);
@@ -249,6 +249,22 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         } catch (Throwable err)
         {
             throw new RTHTTPError(err);
+        }
+    }
+
+    public HttpResponse executeRaw(final HttpUriRequest request)
+    {
+        try
+        {
+            if (configuration.isDirty())
+            {
+                reconfigureHttpClient();
+            }
+
+            return http.execute(request);
+        } catch (Throwable e)
+        {
+            throw new RTHTTPError(e);
         }
     }
 
@@ -333,6 +349,43 @@ public class RTHTTPClient implements HttpRequestRetryHandler
             parts.add(pData);
 
             MultipartEntity mpEntity = new MultipartEntity(parts.toArray(new Part[parts.size()]));
+            httppost.setEntity(mpEntity);
+
+            for (RTPostParameter header : headers)
+            {
+                httppost.addHeader(header.getName(), header.getValue());
+            }
+
+            return http.execute(httppost);
+        } catch (Throwable err)
+        {
+            throw new RTHTTPError(err);
+        }
+    }
+
+    public HttpResponse submitMultipartFormWithProgressReporting(final String url, Collection<RTPostParameter> headers, Collection<RTPostParameter> formFields, final String fileFeldName, File file, ProgressMultipartEntity.ProgressCallback callback)
+    {
+        try
+        {
+            if (configuration.isDirty())
+            {
+                reconfigureHttpClient();
+            }
+
+            HttpPost httppost = new HttpPost(url);
+
+            List<Part> parts = new ArrayList<Part>();
+
+            for (RTPostParameter field : formFields)
+            {
+                parts.add(new StringPart(field.getName(), field.getValue(), "utf-8"));
+            }
+
+            FilePart pData = new FilePart(fileFeldName, file);
+            pData.setTransferEncoding("8bit");
+            parts.add(pData);
+
+            ProgressMultipartEntity mpEntity = new ProgressMultipartEntity(parts.toArray(new Part[parts.size()]), callback);
             httppost.setEntity(mpEntity);
 
             for (RTPostParameter header : headers)

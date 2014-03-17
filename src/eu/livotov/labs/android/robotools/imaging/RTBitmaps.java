@@ -4,6 +4,7 @@ import android.graphics.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
@@ -52,6 +53,20 @@ public class RTBitmaps
         } else
         {
             return BitmapFactory.decodeFile(file.getAbsolutePath());
+        }
+    }
+
+    public static void saveBitmapToFile(Bitmap bm, int quality, File file) throws IOException
+    {
+        if (bm != null)
+        {
+            FileOutputStream fos = new FileOutputStream(file);
+            bm.compress(Bitmap.CompressFormat.JPEG, quality, fos);
+            fos.flush();
+            fos.close();
+        } else
+        {
+            file.delete();
         }
     }
 

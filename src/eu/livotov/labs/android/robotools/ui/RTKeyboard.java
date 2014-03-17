@@ -17,24 +17,53 @@ import android.view.inputmethod.InputMethodManager;
 public class RTKeyboard
 {
 
+    public static void hideKeyboard(final Activity ctx)
+    {
+        InputMethodManager inputManager = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (ctx.getCurrentFocus()!=null)
+        {
+            inputManager.hideSoftInputFromWindow(ctx.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        }
+    }
+
+    public static void hideKeyboard(final View view)
+    {
+        InputMethodManager inputManager = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+    }
+
+    public static void showKeyboard(final Activity ctx)
+    {
+        InputMethodManager inputManager = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (ctx.getCurrentFocus()!=null)
+        {
+            inputManager.showSoftInput(ctx.getCurrentFocus(), InputMethodManager.SHOW_IMPLICIT);
+        }
+    }
+
+    public static void showKeyboard(final View view)
+    {
+        InputMethodManager inputManager = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        view.requestFocus();
+        inputManager.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+    }
+
     public static void showSoftKeyboardFor(final Context ctx, final View view)
     {
-        if (view != null)
+        try
         {
-            view.postDelayed(new Runnable()
+            InputMethodManager mgr = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (view != null)
             {
-                public void run()
-                {
-                    try
-                    {
-                        InputMethodManager mgr = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
-                        mgr.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
-                    } catch (Throwable err)
-                    {
-                        Log.e(RTKeyboard.class.getName(), err.getMessage(), err);
-                    }
-                }
-            }, 200);
+                view.requestFocus();
+                mgr.showSoftInput(view, InputMethodManager.SHOW_FORCED);
+            } else
+            {
+                mgr.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+            }
+        } catch (Throwable err)
+        {
+            Log.e(RTKeyboard.class.getName(), err.getMessage(), err);
         }
     }
 
@@ -42,35 +71,26 @@ public class RTKeyboard
     {
         if (view != null)
         {
-            view.postDelayed(new Runnable()
+            try
             {
-                public void run()
-                {
-                    try
-                    {
-                        InputMethodManager mgr = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                        mgr.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    } catch (Throwable err)
-                    {
-                        Log.e(RTKeyboard.class.getName(), err.getMessage(), err);
-                    }
-                }
-            }, 200);
+                InputMethodManager mgr = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                mgr.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            } catch (Throwable err)
+            {
+                Log.e(RTKeyboard.class.getName(), err.getMessage(), err);
+            }
         } else
         {
-            activity.runOnUiThread(new Runnable()
+            try
             {
-                public void run()
-                {
-                    try
-                    {
-                        activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-                    } catch (Throwable err)
-                    {
-                        Log.e(RTKeyboard.class.getName(), err.getMessage(), err);
-                    }
-                }
-            });
+                InputMethodManager mgr = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+                mgr.hideSoftInputFromWindow(activity.findViewById(android.R.id.content).getWindowToken(), 0);
+                mgr.hideSoftInputFromWindow(activity.findViewById(android.R.id.content).getApplicationWindowToken(), 0);
+            } catch (Throwable err)
+            {
+                Log.e(RTKeyboard.class.getName(), err.getMessage(), err);
+            }
         }
     }
 }
