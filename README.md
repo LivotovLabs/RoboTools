@@ -6,9 +6,9 @@ General Info
 Collection of utility classes to make android apps development more comfortable, with less code lines and unified across SDK versions.
 
 
-Status
+Status and plans
 ------
-Note, that it is currently in unstable version, so API of some helpers may change and no documentation available at the moment. I plan to release first stable version (1.0) with more documentation up to the end of 2013.
+Project is reached 1.0 beta state and v1.0 release will be published soon. Then 1.x branch will be created for maintenance only while we'll be focusing on a 2.0 release where we want to actualize android apis used, add more transparent wrappers for RT classes in order to use new api on KitKat devices and old api on other ones. We're also going to build a documentation for the main RT tool present in this library.
 
 
 License
