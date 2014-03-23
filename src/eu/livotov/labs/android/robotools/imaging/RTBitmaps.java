@@ -2,10 +2,10 @@ package eu.livotov.labs.android.robotools.imaging;
 
 import android.graphics.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,6 +25,43 @@ public class RTBitmaps
             scale = (int) Math.pow(2, (int) Math.round(Math.log(reqSize / (double) Math.max(options.outHeight, options.outWidth)) / Math.log(0.5)));
         }
         return scale;
+    }
+
+    public static Bitmap loadBitmapFromUrl(final String link, int downscaleSize) throws IOException
+    {
+        URL url = new URL(link);
+
+        if (downscaleSize>0)
+        {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+
+            BitmapFactory.decodeStream(input, null, options);
+
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            input = connection.getInputStream();
+
+            int inSampleSize = calculateInSampleSize(options, downscaleSize);
+            options = new BitmapFactory.Options();
+            options.inSampleSize = inSampleSize;
+
+            return BitmapFactory.decodeStream(input, null, options);
+        } else
+        {
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+
+            return BitmapFactory.decodeStream(input);
+        }
     }
 
     public static Bitmap loadBitmapFromFile(File file, int reqSize)
