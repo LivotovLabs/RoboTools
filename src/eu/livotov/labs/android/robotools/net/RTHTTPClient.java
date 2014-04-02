@@ -6,6 +6,7 @@ import eu.livotov.labs.android.robotools.net.method.HttpDeleteWithBody;
 import eu.livotov.labs.android.robotools.net.multipart.*;
 import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -173,11 +174,11 @@ public class RTHTTPClient implements HttpRequestRetryHandler
             } else
             {
                 StringPart[] parts = new StringPart[params.size()];
-                int i=0;
+                int i = 0;
 
                 for (RTPostParameter p : params)
                 {
-                    parts[i] = new StringPart(p.getName(),p.getValue());
+                    parts[i] = new StringPart(p.getName(), p.getValue());
                     i++;
                 }
 
@@ -410,27 +411,43 @@ public class RTHTTPClient implements HttpRequestRetryHandler
             }
 
             HttpPost httppost = new HttpPost(url);
-
-            List<Part> parts = new ArrayList<Part>();
+            boolean hasAttachments = false;
 
             for (RTPostParameter field : formFields)
             {
                 if (field.getAttachment() != null)
                 {
-                    File attachment = field.getAttachment();
-                    if (attachment.exists() && attachment.length() > 0 && attachment.canRead())
-                    {
-                        FilePart filePart = new FilePart(field.getName(), attachment);
-                        parts.add(filePart);
-                    }
-                } else
-                {
-                    parts.add(new StringPart(field.getName(), field.getValue(), "utf-8"));
+                    hasAttachments = true;
+                    break;
                 }
             }
 
-            MultipartEntity mpEntity = new MultipartEntity(parts.toArray(new Part[parts.size()]));
-            httppost.setEntity(mpEntity);
+            if (hasAttachments)
+            {
+                List<Part> parts = new ArrayList<Part>();
+
+                for (RTPostParameter field : formFields)
+                {
+                    if (field.getAttachment() != null)
+                    {
+                        File attachment = field.getAttachment();
+                        if (attachment.exists() && attachment.length() > 0 && attachment.canRead())
+                        {
+                            FilePart filePart = new FilePart(field.getName(), attachment);
+                            parts.add(filePart);
+                        }
+                    } else
+                    {
+                        parts.add(new StringPart(field.getName(), field.getValue(), "utf-8"));
+                    }
+                }
+
+                MultipartEntity mpEntity = new MultipartEntity(parts.toArray(new Part[parts.size()]));
+                httppost.setEntity(mpEntity);
+            } else
+            {
+                httppost.setEntity(new UrlEncodedFormEntity(new ArrayList<NameValuePair>(formFields),"utf-8"));
+            }
 
             for (RTPostParameter header : headers)
             {

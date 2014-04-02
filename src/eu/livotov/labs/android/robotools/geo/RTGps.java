@@ -1,11 +1,15 @@
 package eu.livotov.labs.android.robotools.geo;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.*;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+import eu.livotov.labs.android.robotools.ui.RTDialogs;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -292,6 +296,33 @@ public class RTGps implements LocationListener
 
     public void onProviderDisabled(final String s)
     {
+    }
+
+    public static boolean checkLocationServicesEnabled(final Context ctx)
+    {
+        try
+        {
+            boolean locationEnabled = true;
+
+            if (Build.VERSION.SDK_INT<19)
+            {
+                locationEnabled = !TextUtils.isEmpty(Settings.Secure.getString(ctx.getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED));
+            } else
+            {
+                final int mode = Settings.Secure.getInt(ctx.getContentResolver(), Settings.Secure.LOCATION_MODE);
+                locationEnabled = mode != Settings.Secure.LOCATION_MODE_OFF;
+            }
+
+            return locationEnabled;
+        } catch (Throwable err)
+        {
+            throw new RuntimeException(err);
+        }
+    }
+
+    public static void openLocationSettings(Context ctx)
+    {
+        ctx.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
     }
 
     public double getLastKnownLattitude()
