@@ -1,5 +1,7 @@
 package eu.livotov.labs.android.robotools.geo;
 
+import android.location.Location;
+
 /**
  * (c) Livotov Labs Ltd. 2012
  * Date: 15/01/2013
