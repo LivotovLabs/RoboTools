@@ -2,17 +2,11 @@ package eu.livotov.labs.android.robotools.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.text.TextUtils;
-import android.util.Base64;
-import android.util.Log;
 import eu.livotov.labs.android.robotools.crypt.RTBase64;
 import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
-import eu.livotov.labs.android.robotools.crypt.RTSecretKeyWrapper;
 import eu.livotov.labs.android.robotools.device.RTDevice;
 
-import javax.crypto.SecretKey;
-import java.security.GeneralSecurityException;
 import java.util.Set;
 
 /**
@@ -25,10 +19,6 @@ import java.util.Set;
 public class RTSecurePrefs extends RTPrefs
 {
 
-    public static final String WRAPPED_KEY = "wrapped_key";
-    private static final String TAG = RTSecurePrefs.class.getCanonicalName();
-    private static final boolean IS_JB43 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2;
-
     private static RTSecurePrefs defaultPreferences;
     private String keychainKey;
 
@@ -37,17 +27,13 @@ public class RTSecurePrefs extends RTPrefs
     private boolean lockToTelephony = false;
     private boolean lockToSIM = false;
 
-    private Context ctx;
-    private RTSecretKeyWrapper kw;
-    private SharedPreferences privatePrefs;
-
-
     public static synchronized RTSecurePrefs getDefault(final Context ctx)
     {
         if (defaultPreferences == null)
         {
             defaultPreferences = new RTSecurePrefs(ctx);
         }
+
         return defaultPreferences;
     }
 
@@ -59,81 +45,7 @@ public class RTSecurePrefs extends RTPrefs
     public RTSecurePrefs(final Context ctx, final String preferenceStorageName)
     {
         super(ctx, preferenceStorageName, true);
-        this.ctx = ctx;
-        privatePrefs = ctx.getSharedPreferences("RTSecureStoragePrefs", Context.MODE_PRIVATE);
-        if (IS_JB43)
-        {
-            try
-            {
-                String keyName = ctx.getPackageName() + "_rt_secure_key";
-                kw = new RTSecretKeyWrapper(ctx, keyName);
-            } catch (Exception e)
-            {
-                kw = null;
-            }
-        }
         lock();
-    }
-
-    public boolean isKWInit()
-    {
-        return kw != null;
-    }
-
-    private String encryptWithSecretKey(String plaintext)
-    {
-        try
-        {
-            Log.d(TAG, "encryptWithSecretKey");
-            return RTCryptUtil.encryptAesCbc(plaintext, getKey(true));
-        } catch (Exception e)
-        {
-            Log.d(TAG, e.getMessage(), e);
-            return "";
-        }
-    }
-
-    private String decryptWithSecretKey(String ciphertext)
-    {
-        try
-        {
-            Log.d(TAG, "decryptWithSecretKey");
-            return RTCryptUtil.decryptAesCbc(ciphertext, getKey(false));
-        } catch (Exception e)
-        {
-            Log.d(TAG, e.getMessage(), e);
-            return "";
-        }
-    }
-
-    private SecretKey getKey(boolean generateIfNeeded) throws GeneralSecurityException
-    {
-        SecretKey key = null;
-        String wrappedkey = getWrappedKey();
-        if (TextUtils.isEmpty(wrappedkey) && generateIfNeeded)
-        {
-            Log.d(TAG, "generate key and wrap");
-            key = RTCryptUtil.generateAesKey();
-            wrappedkey = Base64.encodeToString(kw.wrap(key), Base64.NO_WRAP);
-            saveWrappedKey(wrappedkey);
-        } else if (!TextUtils.isEmpty(wrappedkey))
-        {
-            Log.d(TAG, "unwrap key");
-            key = kw.unwrap(Base64.decode(wrappedkey, Base64.NO_WRAP));
-        }
-        return key;
-    }
-
-    private void saveWrappedKey(String wrappedkey)
-    {
-        SharedPreferences.Editor editor = privatePrefs.edit();
-        editor.putString(WRAPPED_KEY, wrappedkey);
-        editor.apply();
-    }
-
-    private String getWrappedKey()
-    {
-        return privatePrefs.getString(WRAPPED_KEY, "");
     }
 
     public RTSecurePrefs(final Context ctx, final String preferenceStorageName, final boolean bindToDevice, boolean bindToWifi, boolean bindToTelephony, boolean bindToSim)
@@ -288,10 +200,7 @@ public class RTSecurePrefs extends RTPrefs
 
         try
         {
-            String value = super.getString(key, "");
-            return isKWInit()
-                           ? decryptWithSecretKey(value)
-                           : RTCryptUtil.decryptAsText(value, keychainKey);
+            return RTCryptUtil.decryptAsText(super.getString(key, ""), keychainKey);
         } catch (Throwable err)
         {
             return defaultValue;
@@ -307,9 +216,7 @@ public class RTSecurePrefs extends RTPrefs
             remove(key);
         } else
         {
-            super.setString(key, isKWInit()
-                                         ? encryptWithSecretKey(value)
-                                         : RTCryptUtil.encrypt(value, keychainKey));
+            super.setString(key, RTCryptUtil.encrypt(value, keychainKey));
         }
     }
 

@@ -77,6 +77,16 @@ public abstract class RTApiCommand
             RTApiCommandResult response = (RTApiCommandResult) resultClass.newInstance();
             response.loadErrorResponseData(this, error);
             return response;
+        } catch (RTApiRetryRequiredException retry)
+        {
+            retryCount--;
+            if (retryCount>0)
+            {
+                return execute();
+            } else
+            {
+                throw new RTApiError(RTApiError.ErrorCodes.TooMuchRetries);
+            }
         } catch (RTApiError bawError)
         {
             throw bawError;

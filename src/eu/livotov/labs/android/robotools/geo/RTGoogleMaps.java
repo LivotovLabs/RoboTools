@@ -11,13 +11,13 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.VisibleRegion;
 
 /**
  * (c) Livotov Labs Ltd. 2012
@@ -49,13 +49,7 @@ public class RTGoogleMaps
 
         if (activity != null)
         {
-            try
-            {
-                MapsInitializer.initialize(activity);
-            } catch (GooglePlayServicesNotAvailableException e)
-            {
-                return false;
-            }
+            MapsInitializer.initialize(activity);
         }
 
         return true;
@@ -85,13 +79,7 @@ public class RTGoogleMaps
 
         if (activity != null)
         {
-            try
-            {
-                MapsInitializer.initialize(activity);
-            } catch (GooglePlayServicesNotAvailableException e)
-            {
-                return false;
-            }
+            MapsInitializer.initialize(activity);
         }
 
         return true;
@@ -139,21 +127,21 @@ public class RTGoogleMaps
         return GooglePlayServicesUtil.isGooglePlayServicesAvailable(ctx) == ConnectionResult.SUCCESS && checkGmsServiceInstalled(ctx);
     }
 
-    public static String getStaticMapPictureUrl(final double lat,final double lon)
+    public static String getStaticMapPictureUrl(final double lat, final double lon)
     {
         return getStaticMapPictureUrl(lat, lon, 350, 110);
     }
 
-    public static String getStaticMapPictureUrl(final double lat,final double lon, final int width, final int height)
+    public static String getStaticMapPictureUrl(final double lat, final double lon, final int width, final int height)
     {
         final String coordPair = String.format("%s,%s", lat, lon);
-        final String sizePair = String.format("%sx%s", width,height);
-        return  "http://maps.googleapis.com/maps/api/staticmap?"
-                                      + "&zoom=16"
-                                      + "&size=" + sizePair
-                                      + "&maptype=roadmap&sensor=true"
-                                      + "&center=" + coordPair
-                                      + "&markers=color:black|" + coordPair;
+        final String sizePair = String.format("%sx%s", width, height);
+        return "http://maps.googleapis.com/maps/api/staticmap?"
+                       + "&zoom=16"
+                       + "&size=" + sizePair
+                       + "&maptype=roadmap&sensor=true"
+                       + "&center=" + coordPair
+                       + "&markers=color:black|" + coordPair;
     }
 
     private static boolean checkGmsServiceInstalled(final Context ctx)
@@ -167,6 +155,22 @@ public class RTGoogleMaps
         }
 
         return false;
+    }
+
+    public static Uri getNavigationRouteUrl(double lat1, double lon1, double lat2, double lon2)
+    {
+        return getNavigationRouteUrl(lat1, lon1, lat2, lon2, 12);
+    }
+
+    public static Uri getNavigationRouteUrl(double lat1, double lon1, double lat2, double lon2, double zoom)
+    {
+        return Uri.parse(String.format("http://maps.google.com/maps/?f=d&saddr=(%s,%s)&daddr=(%s,%s)&hl=en&z=%s", lat1, lon1, lat2, lon2, 12));
+    }
+
+    public static double getMapVisibleRadius(GoogleMap map)
+    {
+        VisibleRegion region = map.getProjection().getVisibleRegion();
+        return RTGeo.findDistance(region.nearLeft.latitude, region.nearLeft.longitude, region.farRight.latitude, region.farRight.longitude);
     }
 
     public static void installGoogleMapsIfRequired(final Activity activity)
