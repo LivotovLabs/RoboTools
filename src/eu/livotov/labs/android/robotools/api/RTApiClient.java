@@ -22,7 +22,12 @@ public abstract class RTApiClient extends RTHTTPClient
 
     protected RTApiClient()
     {
-        super(true);
+        super(false);
+    }
+
+    protected RTApiClient(boolean allowSelfSignedCerts)
+    {
+        super(allowSelfSignedCerts);
     }
 
     public boolean isDebugMode()
