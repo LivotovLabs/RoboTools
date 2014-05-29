@@ -17,6 +17,7 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -446,7 +447,7 @@ public class RTHTTPClient implements HttpRequestRetryHandler
                 httppost.setEntity(mpEntity);
             } else
             {
-                httppost.setEntity(new UrlEncodedFormEntity(new ArrayList<NameValuePair>(formFields),"utf-8"));
+                httppost.setEntity(new UrlEncodedFormEntity(new ArrayList<NameValuePair>(formFields), "utf-8"));
             }
 
             for (RTPostParameter header : headers)
@@ -494,7 +495,7 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
-        HttpClientParams.setCookiePolicy(params, CookiePolicy.BEST_MATCH);
+        configureCookiePolicy(params);
         HttpClientParams.setRedirecting(params, configuration.isAllowRedirects());
         params.setParameter("http.protocol.expect-continue", false);
         HttpConnectionParams.setConnectionTimeout(params, configuration.getHttpConnectionTimeout());
@@ -606,6 +607,11 @@ public class RTHTTPClient implements HttpRequestRetryHandler
         http.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, configuration.isUseExpectContinue());
 
         configuration.clearDirtyFlag();
+    }
+
+    protected void configureCookiePolicy(HttpParams params)
+    {
+        HttpClientParams.setCookiePolicy(params, CookiePolicy.BEST_MATCH);
     }
 
     public boolean retryRequest(IOException e, int i, HttpContext httpContext)
