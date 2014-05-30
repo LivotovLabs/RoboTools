@@ -20,26 +20,52 @@ import java.util.List;
  * Time: 14:18
  * To change this template use File | Settings | File Templates.
  */
-public class RTCookieStore implements CookieStore {
+public class RTCookieStore implements CookieStore
+{
 
     private static final String CS_KEY = "robotools.net.cstore";
     private List<Cookie> cookies = new ArrayList<Cookie>();
 
-    public RTCookieStore() {
+    public RTCookieStore()
+    {
     }
 
-    public void addCookie(final Cookie cookie) {
+    public void addCookie(final Cookie cookie)
+    {
+        int index = getCookieIndex(cookie.getName());
+        if (index != -1)
+        {
+            cookies.remove(index);
+        }
         cookies.add(cookie);
     }
 
-    public List<Cookie> getCookies() {
+    private int getCookieIndex(String key)
+    {
+        for (int i = 0; i < cookies.size(); i++)
+        {
+            Cookie cookie = cookies.get(i);
+            if (cookie.getName().equalsIgnoreCase(key))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public List<Cookie> getCookies()
+    {
         return cookies;
     }
 
-    public Cookie getCookie(final String key) {
+    public Cookie getCookie(final String key)
+    {
         clearExpired(new Date(System.currentTimeMillis()));
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equalsIgnoreCase(key)) {
+        for (Cookie cookie : cookies)
+        {
+            if (cookie.getName().equalsIgnoreCase(key))
+            {
                 return cookie;
             }
         }
@@ -47,9 +73,12 @@ public class RTCookieStore implements CookieStore {
         return null;
     }
 
-    public boolean hasCookie(final String name) {
-        for (Cookie ck : cookies) {
-            if (ck.getName().equalsIgnoreCase(name)) {
+    public boolean hasCookie(final String name)
+    {
+        for (Cookie ck : cookies)
+        {
+            if (ck.getName().equalsIgnoreCase(name))
+            {
                 return true;
             }
         }
@@ -57,16 +86,20 @@ public class RTCookieStore implements CookieStore {
         return false;
     }
 
-    public boolean clearExpired(final Date date) {
+    public boolean clearExpired(final Date date)
+    {
         List<Cookie> toExpire = new ArrayList<Cookie>();
 
-        for (Cookie cookie : cookies) {
-            if (cookie.isExpired(date)) {
+        for (Cookie cookie : cookies)
+        {
+            if (cookie.isExpired(date))
+            {
                 toExpire.add(cookie);
             }
         }
 
-        if (toExpire.size() > 0) {
+        if (toExpire.size() > 0)
+        {
             cookies.removeAll(toExpire);
             toExpire.clear();
             return true;
@@ -75,14 +108,17 @@ public class RTCookieStore implements CookieStore {
         return false;
     }
 
-    public void clear() {
+    public void clear()
+    {
         cookies.clear();
     }
 
-    public void saveCookieStore(final Context ctx) throws IOException {
+    public void saveCookieStore(final Context ctx) throws IOException
+    {
         final List<Cookie> serialisableCookies = new ArrayList<Cookie>(cookies.size());
 
-        for (Cookie cookie : cookies) {
+        for (Cookie cookie : cookies)
+        {
             serialisableCookies.add(new SerializableCookie(cookie));
         }
 
@@ -98,8 +134,10 @@ public class RTCookieStore implements CookieStore {
         editor.commit();
     }
 
-    public void readCookieStore(final Context ctx) {
-        try {
+    public void readCookieStore(final Context ctx)
+    {
+        try
+        {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx);
             ByteArrayInputStream bis = new ByteArrayInputStream(RTBase64.decode(preferences.getString(CS_KEY, ""), RTBase64.DEFAULT));
             ObjectInputStream ois = new ObjectInputStream(bis);
@@ -107,7 +145,8 @@ public class RTCookieStore implements CookieStore {
             ois.close();
             cookies.clear();
             cookies.addAll(restoredCookies);
-        } catch (Throwable err) {
+        } catch (Throwable err)
+        {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx);
             SharedPreferences.Editor editor = preferences.edit();
             editor.remove(CS_KEY);
@@ -116,7 +155,8 @@ public class RTCookieStore implements CookieStore {
         }
     }
 
-    public class SerializableCookie implements Cookie, Externalizable {
+    public class SerializableCookie implements Cookie, Externalizable
+    {
 
         private static final int NAME = 0x01;
         private static final int VALUE = 0x02;
@@ -130,65 +170,80 @@ public class RTCookieStore implements CookieStore {
         private transient int nullMask = 0;
         private transient Cookie cookie;
 
-        public SerializableCookie() {
+        public SerializableCookie()
+        {
             super();
         }
 
-        public SerializableCookie(final Cookie cookie) {
+        public SerializableCookie(final Cookie cookie)
+        {
             super();
 
             this.cookie = cookie;
         }
 
-        public String getName() {
+        public String getName()
+        {
             return cookie.getName();
         }
 
-        public String getValue() {
+        public String getValue()
+        {
             return cookie.getValue();
         }
 
-        public String getComment() {
+        public String getComment()
+        {
             return cookie.getComment();
         }
 
-        public String getCommentURL() {
+        public String getCommentURL()
+        {
             return cookie.getCommentURL();
         }
 
-        public Date getExpiryDate() {
+        public Date getExpiryDate()
+        {
             return cookie.getExpiryDate();
         }
 
-        public boolean isPersistent() {
+        public boolean isPersistent()
+        {
             return cookie.isPersistent();
         }
 
-        public String getDomain() {
+        public String getDomain()
+        {
             return cookie.getDomain();
         }
 
-        public String getPath() {
+        public String getPath()
+        {
             return cookie.getPath();
         }
 
-        public int[] getPorts() {
+        public int[] getPorts()
+        {
             return cookie.getPorts();
         }
 
-        public boolean isSecure() {
+        public boolean isSecure()
+        {
             return cookie.isSecure();
         }
 
-        public int getVersion() {
+        public int getVersion()
+        {
             return cookie.getVersion();
         }
 
-        public boolean isExpired(final Date date) {
+        public boolean isExpired(final Date date)
+        {
             return cookie.isExpired(date);
         }
 
-        public void writeExternal(final ObjectOutput out) throws IOException {
+        public void writeExternal(final ObjectOutput out) throws IOException
+        {
             nullMask |= (getName() == null) ? NAME : 0;
             nullMask |= (getValue() == null) ? VALUE : 0;
             nullMask |= (getComment() == null) ? COMMENT : 0;
@@ -200,40 +255,49 @@ public class RTCookieStore implements CookieStore {
 
             out.writeInt(nullMask);
 
-            if ((nullMask & NAME) == 0) {
+            if ((nullMask & NAME) == 0)
+            {
                 out.writeUTF(getName());
             }
 
-            if ((nullMask & VALUE) == 0) {
+            if ((nullMask & VALUE) == 0)
+            {
                 out.writeUTF(getValue());
             }
 
-            if ((nullMask & COMMENT) == 0) {
+            if ((nullMask & COMMENT) == 0)
+            {
                 out.writeUTF(getComment());
             }
 
-            if ((nullMask & COMMENT_URL) == 0) {
+            if ((nullMask & COMMENT_URL) == 0)
+            {
                 out.writeUTF(getCommentURL());
             }
 
-            if ((nullMask & EXPIRY_DATE) == 0) {
+            if ((nullMask & EXPIRY_DATE) == 0)
+            {
                 out.writeLong(getExpiryDate().getTime());
             }
 
             out.writeBoolean(isPersistent());
 
-            if ((nullMask & DOMAIN) == 0) {
+            if ((nullMask & DOMAIN) == 0)
+            {
                 out.writeUTF(getDomain());
             }
 
-            if ((nullMask & PATH) == 0) {
+            if ((nullMask & PATH) == 0)
+            {
                 out.writeUTF(getPath());
             }
 
-            if ((nullMask & PORTS) == 0) {
+            if ((nullMask & PORTS) == 0)
+            {
                 out.writeInt(getPorts().length);
 
-                for (int p : getPorts()) {
+                for (int p : getPorts())
+                {
                     out.writeInt(p);
                 }
             }
@@ -244,7 +308,8 @@ public class RTCookieStore implements CookieStore {
 
 
         public void readExternal(final ObjectInput in) throws IOException,
-                ClassNotFoundException {
+                                                              ClassNotFoundException
+        {
             nullMask = in.readInt();
 
             String name = null;
@@ -259,42 +324,51 @@ public class RTCookieStore implements CookieStore {
             boolean isSecure = false;
             int version = 0;
 
-            if ((nullMask & NAME) == 0) {
+            if ((nullMask & NAME) == 0)
+            {
                 name = in.readUTF();
             }
 
-            if ((nullMask & VALUE) == 0) {
+            if ((nullMask & VALUE) == 0)
+            {
                 value = in.readUTF();
             }
 
-            if ((nullMask & COMMENT) == 0) {
+            if ((nullMask & COMMENT) == 0)
+            {
                 comment = in.readUTF();
             }
 
-            if ((nullMask & COMMENT_URL) == 0) {
+            if ((nullMask & COMMENT_URL) == 0)
+            {
                 commentURL = in.readUTF();
             }
 
-            if ((nullMask & EXPIRY_DATE) == 0) {
+            if ((nullMask & EXPIRY_DATE) == 0)
+            {
                 expiryDate = new Date(in.readLong());
             }
 
             isPersistent = in.readBoolean();
 
-            if ((nullMask & DOMAIN) == 0) {
+            if ((nullMask & DOMAIN) == 0)
+            {
                 domain = in.readUTF();
             }
 
-            if ((nullMask & PATH) == 0) {
+            if ((nullMask & PATH) == 0)
+            {
                 path = in.readUTF();
             }
 
-            if ((nullMask & PORTS) == 0) {
+            if ((nullMask & PORTS) == 0)
+            {
                 final int len = in.readInt();
 
                 ports = new int[len];
 
-                for (int i = 0; i < len; i++) {
+                for (int i = 0; i < len; i++)
+                {
                     ports[i] = in.readInt();
                 }
             }
@@ -315,10 +389,13 @@ public class RTCookieStore implements CookieStore {
         }
 
         @Override
-        public String toString() {
-            if (cookie == null) {
+        public String toString()
+        {
+            if (cookie == null)
+            {
                 return "null";
-            } else {
+            } else
+            {
                 return cookie.toString();
             }
         }

@@ -3,8 +3,6 @@ package eu.livotov.labs.android.robotools.net;
 import org.apache.http.client.CookieStore;
 import org.apache.http.conn.scheme.SocketFactory;
 
-import javax.net.ssl.SSLSocketFactory;
-
 /**
  * (c) Livotov Labs Ltd. 2012
  * Date: 29.01.13
@@ -26,7 +24,7 @@ public class RTHTTPClientConfiguration
 
     private boolean allowRedirects = true;
 
-    private CookieStore cookieStore = new RTCookieStore();
+    private CookieStore cookieStore;
 
     private boolean dirty = true;
 
@@ -125,7 +123,7 @@ public class RTHTTPClientConfiguration
     {
         this.sslSocketFactory = sslSocketFactory;
 
-        if (sslSocketFactory!=null)
+        if (sslSocketFactory != null)
         {
             allowSelfSignedCerts = false;
         }
