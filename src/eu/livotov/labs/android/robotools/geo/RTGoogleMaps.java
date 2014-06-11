@@ -134,10 +134,15 @@ public class RTGoogleMaps
 
     public static String getStaticMapPictureUrl(final double lat, final double lon, final int width, final int height)
     {
+        return getStaticMapPictureUrl(lat, lon, width, height, 16);
+    }
+
+    public static String getStaticMapPictureUrl(final double lat, final double lon, final int width, final int height, final int zoom)
+    {
         final String coordPair = String.format("%s,%s", lat, lon);
         final String sizePair = String.format("%sx%s", width, height);
         return "http://maps.googleapis.com/maps/api/staticmap?"
-                       + "&zoom=16"
+                       + "&zoom=" + zoom
                        + "&size=" + sizePair
                        + "&maptype=roadmap&sensor=true"
                        + "&center=" + coordPair
