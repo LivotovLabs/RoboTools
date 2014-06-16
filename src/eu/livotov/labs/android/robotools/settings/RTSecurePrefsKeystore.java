@@ -36,7 +36,7 @@ public class RTSecurePrefsKeystore extends RTPrefs
 
     public RTSecurePrefsKeystore(final Context ctx)
     {
-        this(ctx, "defaultsecure");
+        this(ctx, "defaultsecurestore");
     }
 
     public RTSecurePrefsKeystore(final Context ctx, final String preferenceStorageName)
