@@ -20,6 +20,7 @@ public class RTSecurePrefs extends RTPrefs
 {
 
     private static RTSecurePrefs defaultPreferences;
+    private String customBindHash;
     private String keychainKey;
 
     private boolean lockToDevice = false;
@@ -55,6 +56,18 @@ public class RTSecurePrefs extends RTPrefs
         this.lockToSIM = bindToSim;
         this.lockToTelephony = bindToTelephony;
         this.lockToWifiAddress = bindToWifi;
+        lock();
+    }
+
+    public RTSecurePrefs(final Context ctx, final String preferenceStorageName, final String customBindHash)
+    {
+        super(ctx, preferenceStorageName, true);
+        this.lockToDevice = false;
+        this.lockToSIM = false;
+        this.lockToTelephony = false;
+        this.lockToWifiAddress = false;
+
+        this.customBindHash = customBindHash;
         lock();
     }
 
@@ -154,11 +167,17 @@ public class RTSecurePrefs extends RTPrefs
     {
         try
         {
-            return lockToDevice ? RTCryptUtil.generateDeviceBoundEncryptionKeyForPassword(ctx,
-                                                                                          password,
-                                                                                          lockToWifiAddress,
-                                                                                          lockToTelephony,
-                                                                                          lockToSIM) : password;
+            if (!TextUtils.isEmpty(customBindHash))
+            {
+                return RTCryptUtil.md5(String.format("%s%s",customBindHash,password));
+            } else
+            {
+                return lockToDevice ? RTCryptUtil.generateDeviceBoundEncryptionKeyForPassword(ctx,
+                                                                                              password,
+                                                                                              lockToWifiAddress,
+                                                                                              lockToTelephony,
+                                                                                              lockToSIM) : password;
+            }
         } catch (Throwable err)
         {
             throw new RuntimeException(err);

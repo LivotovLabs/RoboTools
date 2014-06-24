@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Build;
-import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -57,43 +56,61 @@ public class RTDevice
         // requires android.permission.ACCESS_WIFI_STATE
         if (countOnNetworkInterfaces && ctx != null)
         {
-            WifiManager wm = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
-            id.append(wm.getConnectionInfo().getMacAddress());
+            try
+            {
+                WifiManager wm = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
+                id.append(wm.getConnectionInfo().getMacAddress());
+            } catch (Throwable err)
+            {
+                Log.e(RTDevice.class.getSimpleName(), err.getMessage());
+            }
         }
 
         // requires android.permission.READ_PHONE_STATE
         if (countOnTelephony && ctx != null)
         {
-            TelephonyManager telephonyManager = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
-            if (telephonyManager != null)
+            try
             {
-                id.append(telephonyManager.getDeviceId() != null ? telephonyManager.getDeviceId() : "");
+                TelephonyManager telephonyManager = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
+                if (telephonyManager != null)
+                {
+                    id.append(telephonyManager.getDeviceId() != null ? telephonyManager.getDeviceId() : "");
+                }
+            } catch (Throwable err)
+            {
+                Log.e(RTDevice.class.getSimpleName(), err.getMessage());
             }
         }
 
         // requires android.permission.READ_PHONE_STATE
         if (countOnSim && ctx != null)
         {
-            TelephonyManager telephonyManager = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
-            id.append(telephonyManager.getSimSerialNumber() != null ? telephonyManager.getSimSerialNumber() : "");
+            try
+            {
+                TelephonyManager telephonyManager = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
+                id.append(telephonyManager.getSimSerialNumber() != null ? telephonyManager.getSimSerialNumber() : "");
+            } catch (Throwable err)
+            {
+                Log.e(RTDevice.class.getSimpleName(), err.getMessage());
+            }
         }
 
         if (ctx != null)
         {
-            id.append(Settings.Secure.getString(ctx.getContentResolver(), Settings.Secure.ANDROID_ID));
-        }
+            String androidDeviceId = "nodeviceid";
 
-        id.append(Build.BOARD.length() % 10 + Build.BRAND.length() % 10 +
-                          Build.CPU_ABI.length() % 10 + Build.DEVICE.length() % 10 +
-                          Build.DISPLAY.length() % 10 + Build.HOST.length() % 10 +
-                          Build.ID.length() % 10 + Build.MANUFACTURER.length() % 10 +
-                          Build.MODEL.length() % 10 + Build.PRODUCT.length() % 10 +
-                          Build.TAGS.length() % 10 + Build.TYPE.length() % 10 +
-                          Build.USER.length() % 10);
+            try
+            {
+                androidDeviceId = android.provider.Settings.Secure.getString(ctx.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+                if (androidDeviceId == null)
+                {
+                    id.append("nodeviceid");
+                }
+            } catch (Throwable e)
+            {
+            }
 
-        if (Build.VERSION.SDK_INT > 8)
-        {
-            id.append(Build.SERIAL);
+            id.append(androidDeviceId);
         }
 
         return RTCryptUtil.md5(id.toString());
@@ -165,21 +182,26 @@ public class RTDevice
         }
     }
 
-    public static boolean isRooted() {
+    public static boolean isRooted()
+    {
 
         // get from build info
         String buildTags = android.os.Build.TAGS;
-        if (buildTags != null && buildTags.contains("test-keys")) {
+        if (buildTags != null && buildTags.contains("test-keys"))
+        {
             return true;
         }
 
         // check if /system/app/Superuser.apk is present
-        try {
+        try
+        {
             File file = new File("/system/app/Superuser.apk");
-            if (file.exists()) {
+            if (file.exists())
+            {
                 return true;
             }
-        } catch (Exception e1) {
+        } catch (Exception e1)
+        {
             // ignore
         }
 
@@ -189,12 +211,15 @@ public class RTDevice
     }
 
     // executes a command on the system
-    private static boolean canExecuteCommand(String command) {
+    private static boolean canExecuteCommand(String command)
+    {
         boolean executedSuccesfully;
-        try {
+        try
+        {
             Runtime.getRuntime().exec(command);
             executedSuccesfully = true;
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             executedSuccesfully = false;
         }
 
