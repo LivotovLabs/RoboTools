@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">RoboTools</string>
+    <string name="application_not_found">Application for this action is not found</string>
+</resources>

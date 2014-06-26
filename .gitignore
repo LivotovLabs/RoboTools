@@ -1,17 +1,7 @@
-*.class
-
-# IDE Project Files #
-.idea
-*.jpr
+.gradle
+/local.properties
+/.idea
+.DS_Store
 *.iml
+*.jpr
 
-
-# IDE Output #
-out
-tmp
-bin
-
-
-# Package Files #
-*.war
-*.ear
