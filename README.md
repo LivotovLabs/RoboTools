@@ -26,19 +26,19 @@ Add link to our repository to your gradle build file (repositories section):
 
 Then append "compile" statement as follows:
 
-For snapshots (replace 'x' with the desired snapshot version number):
+For snapshots:
 
 ``
-    compile 'labs.livotov.eu:robotools:2.x.x-SNAPSHOT'
+    compile 'labs.livotov.eu:robotools:2.0.0-SNAPSHOT'
 ``
 
 For releases
 
 ``
-    compile 'labs.livotov.eu:robotools:2+'
+    compile 'labs.livotov.eu:robotools:2.x.x' // No release available at the moment
 ``
 
-Alternatively, yoy may download source code and build/use the files on your own.
+Alternatively, you may download the source code and build it on your own.
 
 
 
