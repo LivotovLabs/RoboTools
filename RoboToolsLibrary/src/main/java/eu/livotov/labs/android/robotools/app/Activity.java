@@ -4,12 +4,14 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
 import android.widget.Toast;
 import eu.livotov.labs.android.robotools.R;
 import eu.livotov.labs.android.robotools.content.RequestQueue;
 import eu.livotov.labs.android.robotools.injector.Injector;
 
-public class Activity extends FragmentActivity {
+public class Activity extends ActionBarActivity
+{
 
     private RequestQueue mLoader;
 
