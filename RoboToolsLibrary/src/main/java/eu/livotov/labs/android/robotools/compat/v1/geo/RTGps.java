@@ -34,7 +34,7 @@ public class RTGps implements LocationListener
     private Context ctx;
     private double lastLat = 0;
     private double lastLon = 0;
-    private double minimumDistance = 0.1;
+    private float minimumDistance = 0.1f;
     private float lastLocationAccuracy = 100000.0f; // some large number
     private long lastFixTime = 0L;
     private String lastProvider = "";
@@ -47,12 +47,12 @@ public class RTGps implements LocationListener
         this.ctx = ctx;
     }
 
-    public double getMinimumDistance()
+    public float getMinimumDistance()
     {
         return minimumDistance;
     }
 
-    public void setMinimumDistance(final double minimumDistance)
+    public void setMinimumDistance(final float minimumDistance)
     {
         this.minimumDistance = minimumDistance;
     }
@@ -117,10 +117,8 @@ public class RTGps implements LocationListener
         this.locationManagerEventListener = locationManagerEventListener;
     }
 
-    public boolean enable(boolean canUseCachedDataOnly)
+    public boolean enable()
     {
-        Log.i("RTGps", "ENABLE GeoManager, using cached only: " + canUseCachedDataOnly);
-
         try
         {
             android.location.LocationManager lm = (android.location.LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
@@ -140,81 +138,39 @@ public class RTGps implements LocationListener
                 return false;
             }
 
-            final Location lastProviderLocation = lm.getLastKnownLocation(android.location.LocationManager.PASSIVE_PROVIDER);
+            lastLocation = lm.getLastKnownLocation(android.location.LocationManager.PASSIVE_PROVIDER);
+            lastProvider = null;
 
-            boolean nearSameTime = canUseCachedDataOnly;
-            if (lastProviderLocation != null)
+            enabledGPSListener = true;
+
+            try
             {
-                nearSameTime = (lastProviderLocation.getTime() - lastFixTime) < 3600000; // 60 minutes
-
-                // If no location found previous, find it again
-                // Or if time elapsed is more than one hour
-                if (lastLat == 0 || lastLon == 0)
-                {
-                    nearSameTime = false;
-                }
-
-                Log.d("RTGps", "[GEO MGR] Last location provided found, setting cached values, location fairly latest: " + nearSameTime);
-
-                // Don't set this, as we want to refresh the location in case the app shutdown and restarted
-                lastLat = lastProviderLocation.getLatitude();
-                lastLon = lastProviderLocation.getLongitude();
-                lastLocation = lastProviderLocation;
-                lastProvider = lastProviderLocation.getProvider();
-                lastFixTime = lastProviderLocation.getTime();
-                lastLocationAccuracy = lastProviderLocation.getAccuracy();
-
-                if (locationManagerEventListener != null)
-                {
-                    locationManagerEventListener.onLocationChanged(lastProviderLocation.getLatitude(), lastProviderLocation.getLongitude(), true);
-                }
-
-                // If we don't really need to find the new location and can use the cached
-                // data, disable GPS and return
-                if (nearSameTime && canUseCachedDataOnly)
-                {
-                    disable();
-                    return true;
-                }
-            } else
+                lm.requestLocationUpdates(android.location.LocationManager.PASSIVE_PROVIDER, 10000, minimumDistance, this);
+                Log.d("RTGps", "Enabled PASSIVE");
+            } catch (Throwable err)
             {
-                nearSameTime = false;
+                Log.e("RTGps", "Error getting Passive Locations: " + err.getMessage());
+                err.printStackTrace();
             }
 
-            // In case we find a last known location which was retrieved fairly recently, ignore
-            if (!nearSameTime)
+            try
             {
-                enabledGPSListener = true;
+                lm.requestLocationUpdates(android.location.LocationManager.NETWORK_PROVIDER, 5000, minimumDistance, this);
+                Log.d("RTGps", "Enabled NETWORK");
+            } catch (Throwable err)
+            {
+                Log.e("RTGps", "Error getting Network Locations: " + err.getMessage());
+                err.printStackTrace();
+            }
 
-                try
-                {
-                    lm.requestLocationUpdates(android.location.LocationManager.PASSIVE_PROVIDER, 20000, 500, this);
-                    Log.d("RTGps", "Enabled PASSIVE");
-                } catch (Throwable err)
-                {
-                    Log.e("RTGps", "Error getting Passive Locations: " + err.getMessage());
-                    err.printStackTrace();
-                }
-
-                try
-                {
-                    lm.requestLocationUpdates(android.location.LocationManager.NETWORK_PROVIDER, 5000, 500, this);
-                    Log.d("RTGps", "Enabled NETWORK");
-                } catch (Throwable err)
-                {
-                    Log.e("RTGps", "Error getting Network Locations: " + err.getMessage());
-                    err.printStackTrace();
-                }
-
-                try
-                {
-                    lm.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 5000, 1000, this);
-                    Log.d("RTGps", "Enabled GPS");
-                } catch (Throwable err)
-                {
-                    Log.e("RTGps", "Error getting GPS Locations: " + err.getMessage());
-                    err.printStackTrace();
-                }
+            try
+            {
+                lm.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 1000, minimumDistance, this);
+                Log.d("RTGps", "Enabled GPS");
+            } catch (Throwable err)
+            {
+                Log.e("RTGps", "Error getting GPS Locations: " + err.getMessage());
+                err.printStackTrace();
             }
         } catch (Throwable err)
         {
@@ -303,7 +259,7 @@ public class RTGps implements LocationListener
         {
             boolean locationEnabled = true;
 
-            if (Build.VERSION.SDK_INT<19)
+            if (Build.VERSION.SDK_INT < 19)
             {
                 locationEnabled = !TextUtils.isEmpty(Settings.Secure.getString(ctx.getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED));
             } else

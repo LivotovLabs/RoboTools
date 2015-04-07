@@ -102,6 +102,7 @@ public abstract class ListAdapter<T> extends BaseCollectionAdapter<T> {
         }
 
         ((ClickableListHolder<T>) view.getTag()).set(item);
+        ((ClickableListHolder<T>) view.getTag()).updatePosition(i);
         return view;
     }
 

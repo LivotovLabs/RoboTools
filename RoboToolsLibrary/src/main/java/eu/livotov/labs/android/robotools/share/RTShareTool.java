@@ -1,6 +1,8 @@
 package eu.livotov.labs.android.robotools.share;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
@@ -65,6 +67,31 @@ public class RTShareTool
         textIntent.putExtra(Intent.EXTRA_TEXT, text);
 
         return textIntent;
+    }
+
+    public static Intent buildApplicationIntent(final Context ctx, final String packageName, boolean autoInstall)
+    {
+        PackageManager pm = ctx.getPackageManager();
+        boolean packagePresent = false;
+
+        try
+        {
+            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            packagePresent = true;
+        } catch (PackageManager.NameNotFoundException e)
+        {
+            packagePresent = false;
+        }
+
+        if (packagePresent)
+        {
+            return pm.getLaunchIntentForPackage(packageName);
+        } else
+        {
+            return new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName));
+            //return new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + packageName));
+        }
+
     }
 
 }
