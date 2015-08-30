@@ -78,7 +78,8 @@ public class RTShareTool
         {
             pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
             packagePresent = true;
-        } catch (PackageManager.NameNotFoundException e)
+        }
+        catch (PackageManager.NameNotFoundException e)
         {
             packagePresent = false;
         }
@@ -86,7 +87,8 @@ public class RTShareTool
         if (packagePresent)
         {
             return pm.getLaunchIntentForPackage(packageName);
-        } else
+        }
+        else
         {
             return new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName));
             //return new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + packageName));

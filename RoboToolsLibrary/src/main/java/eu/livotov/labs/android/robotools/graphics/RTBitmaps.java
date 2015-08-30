@@ -1,27 +1,33 @@
 package eu.livotov.labs.android.robotools.graphics;
 
-import android.graphics.*;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class Bitmaps {
+public class RTBitmaps
+{
 
-    private Bitmaps() {}
-
-    public static int calculateInSampleSize(BitmapFactory.Options options, int reqSize) {
-        int scale = 1;
-        if (options.outHeight > reqSize || options.outWidth > reqSize) {
-            scale = (int) Math.pow(2, (int) Math.round(Math.log(reqSize / (double) Math.max(options.outHeight, options.outWidth)) / Math.log(0.5)));
-        }
-        return scale;
+    private RTBitmaps()
+    {
     }
 
-    public static Bitmap loadBitmapFromUrl(final String link, int downscaleSize) throws IOException {
+    public static Bitmap loadBitmapFromUrl(final String link, int downscaleSize) throws IOException
+    {
         URL url = new URL(link);
 
-        if (downscaleSize > 0) {
+        if (downscaleSize > 0)
+        {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
 
@@ -42,7 +48,9 @@ public class Bitmaps {
             options.inSampleSize = inSampleSize;
 
             return BitmapFactory.decodeStream(input, null, options);
-        } else {
+        }
+        else
+        {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.connect();
@@ -52,9 +60,22 @@ public class Bitmaps {
         }
     }
 
-    public static Bitmap loadBitmapFromFile(File file, int reqSize) {
-        if (reqSize > 0) {
-            try {
+    public static int calculateInSampleSize(BitmapFactory.Options options, int reqSize)
+    {
+        int scale = 1;
+        if (options.outHeight > reqSize || options.outWidth > reqSize)
+        {
+            scale = (int) Math.pow(2, (int) Math.round(Math.log(reqSize / (double) Math.max(options.outHeight, options.outWidth)) / Math.log(0.5)));
+        }
+        return scale;
+    }
+
+    public static Bitmap loadBitmapFromFile(File file, int reqSize)
+    {
+        if (reqSize > 0)
+        {
+            try
+            {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inJustDecodeBounds = true;
                 FileInputStream fis = new FileInputStream(file);
@@ -68,26 +89,35 @@ public class Bitmaps {
                 final Bitmap bitmap = BitmapFactory.decodeStream(fis, null, options);
                 fis.close();
                 return bitmap;
-            } catch (IOException err) {
+            }
+            catch (IOException err)
+            {
                 return null;
             }
-        } else {
+        }
+        else
+        {
             return BitmapFactory.decodeFile(file.getAbsolutePath());
         }
     }
 
-    public static void saveBitmapToFile(Bitmap bm, int quality, File file) throws IOException {
-        if (bm != null) {
+    public static void saveBitmapToFile(Bitmap bm, int quality, File file) throws IOException
+    {
+        if (bm != null)
+        {
             FileOutputStream fos = new FileOutputStream(file);
             bm.compress(Bitmap.CompressFormat.JPEG, quality, fos);
             fos.flush();
             fos.close();
-        } else {
+        }
+        else
+        {
             file.delete();
         }
     }
 
-    public static Bitmap toGrayscale(Bitmap bmpOriginal) {
+    public static Bitmap toGrayscale(Bitmap bmpOriginal)
+    {
         int width, height;
         height = bmpOriginal.getHeight();
         width = bmpOriginal.getWidth();
