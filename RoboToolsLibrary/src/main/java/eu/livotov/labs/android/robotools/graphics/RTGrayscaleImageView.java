@@ -1,4 +1,4 @@
-package eu.livotov.labs.android.robotools.widget;
+package eu.livotov.labs.android.robotools.graphics;
 
 
 import android.content.Context;

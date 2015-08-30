@@ -1,4 +1,4 @@
-package eu.livotov.labs.android.robotools.security;
+package eu.livotov.labs.android.robotools.banking;
 
 import android.text.TextUtils;
 
