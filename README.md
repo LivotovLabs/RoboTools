@@ -1,54 +1,47 @@
-RoboTools v2
-============
+RoboTools V3
+===
 
-RoboTools is an AAR library, containing a large collection of utility classes for making android apps development process 
-a bit more comfortable and quicker.
+RoboTools is a micro framework and toolset library for Android apps, aimed to make every day apps
+development easier and quickier by automating most routined tasks, which are typical for every app.
 
-Version 2 is a completely reviewed, redesigned and refactored one in comparison to previous release. It also lives as
-standard Android AAR library now and completely moved to gradle.
+
+Compatibility Notice
+---
+
+- Supports SDK Android 4.1+ only. Yes, it is time to retire old android APIs.
+- API is **NOT** compatible with V1 and V2 of RoboTools.
 
 
 Status
-------
-Current status is:  Under heavy development, not stable.
-All class names, packages, apis may be changed without any notice, data compatibility is not guaranteed.
+---
+
+- Stable version: **n/a**
+- Dev snapshot: **n/a**
 
 
 Installation
 ------------
-Current compiled snapshots and releases could be automatically added to your project using gradle from our maven repository http://maven.livotovlabs.pro
 
-Add link to our repository to your gradle build file (repositories section):
-
+Include our maven repo to your gradle project file maven repositories list:
 ``
     maven { url 'http://maven.livotovlabs.pro/content/groups/public' }
 ``
 
-Then append "compile" statement as follows:
+Then add dependency as follows:
 
-For snapshots:
-
-``
-    compile 'labs.livotov.eu:robotools:2.0.0-SNAPSHOT'
-``
-
-For releases
+For snapshot:
 
 ``
-    compile 'labs.livotov.eu:robotools:2.x.x' // No release available at the moment
+    compile 'labs.livotov.eu:robotools:x.y.z-SNAPSHOT'
 ``
 
-Alternatively, you may download the source code and build it on your own.
+For release:
 
+``
+    compile 'labs.livotov.eu:robotools:x.y.z'
+``
 
-
-Previous Version (V1) Compatibility
-------------------------------
-RoboTools V2 is mainly NOT compatible to V1 (although, package structure and class namings are similar). Moreover,
-some sensitive helper classes, such as crypto ones, may not be compatible with old V1 data.
-
-For your convenience, all V1 classes are present and just moved to "compat.v1" subpackage, so you may use this new RoboTools
-with your old projects by just adjusting the "import" statements in your code, then slowly migrate to V2 classes.
+*Replace x.y.z with the proper version number you want to use**
 
 
 License
