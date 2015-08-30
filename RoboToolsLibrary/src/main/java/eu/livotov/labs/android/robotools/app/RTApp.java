@@ -4,17 +4,21 @@ import android.app.Application;
 import android.support.annotation.NonNull;
 import android.widget.Toast;
 
+import eu.livotov.labs.android.robotools.app.injector.RTInjector;
+
 /**
  * Created by dlivotov on 30/08/2015.
  */
 public class RTApp extends Application
 {
     private static RTApp instance;
+    private RTInjector.ApplicationInjector injector = new RTInjector.ApplicationInjector(this);
 
     @Override
     public void onCreate()
     {
         super.onCreate();
+        injector.onCreate();
         instance = this;
     }
 

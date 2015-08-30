@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<eu.livotov.labs.android.robotools.app.design.bottomsheet.HeaderLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<eu.livotov.labs.android.robotools.app.design.bottomsheet.layout.BottomSheetHeaderLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="wrap_content"
     android:layout_width="fill_parent"
     android:id="@+id/headerlayout">
 
     <View style="@style/BottomSheet.ListDivider" android:id="@+id/header"/>
-</eu.livotov.labs.android.robotools.app.design.bottomsheet.HeaderLayout>
+</eu.livotov.labs.android.robotools.app.design.bottomsheet.layout.BottomSheetHeaderLayout>

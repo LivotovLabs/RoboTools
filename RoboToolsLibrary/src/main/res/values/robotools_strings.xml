@@ -1,3 +1,5 @@
 <resources>
-    <string name="rts_applicationnotfound">Application for this action is not found</string>
+    <string name="robotools_applicationnotfound">Application for this action is not found</string>
+    <string name="robotools_dialogbtn_yes">Yes</string>
+    <string name="robotools_dialogbtn_no">No</string>
 </resources>

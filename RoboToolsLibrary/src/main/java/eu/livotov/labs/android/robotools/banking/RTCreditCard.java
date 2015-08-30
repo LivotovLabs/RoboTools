@@ -3,10 +3,10 @@ package eu.livotov.labs.android.robotools.banking;
 import android.text.TextUtils;
 
 @SuppressWarnings("unused")
-public class RTCreditCards
+public class RTCreditCard
 {
 
-    private RTCreditCards()
+    private RTCreditCard()
     {
     }
 

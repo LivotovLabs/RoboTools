@@ -52,6 +52,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -62,6 +63,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import eu.livotov.labs.android.robotools.R;
+import eu.livotov.labs.android.robotools.app.design.bottomsheet.adapter.BottomSheetCustomViewAdapter;
 import eu.livotov.labs.android.robotools.app.design.bottomsheet.adapter.BottomSheetSimpleSectionedGridAdapter;
 import eu.livotov.labs.android.robotools.app.design.bottomsheet.layout.BottomSheetClosableSlidingLayout;
 import eu.livotov.labs.android.robotools.app.design.bottomsheet.model.BottomSheetActionMenu;
@@ -109,6 +111,9 @@ public class RTBottomSheet extends Dialog implements DialogInterface
     private BottomSheetActionMenu menuItem;
     private BottomSheetActionMenu actions;
     private OnDismissListener dismissListener;
+    private CustomViewResultListener customViewResultListener;
+    private View customView;
+    private FrameLayout customViewRoot;
 
     RTBottomSheet(Context context)
     {
@@ -325,12 +330,14 @@ public class RTBottomSheet extends Dialog implements DialogInterface
     private void init(final Context context)
     {
         setCanceledOnTouchOutside(cancelOnTouchOutside);
-        final BottomSheetClosableSlidingLayout mDialogView = (BottomSheetClosableSlidingLayout) View.inflate(context, R.layout.robotools_bs_bottom_sheet_dialog, null);
+        final BottomSheetClosableSlidingLayout mDialogView = (BottomSheetClosableSlidingLayout) View.inflate(context, builder.customContentView == null ? R.layout.robotools_bs_bottom_sheet_dialog : R.layout.robotools_bs_bottom_customsheet_dialog, null);
         setContentView(mDialogView);
+
         if (!cancelOnSwipeDown)
         {
             mDialogView.setSwipeable(cancelOnSwipeDown);
         }
+
         mDialogView.setSlideListener(new BottomSheetClosableSlidingLayout.SlideListener()
         {
             @Override
@@ -352,8 +359,12 @@ public class RTBottomSheet extends Dialog implements DialogInterface
             @Override
             public void onShow(DialogInterface dialogInterface)
             {
-                list.setAdapter(adapter);
-                list.startLayoutAnimation();
+                if (list!=null)
+                {
+                    list.setAdapter(adapter);
+                    list.startLayoutAnimation();
+                }
+
                 if (builder.icon == null)
                 {
                     icon.setVisibility(View.GONE);
@@ -365,6 +376,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
                 }
             }
         });
+
         int[] location = new int[2];
         mDialogView.getLocationOnScreen(location);
 
@@ -375,6 +387,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         }
 
         final TextView title = (TextView) mDialogView.findViewById(R.id.bottom_sheet_title);
+
         if (builder.title != null)
         {
             title.setVisibility(View.VISIBLE);
@@ -383,15 +396,29 @@ public class RTBottomSheet extends Dialog implements DialogInterface
 
         icon = (ImageView) mDialogView.findViewById(R.id.bottom_sheet_title_image);
 
-
         list = (GridView) mDialogView.findViewById(R.id.bottom_sheet_gridview);
-        mDialogView.setmTarget(list);
-        if (!builder.grid)
+        customViewRoot = (FrameLayout)mDialogView.findViewById(R.id.bottom_sheet_customview);
+
+        if (builder.customContentView!=null)
+        {
+            customView = builder.customContentView;
+            customViewRoot.addView(customView);
+            customViewResultListener = builder.customViewResultListener;
+
+            if (customView instanceof BottomSheetCustomViewAdapter)
+            {
+                ((BottomSheetCustomViewAdapter)customView).setHost(this);
+            }
+        }
+
+        mDialogView.setmTarget(list!=null ? list : customView);
+
+        if (!builder.grid && list!=null)
         {
             list.setNumColumns(1);
         }
 
-        if (builder.grid)
+        if (list!=null && builder.grid)
         {
             for (int i = 0; i < getMenu().size(); i++)
             {
@@ -402,7 +429,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
             }
         }
 
-        if (builder.limit > 0)
+        if (list!=null && builder.limit > 0)
         {
             limit = builder.limit * getNumColumns();
         }
@@ -415,6 +442,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
 
         actions = builder.menu;
         menuItem = actions;
+
         // over the initial numbers
         if (getMenu().size() > limit)
         {
@@ -526,43 +554,47 @@ public class RTBottomSheet extends Dialog implements DialogInterface
             }
         };
 
-        adapter = new BottomSheetSimpleSectionedGridAdapter(context, baseAdapter, R.layout.robotools_bs_list_divider, R.id.headerlayout, R.id.header);
-        list.setAdapter(adapter);
-        adapter.setGridView(list);
-
-        updateSection();
-
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        if (list!=null)
         {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-            {
-                if (((MenuItem) adapter.getItem(position)).getItemId() == R.id.bs_more)
-                {
-                    showFullItems();
-                    mDialogView.setCollapsible(false);
-                    return;
-                }
+            adapter = new BottomSheetSimpleSectionedGridAdapter(context, baseAdapter, R.layout.robotools_bs_list_divider, R.id.headerlayout, R.id.header);
+            list.setAdapter(adapter);
+            adapter.setGridView(list);
 
-                if (!((BottomSheetActionMenuItem) adapter.getItem(position)).invoke())
+            updateSection();
+
+            list.setOnItemClickListener(new AdapterView.OnItemClickListener()
+            {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id)
                 {
-                    if (builder.menulistener != null)
+                    if (((MenuItem) adapter.getItem(position)).getItemId() == R.id.bs_more)
                     {
-                        builder.menulistener.onMenuItemClick((MenuItem) adapter.getItem(position));
+                        showFullItems();
+                        mDialogView.setCollapsible(false);
+                        return;
                     }
-                    else if (builder.listener != null)
+
+                    if (!((BottomSheetActionMenuItem) adapter.getItem(position)).invoke())
                     {
-                        builder.listener.onClick(RTBottomSheet.this, ((MenuItem) adapter.getItem(position)).getItemId());
+                        if (builder.menulistener != null)
+                        {
+                            builder.menulistener.onMenuItemClick((MenuItem) adapter.getItem(position));
+                        }
+                        else if (builder.listener != null)
+                        {
+                            builder.listener.onClick(RTBottomSheet.this, ((MenuItem) adapter.getItem(position)).getItemId());
+                        }
                     }
+                    dismiss();
                 }
-                dismiss();
-            }
-        });
+            });
+        }
 
         if (builder.dismissListener != null)
         {
             setOnDismissListener(builder.dismissListener);
         }
+
         setListLayout();
     }
 
@@ -607,6 +639,16 @@ public class RTBottomSheet extends Dialog implements DialogInterface
             icon.setVisibility(View.VISIBLE);
             icon.setImageDrawable(builder.icon);
         }
+    }
+
+    public void onCustomViewFinished(final Object customViewResult)
+    {
+        if (customViewResultListener!=null && customViewResult!=null)
+        {
+            customViewResultListener.onCustomViewResult(customViewResult);
+        }
+
+        dismiss();
     }
 
     @Override
@@ -705,37 +747,40 @@ public class RTBottomSheet extends Dialog implements DialogInterface
 
     private void setListLayout()
     {
-        // without divider, the height of gridview is correct
-        if (!hasDivider())
+        if (list!=null)
         {
-            return;
-        }
-        list.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
-        {
-            @Override
-            public void onGlobalLayout()
+            // without divider, the height of gridview is correct
+            if (!hasDivider())
             {
-                if (Build.VERSION.SDK_INT < 16)
-                {
-                    //noinspection deprecation
-                    list.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                }
-                else
-                {
-                    list.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                }
-                View lastChild = list.getChildAt(list.getChildCount() - 1);
-                if (lastChild != null)
-                {
-                    list.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, lastChild.getBottom() + lastChild.getPaddingBottom() + list.getPaddingBottom()));
-                }
+                return;
             }
-        });
+            list.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
+            {
+                @Override
+                public void onGlobalLayout()
+                {
+                    if (Build.VERSION.SDK_INT < 16)
+                    {
+                        //noinspection deprecation
+                        list.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                    }
+                    else
+                    {
+                        list.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    }
+                    View lastChild = list.getChildAt(list.getChildCount() - 1);
+                    if (lastChild != null)
+                    {
+                        list.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, lastChild.getBottom() + lastChild.getPaddingBottom() + list.getPaddingBottom()));
+                    }
+                }
+            });
+        }
     }
 
     private boolean hasDivider()
     {
-        return adapter.getmSections().size() > 0;
+        return adapter!=null && adapter.getmSections().size() > 0;
     }
 
     /**
@@ -746,11 +791,13 @@ public class RTBottomSheet extends Dialog implements DialogInterface
 
         private final Context context;
         private final BottomSheetActionMenu menu;
+        private View customContentView;
         private int theme;
         private CharSequence title;
         private boolean grid;
         private OnClickListener listener;
         private OnDismissListener dismissListener;
+        private CustomViewResultListener customViewResultListener;
         private Drawable icon;
         private int limit = -1;
         private MenuItem.OnMenuItemClickListener menulistener;
@@ -789,7 +836,8 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         }
 
         /**
-         * Set menu resources as list item to display in BottomSheet
+         * Set menu resources as list item to display in BottomSheet.
+         * Any custom content view (if was previously set) will be discarded.
          *
          * @param xmlRes menu resource id
          * @return This Builder object to allow for chaining of calls to set methods
@@ -797,12 +845,14 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         public Builder sheet(@MenuRes int xmlRes)
         {
             new MenuInflater(context).inflate(xmlRes, menu);
+            customContentView = null;
             return this;
         }
 
 
         /**
-         * Add one item into BottomSheet
+         * Add one item into BottomSheet.
+         * Any custom content view (if was previously set) will be discarded.
          *
          * @param id      ID of item
          * @param iconRes icon resource
@@ -814,11 +864,13 @@ public class RTBottomSheet extends Dialog implements DialogInterface
             BottomSheetActionMenuItem item = new BottomSheetActionMenuItem(context, 0, id, 0, 0, context.getText(textRes));
             item.setIcon(iconRes);
             menu.add(item);
+            customContentView = null;
             return this;
         }
 
         /**
-         * Add one item into BottomSheet
+         * Add one item into BottomSheet.
+         * Any custom content view (if was previously set) will be discarded.
          *
          * @param id   ID of item
          * @param icon icon
@@ -830,11 +882,13 @@ public class RTBottomSheet extends Dialog implements DialogInterface
             BottomSheetActionMenuItem item = new BottomSheetActionMenuItem(context, 0, id, 0, 0, text);
             item.setIcon(icon);
             menu.add(item);
+            customContentView = null;
             return this;
         }
 
         /**
-         * Add one item without icon into BottomSheet
+         * Add one item without icon into BottomSheet.
+         * Any custom content view (if was previously set) will be discarded.
          *
          * @param id      ID of item
          * @param textRes text resource
@@ -843,11 +897,13 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         public Builder sheet(int id, @StringRes int textRes)
         {
             menu.add(0, id, 0, textRes);
+            customContentView = null;
             return this;
         }
 
         /**
-         * Add one item without icon into BottomSheet
+         * Add one item without icon into BottomSheet.
+         * Any custom content view (if was previously set) will be discarded.
          *
          * @param id   ID of item
          * @param text text
@@ -856,6 +912,20 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         public Builder sheet(int id, @NonNull CharSequence text)
         {
             menu.add(0, id, 0, text);
+            customContentView = null;
+            return this;
+        }
+
+        /**
+         * Sets custom content view for the sheet. Any previously added menu sheets or menu resource will be discarded.
+         * @param view custom content view to display in the sheet instead of menu. In case if view want to pass sheet result, it must implement the BottomSheetCustomViewAdapter interface where
+         *             it will receive the RTBottomSheet host instance and can call onCustomViewFinished() on it.
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
+        public Builder contentView(@NonNull View view)
+        {
+            customContentView = view;
+            menu.clear();
             return this;
         }
 
@@ -932,6 +1002,16 @@ public class RTBottomSheet extends Dialog implements DialogInterface
             return this;
         }
 
+        /**
+         * Sets result listener for custom ContentView -ebanled sheet.
+         * @param listener listener object
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
+        public Builder contentViewListener(CustomViewResultListener listener)
+        {
+            this.customViewResultListener = listener;
+            return this;
+        }
 
         /**
          * Show BottomSheet in dark color theme looking
@@ -1017,6 +1097,11 @@ public class RTBottomSheet extends Dialog implements DialogInterface
             this.dismissListener = listener;
             return this;
         }
+    }
+
+    public interface CustomViewResultListener
+    {
+        void onCustomViewResult(Object result);
     }
 
 
