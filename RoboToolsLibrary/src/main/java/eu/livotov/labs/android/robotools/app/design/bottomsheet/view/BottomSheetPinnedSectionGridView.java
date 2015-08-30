@@ -1,4 +1,4 @@
-package eu.livotov.labs.android.robotools.app.design.bottomsheet;
+package eu.livotov.labs.android.robotools.app.design.bottomsheet.view;
 
 
 /*
@@ -27,7 +27,7 @@ import android.widget.GridView;
  * ListView capable to pin views at its top while the rest is still scrolled.
  */
 @VisibleForTesting
-class PinnedSectionGridView extends GridView
+public class BottomSheetPinnedSectionGridView extends GridView
 {
 
 
@@ -38,17 +38,17 @@ class PinnedSectionGridView extends GridView
     private int mColumnWidth;
     private int mAvailableWidth;
 
-    public PinnedSectionGridView(Context context)
+    public BottomSheetPinnedSectionGridView(Context context)
     {
         super(context);
     }
 
-    public PinnedSectionGridView(Context context, AttributeSet attrs)
+    public BottomSheetPinnedSectionGridView(Context context, AttributeSet attrs)
     {
         super(context, attrs);
     }
 
-    public PinnedSectionGridView(Context context, AttributeSet attrs, int defStyleAttr)
+    public BottomSheetPinnedSectionGridView(Context context, AttributeSet attrs, int defStyleAttr)
     {
         super(context, attrs, defStyleAttr);
     }

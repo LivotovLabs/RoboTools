@@ -1,4 +1,4 @@
-package eu.livotov.labs.android.robotools.app.design.bottomsheet;
+package eu.livotov.labs.android.robotools.app.design.bottomsheet.model;
 
 /*
  * Copyright (C) 2010 The Android Open Source Project
@@ -27,7 +27,7 @@ import android.view.SubMenu;
 import android.view.View;
 
 
-class ActionMenuItem implements MenuItem
+public class BottomSheetActionMenuItem implements MenuItem
 {
 
 
@@ -52,7 +52,7 @@ class ActionMenuItem implements MenuItem
     private MenuItem.OnMenuItemClickListener mClickListener;
     private int mFlags = ENABLED;
 
-    public ActionMenuItem(Context context, int group, int id, int categoryOrder, int ordering, CharSequence title)
+    public BottomSheetActionMenuItem(Context context, int group, int id, int categoryOrder, int ordering, CharSequence title)
     {
         mContext = context;
         mId = id;
@@ -297,7 +297,7 @@ class ActionMenuItem implements MenuItem
         throw new UnsupportedOperationException();
     }
 
-    public ActionMenuItem setExclusiveCheckable(boolean exclusive)
+    public BottomSheetActionMenuItem setExclusiveCheckable(boolean exclusive)
     {
         mFlags = (mFlags & ~EXCLUSIVE) | (exclusive ? EXCLUSIVE : 0);
         return this;

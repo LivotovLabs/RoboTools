@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import eu.livotov.labs.android.robotools.app.design.RTMaterialDesignHelper;
 import eu.livotov.labs.android.robotools.app.injector.RTInjector;
 import eu.livotov.labs.android.robotools.ui.RTListenersHelper;
 
@@ -92,22 +93,12 @@ public class RTActivity extends Activity
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public void setNavigationBarColor(int color)
     {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-        {
-            final Window window = getWindow();
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setNavigationBarColor(color);
-        }
+        RTMaterialDesignHelper.setNavigationBarColor(this,color);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public void setSystemStatusBarColor(int color)
     {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-        {
-            final Window window = getWindow();
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(color);
-        }
+        RTMaterialDesignHelper.setSystemStatusBarColor(this, color);
     }
 }

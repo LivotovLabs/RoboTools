@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.livotov.labs.android.robotools.app.design.bottomsheet;
+package eu.livotov.labs.android.robotools.app.design.bottomsheet.model;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -33,7 +33,7 @@ import java.util.List;
 
 
 @VisibleForTesting
-class ActionMenu implements SupportMenu
+public class BottomSheetActionMenu implements SupportMenu
 {
     private static final int[] sCategoryToOrder = new int[]{1, /* No category */
             4, /* CONTAINER */
@@ -43,9 +43,9 @@ class ActionMenu implements SupportMenu
             0, /* SELECTED_ALTERNATIVE */};
     private Context mContext;
     private boolean mIsQwerty;
-    private ArrayList<ActionMenuItem> mItems;
+    private ArrayList<BottomSheetActionMenuItem> mItems;
 
-    public ActionMenu(Context context)
+    public BottomSheetActionMenu(Context context)
     {
         mContext = context;
         mItems = new ArrayList<>();
@@ -61,11 +61,11 @@ class ActionMenu implements SupportMenu
         return mContext;
     }
 
-    private static int findInsertIndex(ArrayList<ActionMenuItem> items, int ordering)
+    private static int findInsertIndex(ArrayList<BottomSheetActionMenuItem> items, int ordering)
     {
         for (int i = items.size() - 1; i >= 0; i--)
         {
-            ActionMenuItem item = items.get(i);
+            BottomSheetActionMenuItem item = items.get(i);
             if (item.getOrder() <= ordering)
             {
                 return i + 1;
@@ -104,7 +104,7 @@ class ActionMenu implements SupportMenu
 
     public MenuItem add(int groupId, int itemId, int order, CharSequence title)
     {
-        ActionMenuItem item = new ActionMenuItem(getContext(), groupId, itemId, 0, order, title);
+        BottomSheetActionMenuItem item = new BottomSheetActionMenuItem(getContext(), groupId, itemId, 0, order, title);
         mItems.add(findInsertIndex(mItems, getOrdering(order)), item);
         return item;
     }
@@ -177,7 +177,7 @@ class ActionMenu implements SupportMenu
 
     public void removeGroup(int groupId)
     {
-        final ArrayList<ActionMenuItem> items = mItems;
+        final ArrayList<BottomSheetActionMenuItem> items = mItems;
         int itemCount = items.size();
         int i = 0;
         while (i < itemCount)
@@ -201,12 +201,12 @@ class ActionMenu implements SupportMenu
 
     public void setGroupCheckable(int group, boolean checkable, boolean exclusive)
     {
-        final ArrayList<ActionMenuItem> items = mItems;
+        final ArrayList<BottomSheetActionMenuItem> items = mItems;
         final int itemCount = items.size();
 
         for (int i = 0; i < itemCount; i++)
         {
-            ActionMenuItem item = items.get(i);
+            BottomSheetActionMenuItem item = items.get(i);
             if (item.getGroupId() == group)
             {
                 item.setCheckable(checkable);
@@ -217,12 +217,12 @@ class ActionMenu implements SupportMenu
 
     public void setGroupVisible(int group, boolean visible)
     {
-        final ArrayList<ActionMenuItem> items = mItems;
+        final ArrayList<BottomSheetActionMenuItem> items = mItems;
         final int itemCount = items.size();
 
         for (int i = 0; i < itemCount; i++)
         {
-            ActionMenuItem item = items.get(i);
+            BottomSheetActionMenuItem item = items.get(i);
             if (item.getGroupId() == group)
             {
                 item.setVisible(visible);
@@ -232,12 +232,12 @@ class ActionMenu implements SupportMenu
 
     public void setGroupEnabled(int group, boolean enabled)
     {
-        final ArrayList<ActionMenuItem> items = mItems;
+        final ArrayList<BottomSheetActionMenuItem> items = mItems;
         final int itemCount = items.size();
 
         for (int i = 0; i < itemCount; i++)
         {
-            ActionMenuItem item = items.get(i);
+            BottomSheetActionMenuItem item = items.get(i);
             if (item.getGroupId() == group)
             {
                 item.setEnabled(enabled);
@@ -247,7 +247,7 @@ class ActionMenu implements SupportMenu
 
     public boolean hasVisibleItems()
     {
-        final ArrayList<ActionMenuItem> items = mItems;
+        final ArrayList<BottomSheetActionMenuItem> items = mItems;
         final int itemCount = items.size();
 
         for (int i = 0; i < itemCount; i++)
@@ -274,7 +274,7 @@ class ActionMenu implements SupportMenu
 
     private int findItemIndex(int id)
     {
-        final ArrayList<ActionMenuItem> items = mItems;
+        final ArrayList<BottomSheetActionMenuItem> items = mItems;
         final int itemCount = items.size();
         for (int i = 0; i < itemCount; i++)
         {
@@ -302,7 +302,7 @@ class ActionMenu implements SupportMenu
 
     public boolean performShortcut(int keyCode, KeyEvent event, int flags)
     {
-        ActionMenuItem item = findItemWithShortcut(keyCode, event);
+        BottomSheetActionMenuItem item = findItemWithShortcut(keyCode, event);
         if (item == null)
         {
             return false;
@@ -316,16 +316,16 @@ class ActionMenu implements SupportMenu
         return findItemWithShortcut(keyCode, event) != null;
     }
 
-    private ActionMenuItem findItemWithShortcut(int keyCode, KeyEvent event)
+    private BottomSheetActionMenuItem findItemWithShortcut(int keyCode, KeyEvent event)
     {
         // TODO Make this smarter.
         final boolean qwerty = mIsQwerty;
-        final ArrayList<ActionMenuItem> items = mItems;
+        final ArrayList<BottomSheetActionMenuItem> items = mItems;
         final int itemCount = items.size();
 
         for (int i = 0; i < itemCount; i++)
         {
-            ActionMenuItem item = items.get(i);
+            BottomSheetActionMenuItem item = items.get(i);
             final char shortcut = qwerty ? item.getAlphabeticShortcut() : item.getNumericShortcut();
             if (keyCode == shortcut)
             {
@@ -351,25 +351,25 @@ class ActionMenu implements SupportMenu
         mIsQwerty = isQwerty;
     }
 
-    MenuItem add(ActionMenuItem item)
+    public MenuItem add(BottomSheetActionMenuItem item)
     {
         mItems.add(findInsertIndex(mItems, getOrdering(item.getOrder())), item);
         return item;
     }
 
-    ActionMenu clone(int size)
+    public BottomSheetActionMenu clone(int size)
     {
-        ActionMenu out = new ActionMenu(getContext());
+        BottomSheetActionMenu out = new BottomSheetActionMenu(getContext());
         out.mItems = new ArrayList<>(this.mItems.subList(0, size));
         return out;
     }
 
-    void removeInvisible()
+    public void removeInvisible()
     {
-        Iterator<ActionMenuItem> iter = mItems.iterator();
+        Iterator<BottomSheetActionMenuItem> iter = mItems.iterator();
         while (iter.hasNext())
         {
-            ActionMenuItem item = iter.next();
+            BottomSheetActionMenuItem item = iter.next();
             if (!item.isVisible())
             {
                 iter.remove();

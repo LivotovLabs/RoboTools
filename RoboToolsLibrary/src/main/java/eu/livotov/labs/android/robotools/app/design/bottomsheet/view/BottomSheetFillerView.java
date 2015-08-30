@@ -1,22 +1,22 @@
-package eu.livotov.labs.android.robotools.app.design.bottomsheet;
+package eu.livotov.labs.android.robotools.app.design.bottomsheet.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
 
-class FillerView extends LinearLayout
+public class BottomSheetFillerView extends LinearLayout
 {
     private View mMeasureTarget;
 
 
-    public FillerView(Context context)
+    public BottomSheetFillerView(Context context)
     {
         super(context);
     }
 
 
-    public FillerView(Context context, AttributeSet attrs)
+    public BottomSheetFillerView(Context context, AttributeSet attrs)
     {
         super(context, attrs);
     }

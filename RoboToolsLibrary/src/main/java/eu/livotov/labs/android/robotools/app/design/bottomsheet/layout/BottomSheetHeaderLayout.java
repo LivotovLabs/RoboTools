@@ -1,4 +1,4 @@
-package eu.livotov.labs.android.robotools.app.design.bottomsheet;
+package eu.livotov.labs.android.robotools.app.design.bottomsheet.layout;
 
 
 import android.content.Context;
@@ -6,24 +6,24 @@ import android.util.AttributeSet;
 import android.widget.FrameLayout;
 
 
-class HeaderLayout extends FrameLayout
+public class BottomSheetHeaderLayout extends FrameLayout
 {
     private int mHeaderWidth = 1;
 
 
-    public HeaderLayout(Context context)
+    public BottomSheetHeaderLayout(Context context)
     {
         super(context);
     }
 
 
-    public HeaderLayout(Context context, AttributeSet attrs)
+    public BottomSheetHeaderLayout(Context context, AttributeSet attrs)
     {
         super(context, attrs);
     }
 
 
-    public HeaderLayout(Context context, AttributeSet attrs, int defStyle)
+    public BottomSheetHeaderLayout(Context context, AttributeSet attrs, int defStyle)
     {
         super(context, attrs, defStyle);
     }

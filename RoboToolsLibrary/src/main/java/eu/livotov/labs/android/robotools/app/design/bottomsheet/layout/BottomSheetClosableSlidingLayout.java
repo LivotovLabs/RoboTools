@@ -1,4 +1,4 @@
-package eu.livotov.labs.android.robotools.app.design.bottomsheet;
+package eu.livotov.labs.android.robotools.app.design.bottomsheet.layout;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -19,7 +19,7 @@ import android.widget.FrameLayout;
  * Created by LiaoKai(soarcn) on 2014/11/25.
  */
 @VisibleForTesting
-class ClosableSlidingLayout extends FrameLayout
+public class BottomSheetClosableSlidingLayout extends FrameLayout
 {
 
     private static final int INVALID_POINTER = -1;
@@ -36,18 +36,18 @@ class ClosableSlidingLayout extends FrameLayout
     private boolean collapsible = false;
     private float yDiff;
 
-    public ClosableSlidingLayout(Context context)
+    public BottomSheetClosableSlidingLayout(Context context)
     {
         this(context, null);
     }
 
-    public ClosableSlidingLayout(Context context, AttributeSet attrs)
+    public BottomSheetClosableSlidingLayout(Context context, AttributeSet attrs)
     {
         this(context, attrs, 0);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public ClosableSlidingLayout(Context context, AttributeSet attrs, int defStyle)
+    public BottomSheetClosableSlidingLayout(Context context, AttributeSet attrs, int defStyle)
     {
         super(context, attrs, defStyle);
         mDragHelper = ViewDragHelper.create(this, 0.8f, new ViewDragCallback());
@@ -58,6 +58,26 @@ class ClosableSlidingLayout extends FrameLayout
     public void requestDisallowInterceptTouchEvent(boolean b)
     {
         // Nope.
+    }
+
+    public View getmTarget()
+    {
+        return mTarget;
+    }
+
+    public void setmTarget(View mTarget)
+    {
+        this.mTarget = mTarget;
+    }
+
+    public boolean isSwipeable()
+    {
+        return swipeable;
+    }
+
+    public void setSwipeable(boolean swipeable)
+    {
+        this.swipeable = swipeable;
     }
 
     @Override
@@ -197,7 +217,7 @@ class ClosableSlidingLayout extends FrameLayout
         mListener = listener;
     }
 
-    void setCollapsible(boolean collapsible)
+    public void setCollapsible(boolean collapsible)
     {
         this.collapsible = collapsible;
     }
@@ -206,13 +226,13 @@ class ClosableSlidingLayout extends FrameLayout
     {
         mDragHelper.smoothSlideViewTo(view, 0, top + height);
         mDragHelper.cancel();
-        ViewCompat.postInvalidateOnAnimation(ClosableSlidingLayout.this);
+        ViewCompat.postInvalidateOnAnimation(BottomSheetClosableSlidingLayout.this);
     }
 
     /**
      * set listener
      */
-    interface SlideListener
+    public interface SlideListener
     {
         void onClosed();
 
@@ -257,7 +277,7 @@ class ClosableSlidingLayout extends FrameLayout
                     mDragHelper.smoothSlideViewTo(releasedChild, 0, top);
                 }
             }
-            ViewCompat.postInvalidateOnAnimation(ClosableSlidingLayout.this);
+            ViewCompat.postInvalidateOnAnimation(BottomSheetClosableSlidingLayout.this);
         }
 
         @Override
@@ -269,7 +289,7 @@ class ClosableSlidingLayout extends FrameLayout
         @Override
         public int clampViewPositionVertical(View child, int top, int dy)
         {
-            return Math.max(top, ClosableSlidingLayout.this.top);
+            return Math.max(top, BottomSheetClosableSlidingLayout.this.top);
         }
     }
 

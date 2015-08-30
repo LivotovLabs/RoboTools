@@ -62,6 +62,10 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import eu.livotov.labs.android.robotools.R;
+import eu.livotov.labs.android.robotools.app.design.bottomsheet.adapter.BottomSheetSimpleSectionedGridAdapter;
+import eu.livotov.labs.android.robotools.app.design.bottomsheet.layout.BottomSheetClosableSlidingLayout;
+import eu.livotov.labs.android.robotools.app.design.bottomsheet.model.BottomSheetActionMenu;
+import eu.livotov.labs.android.robotools.app.design.bottomsheet.model.BottomSheetActionMenuItem;
 
 
 /**
@@ -88,7 +92,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
     private boolean collapseListIcons;
     private int mStatusBarHeight;
     private GridView list;
-    private SimpleSectionedGridAdapter adapter;
+    private BottomSheetSimpleSectionedGridAdapter adapter;
     private Builder builder;
     private boolean mInPortrait;
     private String sNavBarOverride;
@@ -101,9 +105,9 @@ public class RTBottomSheet extends Dialog implements DialogInterface
     private int limit = -1;
     private boolean cancelOnTouchOutside = true;
     private boolean cancelOnSwipeDown = true;
-    private ActionMenu fullMenuItem;
-    private ActionMenu menuItem;
-    private ActionMenu actions;
+    private BottomSheetActionMenu fullMenuItem;
+    private BottomSheetActionMenu menuItem;
+    private BottomSheetActionMenu actions;
     private OnDismissListener dismissListener;
 
     RTBottomSheet(Context context)
@@ -116,13 +120,13 @@ public class RTBottomSheet extends Dialog implements DialogInterface
     {
         super(context, theme);
 
-        TypedArray a = getContext().obtainStyledAttributes(null, R.styleable.BottomSheet, R.attr.bottomSheetStyle, 0);
+        TypedArray a = getContext().obtainStyledAttributes(null, R.styleable.RTBottomSheet, R.attr.bottomSheetStyle, 0);
         try
         {
-            more = a.getDrawable(R.styleable.BottomSheet_bs_moreDrawable);
-            close = a.getDrawable(R.styleable.BottomSheet_bs_closeDrawable);
-            moreText = a.getString(R.styleable.BottomSheet_bs_moreText);
-            collapseListIcons = a.getBoolean(R.styleable.BottomSheet_bs_collapseListIcons, true);
+            more = a.getDrawable(R.styleable.RTBottomSheet_bs_moreDrawable);
+            close = a.getDrawable(R.styleable.RTBottomSheet_bs_closeDrawable);
+            moreText = a.getString(R.styleable.RTBottomSheet_bs_moreText);
+            collapseListIcons = a.getBoolean(R.styleable.RTBottomSheet_bs_collapseListIcons, true);
         }
         finally
         {
@@ -321,13 +325,13 @@ public class RTBottomSheet extends Dialog implements DialogInterface
     private void init(final Context context)
     {
         setCanceledOnTouchOutside(cancelOnTouchOutside);
-        final ClosableSlidingLayout mDialogView = (ClosableSlidingLayout) View.inflate(context, R.layout.robotools_bs_bottom_sheet_dialog, null);
+        final BottomSheetClosableSlidingLayout mDialogView = (BottomSheetClosableSlidingLayout) View.inflate(context, R.layout.robotools_bs_bottom_sheet_dialog, null);
         setContentView(mDialogView);
         if (!cancelOnSwipeDown)
         {
-            mDialogView.swipeable = cancelOnSwipeDown;
+            mDialogView.setSwipeable(cancelOnSwipeDown);
         }
-        mDialogView.setSlideListener(new ClosableSlidingLayout.SlideListener()
+        mDialogView.setSlideListener(new BottomSheetClosableSlidingLayout.SlideListener()
         {
             @Override
             public void onClosed()
@@ -381,7 +385,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
 
 
         list = (GridView) mDialogView.findViewById(R.id.bottom_sheet_gridview);
-        mDialogView.mTarget = list;
+        mDialogView.setmTarget(list);
         if (!builder.grid)
         {
             list.setNumColumns(1);
@@ -416,7 +420,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         {
             fullMenuItem = builder.menu;
             menuItem = builder.menu.clone(limit - 1);
-            ActionMenuItem item = new ActionMenuItem(context, 0, R.id.bs_more, 0, limit - 1, moreText);
+            BottomSheetActionMenuItem item = new BottomSheetActionMenuItem(context, 0, R.id.bs_more, 0, limit - 1, moreText);
             item.setIcon(more);
             menuItem.add(item);
             actions = menuItem;
@@ -522,7 +526,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
             }
         };
 
-        adapter = new SimpleSectionedGridAdapter(context, baseAdapter, R.layout.robotools_bs_list_divider, R.id.headerlayout, R.id.header);
+        adapter = new BottomSheetSimpleSectionedGridAdapter(context, baseAdapter, R.layout.robotools_bs_list_divider, R.id.headerlayout, R.id.header);
         list.setAdapter(adapter);
         adapter.setGridView(list);
 
@@ -540,7 +544,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
                     return;
                 }
 
-                if (!((ActionMenuItem) adapter.getItem(position)).invoke())
+                if (!((BottomSheetActionMenuItem) adapter.getItem(position)).invoke())
                 {
                     if (builder.menulistener != null)
                     {
@@ -677,24 +681,24 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         if (!builder.grid && actions.size() > 0)
         {
             int groupId = actions.getItem(0).getGroupId();
-            ArrayList<SimpleSectionedGridAdapter.Section> sections = new ArrayList<>();
+            ArrayList<BottomSheetSimpleSectionedGridAdapter.Section> sections = new ArrayList<>();
             for (int i = 0; i < actions.size(); i++)
             {
                 if (actions.getItem(i).getGroupId() != groupId)
                 {
                     groupId = actions.getItem(i).getGroupId();
-                    sections.add(new SimpleSectionedGridAdapter.Section(i, null));
+                    sections.add(new BottomSheetSimpleSectionedGridAdapter.Section(i, null));
                 }
             }
             if (sections.size() > 0)
             {
-                SimpleSectionedGridAdapter.Section[] s = new SimpleSectionedGridAdapter.Section[sections.size()];
+                BottomSheetSimpleSectionedGridAdapter.Section[] s = new BottomSheetSimpleSectionedGridAdapter.Section[sections.size()];
                 sections.toArray(s);
                 adapter.setSections(s);
             }
             else
             {
-                adapter.mSections.clear();
+                adapter.getmSections().clear();
             }
         }
     }
@@ -731,7 +735,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
 
     private boolean hasDivider()
     {
-        return adapter.mSections.size() > 0;
+        return adapter.getmSections().size() > 0;
     }
 
     /**
@@ -741,7 +745,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
     {
 
         private final Context context;
-        private final ActionMenu menu;
+        private final BottomSheetActionMenu menu;
         private int theme;
         private CharSequence title;
         private boolean grid;
@@ -781,7 +785,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         {
             this.context = context;
             this.theme = theme;
-            this.menu = new ActionMenu(context);
+            this.menu = new BottomSheetActionMenu(context);
         }
 
         /**
@@ -807,7 +811,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
          */
         public Builder sheet(int id, @DrawableRes int iconRes, @StringRes int textRes)
         {
-            ActionMenuItem item = new ActionMenuItem(context, 0, id, 0, 0, context.getText(textRes));
+            BottomSheetActionMenuItem item = new BottomSheetActionMenuItem(context, 0, id, 0, 0, context.getText(textRes));
             item.setIcon(iconRes);
             menu.add(item);
             return this;
@@ -823,7 +827,7 @@ public class RTBottomSheet extends Dialog implements DialogInterface
          */
         public Builder sheet(int id, @NonNull Drawable icon, @NonNull CharSequence text)
         {
-            ActionMenuItem item = new ActionMenuItem(context, 0, id, 0, 0, text);
+            BottomSheetActionMenuItem item = new BottomSheetActionMenuItem(context, 0, id, 0, 0, text);
             item.setIcon(icon);
             menu.add(item);
             return this;
