@@ -52,3 +52,9 @@ RoboTools is licensed under Apache V2 license, so feel free to use it in any ope
 Contact
 -------
 If you have any bugs, ideas about changing existing helpers or adding new ones - feel free to post the information into the issues section. Or also join the development and submit pull requests :)
+
+
+Credits
+---
+
+- @soarcn for the great @soarcn/BottomSheet project that was used as a basement for our custom implementation in RoboTools
