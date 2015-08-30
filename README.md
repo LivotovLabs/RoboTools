@@ -1,17 +1,21 @@
 RoboTools v2
 ============
 
+This version is deprecated
+------
+V2 is the deprecated temp version, for the compatibility purposes only. Consider using master branch for the current V3 generation
+with the new api and functionality. Thanks you for your supoprt !
+
+
+
+
+
 RoboTools is an AAR library, containing a large collection of utility classes for making android apps development process 
 a bit more comfortable and quicker.
 
 Version 2 is a completely reviewed, redesigned and refactored one in comparison to previous release. It also lives as
 standard Android AAR library now and completely moved to gradle.
 
-
-Status
-------
-Current status is:  Under heavy development, not stable.
-All class names, packages, apis may be changed without any notice, data compatibility is not guaranteed.
 
 
 Installation
