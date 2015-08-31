@@ -403,7 +403,6 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         {
             customView = builder.customContentView;
             customViewRoot.addView(customView);
-            customViewResultListener = builder.customViewResultListener;
 
             if (customView instanceof BottomSheetCustomViewAdapter)
             {
@@ -641,16 +640,6 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         }
     }
 
-    public void onCustomViewFinished(final Object customViewResult)
-    {
-        if (customViewResultListener!=null && customViewResult!=null)
-        {
-            customViewResultListener.onCustomViewResult(customViewResult);
-        }
-
-        dismiss();
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -797,7 +786,6 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         private boolean grid;
         private OnClickListener listener;
         private OnDismissListener dismissListener;
-        private CustomViewResultListener customViewResultListener;
         private Drawable icon;
         private int limit = -1;
         private MenuItem.OnMenuItemClickListener menulistener;
@@ -917,12 +905,15 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         }
 
         /**
-         * Sets custom content view for the sheet. Any previously added menu sheets or menu resource will be discarded.
-         * @param view custom content view to display in the sheet instead of menu. In case if view want to pass sheet result, it must implement the BottomSheetCustomViewAdapter interface where
-         *             it will receive the RTBottomSheet host instance and can call onCustomViewFinished() on it.
+         * Sets custom content view instead of menu items for the sheet. Any previously added menu items will be discarded.
+         * @param view custom content view to display instead of menu items. If custom view implements the BottomSheetCustomViewAdapter interface,
+         *             instance of the RTBottomSheet will be passed via the interface setHost method.
+         *             <p/>
+         *             Note, that custom view is responsible on collecting and returning the sheet results (via its own listener or whatever else) and
+         *             also for closing the bottom sheet by calling RTBottomSheet's instance dismiss() method().
          * @return This Builder object to allow for chaining of calls to set methods
          */
-        public Builder contentView(@NonNull View view)
+        public Builder customView(@NonNull View view)
         {
             customContentView = view;
             menu.clear();
@@ -999,17 +990,6 @@ public class RTBottomSheet extends Dialog implements DialogInterface
         public Builder listener(@NonNull MenuItem.OnMenuItemClickListener listener)
         {
             this.menulistener = listener;
-            return this;
-        }
-
-        /**
-         * Sets result listener for custom ContentView -ebanled sheet.
-         * @param listener listener object
-         * @return This Builder object to allow for chaining of calls to set methods
-         */
-        public Builder contentViewListener(CustomViewResultListener listener)
-        {
-            this.customViewResultListener = listener;
             return this;
         }
 
