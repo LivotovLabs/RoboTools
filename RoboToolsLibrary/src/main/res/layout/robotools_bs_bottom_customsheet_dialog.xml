@@ -14,6 +14,7 @@
         tools:ignore="Overdraw">
 
         <View
+            android:visibility="gone"
             style="@style/BottomSheet.TopDivider"/>
 
         <LinearLayout
@@ -21,6 +22,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
+            android:visibility="gone"
             tools:ignore="UseCompoundDrawables">
 
             <ImageView
