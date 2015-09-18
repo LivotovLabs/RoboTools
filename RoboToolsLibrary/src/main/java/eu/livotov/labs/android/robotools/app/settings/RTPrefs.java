@@ -6,6 +6,8 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
+
 import java.util.StringTokenizer;
 
 import eu.livotov.labs.android.robotools.text.RTBase64;
@@ -19,6 +21,7 @@ public class RTPrefs
 
     protected SharedPreferences preferences;
     protected Context ctx;
+    protected Gson gson = new Gson();
 
     public static synchronized RTPrefs getDefault(final Context ctx)
     {
@@ -170,66 +173,103 @@ public class RTPrefs
         editor.commit();
     }
 
-    public void setIntArray(Context ctx, int key, int[] array)
+    public void setIntArray(int key, int[] array)
     {
         setString(key, arrayToString(array));
     }
 
-    public void setIntArray(Context ctx, String key, int[] array)
+    public void setIntArray(String key, int[] array)
     {
         setString(key, arrayToString(array));
     }
 
-    public void setLongArray(Context ctx, int key, long[] array)
+    public void setLongArray(int key, long[] array)
     {
         setString(key, arrayToString(array));
     }
 
-    public void setLongArray(Context ctx, String key, long[] array)
+    public void setLongArray(String key, long[] array)
     {
         setString(key, arrayToString(array));
     }
 
-    public void setByteArray(Context ctx, int key, byte[] array)
+    public void setByteArray(int key, byte[] array)
     {
         setString(key, RTBase64.encodeToString(array, RTBase64.NO_WRAP));
     }
 
-    public void setByteArray(Context ctx, String key, byte[] array)
+    public void setByteArray(String key, byte[] array)
     {
         setString(key, RTBase64.encodeToString(array, RTBase64.NO_WRAP));
     }
 
-    public int[] getIntArray(Context ctx, int key)
+    public int[] getIntArray(int key)
     {
         return stringToIntegerArray(getString(key, ""));
     }
 
-    public int[] getIntArray(Context ctx, String key)
+    public int[] getIntArray(String key)
     {
         return stringToIntegerArray(getString(key, ""));
     }
 
-    public long[] getLongArray(Context ctx, int key)
+    public long[] getLongArray(int key)
     {
         return stringToLongArray(getString(key, ""));
     }
 
-    public long[] getLongArray(Context ctx, String key)
+    public long[] getLongArray(String key)
     {
         return stringToLongArray(getString(key, ""));
     }
 
-    public byte[] getByteArray(Context ctx, int key)
+    public byte[] getByteArray(int key)
     {
         return RTBase64.decode(getString(key, ""), RTBase64.NO_WRAP);
     }
 
-    public byte[] getByteArray(Context ctx, String key)
+    public byte[] getByteArray(String key)
     {
         return RTBase64.decode(getString(key, ""), RTBase64.NO_WRAP);
     }
 
+    public <T> T getObject(Class<T> clazz, int key, T defaultValue)
+    {
+        return getObject(clazz, ctx.getString(key), defaultValue);
+    }
+
+    public <T extends Object> T getObject(Class<T> clazz, String key, T defaultValue)
+    {
+        try
+        {
+            return gson.fromJson(getString(key, ""), clazz);
+        } catch (Throwable ignored)
+        {
+            return defaultValue;
+        }
+    }
+
+    public void setObject(int key, Object object)
+    {
+        setObject(ctx.getString(key), object);
+    }
+
+    public void setObject(String key, Object object)
+    {
+        try
+        {
+            if (object!=null)
+            {
+                setString(key, gson.toJson(object));
+            } else
+            {
+                remove(key);
+            }
+        } catch (Throwable err)
+        {
+            throw new IllegalArgumentException("Cannot convert to JSON: " + object.toString(), err);
+        }
+    }
     public void remove(final int key)
     {
         remove(ctx.getString(key));
