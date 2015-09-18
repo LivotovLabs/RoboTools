@@ -1,6 +1,8 @@
 package eu.livotov.labs.android.robotools.app;
 
 import android.app.Application;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.widget.Toast;
 
@@ -13,6 +15,7 @@ public class RTApp extends Application
 {
     private static RTApp instance;
     private RTInjector.ApplicationInjector injector = new RTInjector.ApplicationInjector(this);
+    private Boolean debuggableStatus;
 
     @Override
     public void onCreate()
@@ -48,6 +51,25 @@ public class RTApp extends Application
         {
             Toast.makeText(instance, textId, longToast ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public static synchronized boolean isDebuggable()
+    {
+        if (instance.debuggableStatus==null)
+        {
+            try
+            {
+                PackageManager pm = instance.getPackageManager();
+                ApplicationInfo ai = pm.getApplicationInfo(instance.getPackageName(), 128);
+                instance.debuggableStatus = (ai == null) || ((ai.flags &= ApplicationInfo.FLAG_DEBUGGABLE) != 0);
+            }
+            catch (Throwable err)
+            {
+                instance.debuggableStatus = false;
+            }
+        }
+
+        return instance.debuggableStatus;
     }
 }
 
