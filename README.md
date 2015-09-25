@@ -30,6 +30,7 @@ Installation
 ---
 
 Include our maven repo to your gradle project file maven repositories list:
+
 ``
     maven { url 'http://maven.livotovlabs.pro/content/groups/public' }
 ``
