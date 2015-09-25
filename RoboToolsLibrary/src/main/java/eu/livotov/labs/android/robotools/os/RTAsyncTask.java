@@ -42,39 +42,39 @@ public abstract class RTAsyncTask
     /**
      * Time to put on hold parallel executor rejected task (rejected due to executor over-capacity) before submit it again for execution
      */
-    private static final long REJECTED_TASK_RESUBMIT_TIMEOUT = 1000;
+    private static final long REJECTED_TASK_RESUBMIT_TIMEOUT_MS = 1000;
 
     private static final BlockingQueue<Runnable> asyncExecutionPool = new LinkedBlockingQueue<Runnable>(128);
     private final static RTRunloop serialExecutionPool = new RTRunloop();
-    private static final Handler sHandler = new Handler();
-    private final Object mLock = new Object();
-    private AtomicBoolean mCancelled = new AtomicBoolean(false);
+    private static final Handler handler = new Handler();
+    private final Object lock = new Object();
+    private AtomicBoolean taskCancelledFlag = new AtomicBoolean(false);
 
     private AsyncResult taskResult = new AsyncResult(this);
 
-    private static final ThreadFactory sThreadFactory = new ThreadFactory()
+    private static final ThreadFactory threadFactory = new ThreadFactory()
     {
-        private final AtomicInteger mCount = new AtomicInteger(1);
+        private final AtomicInteger count = new AtomicInteger(1);
 
         public Thread newThread(Runnable r)
         {
-            return new Thread(r, "RTAsyncTask #" + mCount.getAndIncrement());
+            return new Thread(r, "RTAsyncTask #" + count.getAndIncrement());
         }
     };
 
-    public static final Executor sPool = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE, TimeUnit.SECONDS, asyncExecutionPool, sThreadFactory, new RejectedExecutionHandler()
+    public static final Executor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE, TimeUnit.SECONDS, asyncExecutionPool, threadFactory, new RejectedExecutionHandler()
     {
         @Override
         public void rejectedExecution(final Runnable r, final ThreadPoolExecutor executor)
         {
-            sHandler.postDelayed(new Runnable()
+            handler.postDelayed(new Runnable()
             {
                 @Override
                 public void run()
                 {
                     executor.execute(r);
                 }
-            }, REJECTED_TASK_RESUBMIT_TIMEOUT);
+            }, REJECTED_TASK_RESUBMIT_TIMEOUT_MS);
         }
     });
 
@@ -128,9 +128,9 @@ public abstract class RTAsyncTask
      */
     public void publishProgress()
     {
-        if (!mCancelled.get())
+        if (!taskCancelledFlag.get())
         {
-            sHandler.dispatchProgressUpdate(taskResult);
+            handler.dispatchProgressUpdate(taskResult);
         }
     }
 
@@ -140,7 +140,7 @@ public abstract class RTAsyncTask
      */
     public void cancel()
     {
-        mCancelled.set(true);
+        taskCancelledFlag.set(true);
     }
 
     /**
@@ -151,7 +151,7 @@ public abstract class RTAsyncTask
      */
     public boolean isCanceled()
     {
-        return mCancelled.get();
+        return taskCancelledFlag.get();
     }
 
     /**
@@ -162,7 +162,7 @@ public abstract class RTAsyncTask
      */
     public void execPool()
     {
-        sPool.execute(new Runnable()
+        threadPoolExecutor.execute(new Runnable()
         {
             @Override
             public void run()
@@ -198,47 +198,47 @@ public abstract class RTAsyncTask
      */
     public void execInCurrThread()
     {
-        synchronized (mLock)
+        synchronized (lock)
         {
-            if (!mCancelled.get())
+            if (!taskCancelledFlag.get())
             {
-                sHandler.dispatchPreExecute(taskResult);
-                if (!mCancelled.get())
+                handler.dispatchPreExecute(taskResult);
+                if (!taskCancelledFlag.get())
                 {
                     try
                     {
                         doInBackground();
 
-                        if (!mCancelled.get())
+                        if (!taskCancelledFlag.get())
                         {
-                            sHandler.dispatchPostExecute(taskResult);
+                            handler.dispatchPostExecute(taskResult);
                         }
                         else
                         {
-                            sHandler.dispatchCancel(taskResult);
+                            handler.dispatchCancel(taskResult);
                         }
                     }
                     catch (Throwable throwable)
                     {
-                        if (!mCancelled.get())
+                        if (!taskCancelledFlag.get())
                         {
                             taskResult.error = throwable;
-                            sHandler.dispatchError(taskResult);
+                            handler.dispatchError(taskResult);
                         }
                         else
                         {
-                            sHandler.dispatchCancel(taskResult);
+                            handler.dispatchCancel(taskResult);
                         }
                     }
                 }
                 else
                 {
-                    sHandler.dispatchCancel(taskResult);
+                    handler.dispatchCancel(taskResult);
                 }
             }
             else
             {
-                sHandler.dispatchCancel(taskResult);
+                handler.dispatchCancel(taskResult);
             }
         }
     }
