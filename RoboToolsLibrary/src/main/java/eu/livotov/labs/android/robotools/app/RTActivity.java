@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
@@ -20,7 +21,7 @@ import eu.livotov.labs.android.robotools.ui.RTListenersHelper;
 /**
  * Created by dlivotov on 30/08/2015.
  */
-public class RTActivity extends Activity
+public class RTActivity extends AppCompatActivity
 {
     private RTInjector.ActivityInjector injector = new RTInjector.ActivityInjector(this);
     private AtomicBoolean displayed = new AtomicBoolean(false);

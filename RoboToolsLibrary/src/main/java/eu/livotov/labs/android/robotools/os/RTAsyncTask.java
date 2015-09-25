@@ -14,14 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Better AsyncTask clone, written from scratch and not depending on android api
- *
- * @param <Params>   Input args type
- * @param <Progress> Progress data type
- * @param <Result>   Return data type
+ * AsyncTask reincarnation with the better API, written from scratch and not depending on any android api
  */
-@SuppressWarnings("unused")
-public abstract class RTAsyncTask<Params, Progress, Result>
+public abstract class RTAsyncTask
 {
 
     /**
@@ -55,6 +50,8 @@ public abstract class RTAsyncTask<Params, Progress, Result>
     private final Object mLock = new Object();
     private AtomicBoolean mCancelled = new AtomicBoolean(false);
 
+    private AsyncResult taskResult = new AsyncResult(this);
+
     private static final ThreadFactory sThreadFactory = new ThreadFactory()
     {
         private final AtomicInteger mCount = new AtomicInteger(1);
@@ -82,7 +79,7 @@ public abstract class RTAsyncTask<Params, Progress, Result>
     });
 
     /**
-     * Called in main thread before the async task body is executed
+     * Called in task creator thread before the async body is executed
      */
     protected void onPreExecute()
     {
@@ -90,29 +87,27 @@ public abstract class RTAsyncTask<Params, Progress, Result>
     }
 
     /**
-     * Called in main thread to publish progress update
-     *
-     * @param progress current progress value which was passed by main task body via the {@link #publishProgress(Progress)} method.
+     * Called in task creator thread when async task body provides some progress info about the process being executed.
+     * <p>In comparison to old AsyncTask, here we don't pass any progress data. Simply compute actual progress of your RTAsyncClass implementation and publish it wherewer you need (UI, event, etc)</p>
      */
-    protected void onProgressUpdate(Progress progress)
+    protected void onProgressUpdate()
     {
 
     }
 
     /**
-     * Called in main thread when the task successfully completes
-     *
-     * @param result task result, returned by the {@link #doInBackground(Params[])} method.
+     * Called in task creator thread when the task successfully completes
+     * <p>In comparison to old AsyncTask we don't put any result here. Simply grab result from your current RTAsyncTask implementation fields and do whatever you need with it.</p>
      */
-    protected void onPostExecute(Result result)
+    protected void onPostExecute()
     {
 
     }
 
     /**
-     * Called in main thread when any uncaught exception happens in the {@link #doInBackground(Params[])} method during its execution
+     * Called in task creator thread when any uncaught exception happens in the {@link #doInBackground()} method during its execution
      *
-     * @param t uncaught exception, happened in {@link #doInBackground(Params[])} method
+     * @param t uncaught exception, happened in {@link #doInBackground()} method
      */
     protected void onError(Throwable t)
     {
@@ -120,32 +115,28 @@ public abstract class RTAsyncTask<Params, Progress, Result>
     }
 
     /**
-     * Called in main thread when the task is cancelled
-     *
-     * @param result result, returned by {@link #doInBackground(Params[])}.
+     * Called in task creator thread when the task was cancelled and task's async process finished its execution
      */
-    protected void onCanceled(Result result)
+    protected void onCanceled()
     {
 
     }
 
     /**
-     * Use this method to publish a task execution progress update
-     *
-     * @param progress current progress state
+     * Use this method to send a progress updated event from your async thread body ( {@link #doInBackground()} method). Calling publishProgress() will cause
+     * {@link #onProgressUpdate()} method to be executed in the task creator thread.
      */
-    public void publishProgress(Progress progress)
+    public void publishProgress()
     {
         if (!mCancelled.get())
         {
-            AsyncResult<Progress, Result> result = new AsyncResult<Progress, Result>(this);
-            result.progress = progress;
-            sHandler.dispatchProgressUpdate(result);
+            sHandler.dispatchProgressUpdate(taskResult);
         }
     }
 
     /**
-     * Cancels this task
+     * Request the task to cancel. Note, this does not mean immediate cancellation.
+     * Task will be cancelled if the task async body in {@link #doInBackground()} method will check cancellation flag and respond accordingly.
      */
     public void cancel()
     {
@@ -153,8 +144,8 @@ public abstract class RTAsyncTask<Params, Progress, Result>
     }
 
     /**
-     * Check the cancellation status of the task. It is {@link #doInBackground(Params[])} code responsibility to check cancellation status from
-     * time to time and abort long execution when task is marked as cancelled.
+     * Check the cancellation request for this task. It is {@link #doInBackground()} code responsibility to check cancellation status from
+     * time to time and exit the method ahead of schedule when the task is marked as cancelled.
      *
      * @return true, if task was requested to be cancelled by someone.
      */
@@ -168,17 +159,15 @@ public abstract class RTAsyncTask<Params, Progress, Result>
      * <p/>
      * All tasks started by this method are run in parallel on a thread pool, until pool capacity is exhausted. All new tasks over the pool capacity will be put on hold and
      * executed as soon as pool becomes free.
-     *
-     * @param params task args for {@link #doInBackground(Params[])}.
      */
-    public void execPool(final Params... params)
+    public void execPool()
     {
         sPool.execute(new Runnable()
         {
             @Override
             public void run()
             {
-                execInCurrThread(params);
+                execInCurrThread();
             }
         });
     }
@@ -187,10 +176,8 @@ public abstract class RTAsyncTask<Params, Progress, Result>
      * Starts this task in serial execution mode.
      * <p/>
      * Tasks, started by this method are put into a separate queue and executed one by one in a serial manner.
-     *
-     * @param params arguments for {@link #doInBackground(Params[])}.
      */
-    public void execSerial(final Params... params)
+    public void execSerial()
     {
         if (!serialExecutionPool.isStarted())
         {
@@ -201,59 +188,57 @@ public abstract class RTAsyncTask<Params, Progress, Result>
             @Override
             public void run()
             {
-                execInCurrThread(params);
+                execInCurrThread();
             }
         });
     }
 
     /**
      * Starts this task in the current (calling) thread.
-     *
-     * @param params arguments for {@link #doInBackground(Params[])}.
      */
-    public void execInCurrThread(Params... params)
+    public void execInCurrThread()
     {
         synchronized (mLock)
         {
-            AsyncResult<Progress, Result> result = new AsyncResult<Progress, Result>(this);
             if (!mCancelled.get())
             {
-                sHandler.dispatchPreExecute(result);
+                sHandler.dispatchPreExecute(taskResult);
                 if (!mCancelled.get())
                 {
                     try
                     {
-                        result.result = doInBackground(params);
+                        doInBackground();
+
                         if (!mCancelled.get())
                         {
-                            sHandler.dispatchPostExecute(result);
+                            sHandler.dispatchPostExecute(taskResult);
                         }
                         else
                         {
-                            sHandler.dispatchCancel(result);
+                            sHandler.dispatchCancel(taskResult);
                         }
                     }
                     catch (Throwable throwable)
                     {
                         if (!mCancelled.get())
                         {
-                            result.t = throwable;
-                            sHandler.dispatchError(result);
+                            taskResult.error = throwable;
+                            sHandler.dispatchError(taskResult);
                         }
                         else
                         {
-                            sHandler.dispatchCancel(result);
+                            sHandler.dispatchCancel(taskResult);
                         }
                     }
                 }
                 else
                 {
-                    sHandler.dispatchCancel(result);
+                    sHandler.dispatchCancel(taskResult);
                 }
             }
             else
             {
-                sHandler.dispatchCancel(result);
+                sHandler.dispatchCancel(taskResult);
             }
         }
     }
@@ -261,10 +246,9 @@ public abstract class RTAsyncTask<Params, Progress, Result>
     /**
      * Main task body. All long-term background operation must be performed here
      *
-     * @param args task arguments, passed by the execXXX method
      * @throws java.lang.Throwable in any error situation. This will be automatically handled and routed to {@link #onError(Throwable)} method.
      */
-    protected abstract Result doInBackground(Params... args) throws Throwable;
+    protected abstract void doInBackground() throws Throwable;
 
 
     static class Handler extends android.os.Handler
@@ -326,30 +310,27 @@ public abstract class RTAsyncTask<Params, Progress, Result>
                         obj.task.onPreExecute();
                         break;
                     case MESSAGE_PROGRESS:
-                        obj.task.onProgressUpdate(obj.progress);
+                        obj.task.onProgressUpdate();
                         break;
                     case MESSAGE_ERROR:
-                        obj.task.onError(obj.t);
+                        obj.task.onError(obj.error);
                         break;
                     case MESSAGE_CANCEL:
-                        obj.task.onCanceled(obj.result);
+                        obj.task.onCanceled();
                         break;
                     case MESSAGE_POST_EXECUTE:
-                        obj.task.onPostExecute(obj.result);
+                        obj.task.onPostExecute();
                         break;
                 }
             }
         }
     }
 
-    static class AsyncResult<Progress, Result>
+    static class AsyncResult
     {
 
         final RTAsyncTask task;
-
-        Throwable t;
-        Progress progress;
-        Result result;
+        Throwable error;
 
         AsyncResult(RTAsyncTask task)
         {
