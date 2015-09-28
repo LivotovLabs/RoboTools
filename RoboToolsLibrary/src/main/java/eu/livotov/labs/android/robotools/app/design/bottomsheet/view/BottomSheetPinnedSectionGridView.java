@@ -1,6 +1,5 @@
 package eu.livotov.labs.android.robotools.app.design.bottomsheet.view;
 
-
 /*
  * Copyright 2013 Hari Krishna Dulipudi
  *

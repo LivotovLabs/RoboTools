@@ -36,7 +36,7 @@
             
         </LinearLayout>
 
-        <eu.livotov.labs.android.robotools.app.design.bottomsheet.PinnedSectionGridView
+        <eu.livotov.labs.android.robotools.app.design.bottomsheet.view.BottomSheetPinnedSectionGridView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/bottom_sheet_gridview"
