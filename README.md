@@ -9,7 +9,7 @@ Current version numbers
 ---
 
 - Stable Version: **n/a**
-- Dev Snapshot: **3.0.0.DEV1-SNAPSHOT**
+- Dev Snapshot: **3.0.0.DEV5-SNAPSHOT**
 
   The library is under heavy development and refactoring right now. Use provided sources and maven
   snapshots at your own risk. Packages structure, classes or methods may be reorganized, changed or
