@@ -90,6 +90,7 @@ public class RTDialog
         for (Object option : options)
         {
             builder.sheet(index, option.toString());
+            index++;
         }
 
         builder.title(title);
