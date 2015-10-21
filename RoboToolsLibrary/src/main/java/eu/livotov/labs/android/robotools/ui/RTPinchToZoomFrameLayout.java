@@ -160,8 +160,6 @@ public class RTPinchToZoomFrameLayout extends FrameLayout
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event)
     {
-        mScaleDetector.onTouchEvent(event);
-
         if (event.getAction() == MotionEvent.ACTION_MOVE && event.getPointerCount() == 2)
         {
             return true;
