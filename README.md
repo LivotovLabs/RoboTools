@@ -9,7 +9,7 @@ Current version numbers
 ---
 
 - Stable Version: **n/a**
-- Dev Snapshot: **3.0.0.DEV8-SNAPSHOT**
+- Dev Snapshot: **3.0.0.DEV9-SNAPSHOT**
 
   The library is under heavy development and refactoring right now. Use provided sources and maven
   snapshots at your own risk. Packages structure, classes or methods may be reorganized, changed or
@@ -38,7 +38,7 @@ Include our maven repo to your gradle project file maven repositories list:
 Then add dependency as follows:
 
 ``
-    compile 'labs.livotov.eu:robotools:3.0.0.DEV8-SNAPSHOT'
+    compile 'labs.livotov.eu:robotools:3.0.0.DEV9-SNAPSHOT'
 ``
 
 

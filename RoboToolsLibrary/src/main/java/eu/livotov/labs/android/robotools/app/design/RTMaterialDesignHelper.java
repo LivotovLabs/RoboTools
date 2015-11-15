@@ -5,12 +5,12 @@ import android.app.Activity;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.os.Build;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ActionMenuView;
 import android.widget.ImageButton;
-import android.widget.Toolbar;
 
 /**
  * Created by dlivotov on 30/08/2015.
