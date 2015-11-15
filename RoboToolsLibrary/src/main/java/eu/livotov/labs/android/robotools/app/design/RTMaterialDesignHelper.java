@@ -5,13 +5,12 @@ import android.app.Activity;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.os.Build;
-import android.support.v7.internal.view.menu.ActionMenuItemView;
-import android.support.v7.widget.ActionMenuView;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ActionMenuView;
 import android.widget.ImageButton;
+import android.widget.Toolbar;
 
 /**
  * Created by dlivotov on 30/08/2015.
@@ -46,29 +45,29 @@ public class RTMaterialDesignHelper
                         //are not back button, nor text, nor overflow menu icon.
                         final View innerView = ((ActionMenuView) v).getChildAt(j);
 
-                        if (innerView instanceof ActionMenuItemView)
-                        {
-                            int drawablesCount = ((ActionMenuItemView) innerView).getCompoundDrawables().length;
-                            for (int k = 0; k < drawablesCount; k++)
-                            {
-                                if (((ActionMenuItemView) innerView).getCompoundDrawables()[k] != null)
-                                {
-                                    final int finalK = k;
-
-                                    //Important to set the color filter in seperate thread,
-                                    //by adding it to the message queue
-                                    //Won't work otherwise.
-                                    innerView.post(new Runnable()
-                                    {
-                                        @Override
-                                        public void run()
-                                        {
-                                            ((ActionMenuItemView) innerView).getCompoundDrawables()[finalK].setColorFilter(colorFilter);
-                                        }
-                                    });
-                                }
-                            }
-                        }
+//                        if (innerView instanceof ActionMenuItemView)
+//                        {
+//                            int drawablesCount = ((ActionMenuItemView) innerView).getCompoundDrawables().length;
+//                            for (int k = 0; k < drawablesCount; k++)
+//                            {
+//                                if (((ActionMenuItemView) innerView).getCompoundDrawables()[k] != null)
+//                                {
+//                                    final int finalK = k;
+//
+//                                    //Important to set the color filter in seperate thread,
+//                                    //by adding it to the message queue
+//                                    //Won't work otherwise.
+//                                    innerView.post(new Runnable()
+//                                    {
+//                                        @Override
+//                                        public void run()
+//                                        {
+//                                            ((ActionMenuItemView) innerView).getCompoundDrawables()[finalK].setColorFilter(colorFilter);
+//                                        }
+//                                    });
+//                                }
+//                            }
+//                        }
                     }
                 }
 
