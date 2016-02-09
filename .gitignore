@@ -1,7 +1,8 @@
 .gradle
 /local.properties
 /.idea
-.DS_Store
 *.iml
 *.jpr
-
+.DS_Store
+/build
+maven.secret.properties
