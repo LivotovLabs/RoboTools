@@ -2,47 +2,37 @@ RoboTools V3
 ===
 
 RoboTools is a micro framework and toolset library for Android apps, aimed to make every day apps
-development easier and quickier by automating most routined tasks, which are typical for every app.
+development easier and faster by automating most common routines we need to implement in every app.
 
 
 Current version numbers
 ---
 
 - Stable Version: **n/a**
-- Dev Snapshot: **3.0.0.DEV9-SNAPSHOT**
+- Development: [ ![Download](https://api.bintray.com/packages/livotovlabs/maven/RoboToolsLibrary/images/download.svg) ](https://bintray.com/livotovlabs/maven/RoboToolsLibrary/_latestVersion)
 
-  The library is under heavy development and refactoring right now. Use provided sources and maven
-  snapshots at your own risk. Packages structure, classes or methods may be reorganized, changed or
-  completely removed at anu time.
 
-  First stable release is planned by the end of 2015
+  The library is under heavy development and refactoring right now. 
+  Use provided sources and maven snapshots in production project only at your own risk. Packages structure, classes or methods may be reorganized, changed or
+  completely removed at any time.
 
 
 Compatibility Notice
 ---
 
-- Supports SDK Android 4.1+ only. Yes, it is time to retire old android APIs.
-- API is **NOT** compatible with V1 and V2 of RoboTools.
+- Supports API level 16+ only. Yes, it is time to retire old android APIs.
+- API is **NOT** compatible with V1 and V2 versions of the RoboTools.
 
 
 
 Installation
 ---
 
-Include our maven repo to your gradle project file maven repositories list:
+The library is available in jCenter / BinTray:
 
 ``
-    maven { url 'http://maven.livotovlabs.pro/content/groups/public' }
+    compile 'eu.livotov.labs.android:RoboToolsLibrary:3.0.0-dev15'
 ``
-
-Then add dependency as follows:
-
-``
-    compile 'labs.livotov.eu:robotools:3.0.0.DEV9-SNAPSHOT'
-``
-
-
-*Replace x.y.z with the proper version number (currently available versions are listed above) you want to use**
 
 
 License
@@ -52,7 +42,7 @@ RoboTools is licensed under Apache V2 license, so feel free to use it in any ope
 
 Contact
 ---
-Please post all bugs, featurerequests, etc into the issues section. As usual, pull requests are welcome.
+Please post all bugs, feature requests, etc into the issues section. As usual, pull requests are welcome.
 
 
 Credits
