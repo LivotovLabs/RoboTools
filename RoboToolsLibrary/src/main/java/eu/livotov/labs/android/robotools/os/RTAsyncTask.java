@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * AsyncTask reincarnation with the better API, written from scratch and not depending on any android api
+ * AsyncTask reincarnation with the better and simplier API, written from scratch and not depending on any android api
  */
 public abstract class RTAsyncTask
 {

@@ -4,9 +4,8 @@ import android.app.Application;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 import android.widget.Toast;
-
-import eu.livotov.labs.android.robotools.app.injector.RTInjector;
 
 /**
  * Created by dlivotov on 30/08/2015.
@@ -14,14 +13,12 @@ import eu.livotov.labs.android.robotools.app.injector.RTInjector;
 public class RTApp extends Application
 {
     private static RTApp instance;
-    private RTInjector.ApplicationInjector injector = new RTInjector.ApplicationInjector(this);
     private Boolean debuggableStatus;
 
     @Override
     public void onCreate()
     {
         super.onCreate();
-        injector.onCreate();
         instance = this;
     }
 
@@ -37,17 +34,22 @@ public class RTApp extends Application
         return instance;
     }
 
+    public static RTApp getContext()
+    {
+        return instance;
+    }
+
     public static void showToast(@NonNull CharSequence text, final boolean longToast)
     {
-        if (instance!=null)
+        if (instance != null)
         {
             Toast.makeText(instance, text, longToast ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
         }
     }
 
-    public static void showToast(final int textId, final boolean longToast)
+    public static void showToast(@StringRes final int textId, final boolean longToast)
     {
-        if (instance!=null)
+        if (instance != null)
         {
             Toast.makeText(instance, textId, longToast ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
         }
@@ -55,12 +57,12 @@ public class RTApp extends Application
 
     public static synchronized boolean isDebuggable()
     {
-        if (instance.debuggableStatus==null)
+        if (instance.debuggableStatus == null)
         {
             try
             {
                 PackageManager pm = instance.getPackageManager();
-                ApplicationInfo ai = pm.getApplicationInfo(instance.getPackageName(), 128);
+                ApplicationInfo ai = pm.getApplicationInfo(instance.getPackageName(), PackageManager.GET_META_DATA);
                 instance.debuggableStatus = (ai == null) || ((ai.flags &= ApplicationInfo.FLAG_DEBUGGABLE) != 0);
             }
             catch (Throwable err)

@@ -1,5 +1,3 @@
 <resources>
     <string name="robotools_applicationnotfound">Не найдено приложения для данного действия</string>
-    <string name="robotools_dialogbtn_yes">Yes</string>
-    <string name="robotools_dialogbtn_no">No</string>
 </resources>

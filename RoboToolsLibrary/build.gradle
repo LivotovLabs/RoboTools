@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.5.0'
+        classpath 'com.android.tools.build:gradle:2.1.0'
     }
 }
 apply plugin: 'com.android.library'
@@ -13,21 +13,33 @@ repositories {
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "21.1.2"
+    compileSdkVersion androidCompileSdkVersion
+    buildToolsVersion androidBuildToolsVersion
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 23
+        minSdkVersion androidMinSdkVersion
+        targetSdkVersion androidTargetSdkVersion
     }
 
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:support-v4:23.1.1'
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.google.android.gms:play-services:8.4.0'
+
+    /**
+     * Support library
+     */
+    compile supportLibs.annotation
+    compile supportLibs.appCompat
+
+    /**
+     * Play Services
+     */
+    compile playServicesLibs.base
+
+    /**
+     * Other deps
+     */
     compile 'com.google.code.gson:gson:2.4'
 }
 

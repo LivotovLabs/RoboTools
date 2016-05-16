@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 /**
  * Enchanced version of the standard java StringTokenizer.
- * Unlike standrad one, this one accepts multi-character delimiter.
+ * Unlike the standrad one, it accepts the multi-character delimiter.
  */
 public class RTStringTokenizer
 {

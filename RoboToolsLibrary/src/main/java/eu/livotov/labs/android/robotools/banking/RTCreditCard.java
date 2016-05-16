@@ -2,37 +2,48 @@ package eu.livotov.labs.android.robotools.banking;
 
 import android.text.TextUtils;
 
-@SuppressWarnings("unused")
+/**
+ * Various credit-card data handling methods
+ */
 public class RTCreditCard
 {
-
-    private RTCreditCard()
+    protected RTCreditCard()
     {
+
     }
 
     /**
-     * Valid a Credit Card number
+     * Validates the given number as a credit card number.
+     *
+     * @param number credit card number as digits-only text string
+     * @return <code>true</code> if card number passes the CRC check and belongs to one of the following credit card types: Visa, MasterCard, AmericanExpress, EnRoute, Diners, Maestro
      */
     public static boolean isValidCreditCardNumber(String number)
     {
-        return getCreditCardType(number) != CreditCardType.UnknownOrInvalid && verifyCreditCardNumber(number);
+        return getCreditCardType(number) != CreditCardType.UnknownOrInvalid && verifyCreditCardCRC(number);
     }
 
-    public static boolean verifyCreditCardNumber(String n)
+    /**
+     * Verifies credit card number CRC
+     *
+     * @param number credit card number as digits-only
+     * @return <code>true</code> if CRC check passed
+     */
+    public static boolean verifyCreditCardCRC(String number)
     {
-        if (TextUtils.isEmpty(n))
+        if (TextUtils.isEmpty(number))
         {
             return false;
         }
 
         try
         {
-            int j = n.length();
+            int j = number.length();
 
             String[] s1 = new String[j];
-            for (int i = 0; i < n.length(); i++)
+            for (int i = 0; i < number.length(); i++)
             {
-                s1[i] = "" + n.charAt(i);
+                s1[i] = "" + number.charAt(i);
             }
 
             int checksum = 0;
@@ -65,9 +76,14 @@ public class RTCreditCard
         }
     }
 
+    /**
+     * Detects the credit card type by the given number
+     *
+     * @param number number to check, only digits
+     * @return credit card type this number belongs to or CreditCardType.UnknownOrInvalid for invalid or unknown numbers
+     */
     public static CreditCardType getCreditCardType(String number)
     {
-
         if (TextUtils.isEmpty(number))
         {
             return CreditCardType.UnknownOrInvalid;
@@ -127,6 +143,12 @@ public class RTCreditCard
         return CreditCardType.UnknownOrInvalid;
     }
 
+    /**
+     * Formats credit card number for display (adds spaces between number groups)
+     *
+     * @param number digits-only string to format
+     * @return formatted number
+     */
     public static String formatCreditCardNumberForDisplay(String number)
     {
         final String num = number.replaceAll(" ", "");
@@ -143,50 +165,6 @@ public class RTCreditCard
         }
 
         return buf.toString();
-    }
-
-    public static CreditCardType guesstCreditCardType(String number)
-    {
-
-        if (TextUtils.isEmpty(number))
-        {
-            return CreditCardType.UnknownOrInvalid;
-        }
-
-        final String digit1 = number.substring(0, 1);
-        final String digit2 = number.length() > 1 ? number.substring(0, 2) : null;
-        final String digit3 = number.length() > 2 ? number.substring(0, 3) : null;
-        final String digit4 = number.length() > 3 ? number.substring(0, 4) : null;
-
-        if (TextUtils.isDigitsOnly(number.replaceAll(" ", "")))
-        {
-            if ("4".equals(digit1))
-            {
-                return CreditCardType.Visa;
-            }
-            else if ("51".compareTo(digit2) < 0 && "55".compareTo(digit2) > 0)
-            {
-                return CreditCardType.MasterCard;
-            }
-            else if ("34".equals(digit2) || "37".equals(digit2))
-            {
-                return CreditCardType.AmericanExpress;
-            }
-            else if ("2014".equals(digit4) || "2149".equals(digit4))
-            {
-                return CreditCardType.EnRoute;
-            }
-            else if ("36".equals(digit2) || "38".equals(digit2) || ("300".compareTo(digit3) < 0 && "305".compareTo(digit3) > 0))
-            {
-                return CreditCardType.Diners;
-            }
-            else if ("5".equals(digit1) || "6".equals(digit1))
-            {
-                return CreditCardType.Maestro;
-            }
-        }
-
-        return CreditCardType.UnknownOrInvalid;
     }
 
     public enum CreditCardType

@@ -1,8 +1,7 @@
 RoboTools V3
 ===
 
-RoboTools is a micro framework and toolset library for Android apps, aimed to make every day apps
-development easier and faster by automating most common routines we need to implement in every app.
+RoboTools is a micro library for Android apps, with the set of utility classes
 
 
 Current version numbers
@@ -31,7 +30,7 @@ Installation
 The library is available in jCenter / BinTray:
 
 ``
-    compile 'eu.livotov.labs.android:RoboToolsLibrary:3.0.0-dev15'
+    compile 'eu.livotov.labs.android:RoboToolsLibrary:3.0.1'
 ``
 
 
