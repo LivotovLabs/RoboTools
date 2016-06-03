@@ -176,4 +176,16 @@ public class RTDevice
             return Pattern.matches("cpu[0-9]", pathname.getName());
         }
     }
+
+    public static boolean isBlackberryDevice()
+    {
+        if (!System.getProperty("os.name").equals("qnx"))
+        {
+            return android.os.Build.BRAND.toLowerCase().contains("blackberry");
+        }
+        else
+        {
+            return true;
+        }
+    }
 }
