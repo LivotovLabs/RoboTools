@@ -69,7 +69,7 @@ public class RTPrefs
     {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(key, value);
-        editor.commit();
+        editor.apply();
     }
 
     public int getInt(int key, int defaultValue)
@@ -91,7 +91,7 @@ public class RTPrefs
     {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt(key, value);
-        editor.commit();
+        editor.apply();
     }
 
     public long getLong(int key, long defaultValue)
@@ -279,12 +279,12 @@ public class RTPrefs
     {
         SharedPreferences.Editor editor = preferences.edit();
         editor.remove(key);
-        editor.commit();
+        editor.apply();
     }
 
     public void clear()
     {
-        preferences.edit().clear().commit();
+        preferences.edit().clear().apply();
     }
 
     public SharedPreferences getPreferences()

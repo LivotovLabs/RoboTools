@@ -106,6 +106,13 @@ public class RTListUtil {
     }
 
     /**
+     * Returns last element in list, or null if list isEmpty
+     */
+    public static <T> T getLast(@NonNull List<T> list) {
+        return isEmpty(list) ? null : list.get(list.size() - 1);
+    }
+
+    /**
      * Safe wrapper method for {@link Collections#sort(List)}
      */
     public static <T extends Comparable> void sort(@NonNull List<T> list) {
