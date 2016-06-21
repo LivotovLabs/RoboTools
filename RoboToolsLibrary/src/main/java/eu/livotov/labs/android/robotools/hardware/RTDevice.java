@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Environment;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
@@ -14,6 +15,8 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.regex.Pattern;
+
+import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
 
 @SuppressWarnings("unused")
 public class RTDevice
@@ -164,8 +167,46 @@ public class RTDevice
 
     public static CharSequence getOwnerEmail(Context context)
     {
-        Account[] accounts = AccountManager.get(context).getAccountsByType("com.google");
-        return accounts != null && accounts.length > 0 ? accounts[0].name : null;
+        try
+        {
+            Account[] accounts = AccountManager.get(context).getAccountsByType("com.google");
+            return accounts != null && accounts.length > 0 ? accounts[0].name : null;
+        }
+        catch (Throwable err)
+        {
+            return null;
+        }
+    }
+
+    public static String getDeviceUID(final Context ctx)
+    {
+        StringBuffer id = new StringBuffer();
+
+        if (ctx != null)
+        {
+            try
+            {
+                final String androidDeviceId = android.provider.Settings.Secure.getString(ctx.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+                if (androidDeviceId == null)
+                {
+                    id.append(Build.FINGERPRINT);
+                }
+                else
+                {
+                    id.append(androidDeviceId);
+                }
+            }
+            catch (Throwable e)
+            {
+                id.append(Build.FINGERPRINT);
+            }
+        }
+        else
+        {
+            id.append(Build.FINGERPRINT);
+        }
+
+        return RTCryptUtil.md5(id.toString());
     }
 
     public static boolean isBlackberryDevice()
