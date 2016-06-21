@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="RTMaterialProgressView">
+        <attr name="rtm_progress_color" format="color" />
+        <attr name="rtm_progress_size" format="enum">
+            <enum name="Small" value="0" />
+            <enum name="Normal" value="1" />
+            <enum name="Large" value="2" />
+        </attr>
+        <attr name="rtm_progress_border_width" format="dimension" />
+        <attr name="rtm_progress_indeterminate" format="boolean" />
+        <attr name="rtm_progress_max" format="integer" />
+        <attr name="rtm_progress_duration" format="integer" />
+    </declare-styleable>
+</resources>
