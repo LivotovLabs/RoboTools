@@ -47,11 +47,6 @@ public abstract class RTAsyncTask
     private static final BlockingQueue<Runnable> asyncExecutionPool = new LinkedBlockingQueue<Runnable>(128);
     private final static RTRunloop serialExecutionPool = new RTRunloop();
     private static final Handler handler = new Handler();
-    private final Object lock = new Object();
-    private AtomicBoolean taskCancelledFlag = new AtomicBoolean(false);
-
-    private AsyncResult taskResult = new AsyncResult(this);
-
     private static final ThreadFactory threadFactory = new ThreadFactory()
     {
         private final AtomicInteger count = new AtomicInteger(1);
@@ -61,7 +56,6 @@ public abstract class RTAsyncTask
             return new Thread(r, "RTAsyncTask #" + count.getAndIncrement());
         }
     };
-
     public static final Executor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE, TimeUnit.SECONDS, asyncExecutionPool, threadFactory, new RejectedExecutionHandler()
     {
         @Override
@@ -77,6 +71,9 @@ public abstract class RTAsyncTask
             }, REJECTED_TASK_RESUBMIT_TIMEOUT_MS);
         }
     });
+    private final Object lock = new Object();
+    private AtomicBoolean taskCancelledFlag = new AtomicBoolean(false);
+    private AsyncResult taskResult = new AsyncResult(this);
 
     /**
      * Called in task creator thread before the async body is executed
@@ -173,27 +170,6 @@ public abstract class RTAsyncTask
     }
 
     /**
-     * Starts this task in serial execution mode.
-     * <p/>
-     * Tasks, started by this method are put into a separate queue and executed one by one in a serial manner.
-     */
-    public void execSerial()
-    {
-        if (!serialExecutionPool.isStarted())
-        {
-            serialExecutionPool.start();
-        }
-        serialExecutionPool.post(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                execInCurrThread();
-            }
-        });
-    }
-
-    /**
      * Starts this task in the current (calling) thread.
      */
     public void execInCurrThread()
@@ -250,6 +226,26 @@ public abstract class RTAsyncTask
      */
     protected abstract void doInBackground() throws Throwable;
 
+    /**
+     * Starts this task in serial execution mode.
+     * <p/>
+     * Tasks, started by this method are put into a separate queue and executed one by one in a serial manner.
+     */
+    public void execSerial()
+    {
+        if (!serialExecutionPool.isStarted())
+        {
+            serialExecutionPool.start();
+        }
+        serialExecutionPool.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                execInCurrThread();
+            }
+        });
+    }
 
     static class Handler extends android.os.Handler
     {

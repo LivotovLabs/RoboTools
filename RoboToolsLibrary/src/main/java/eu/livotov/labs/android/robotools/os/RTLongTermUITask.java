@@ -11,38 +11,6 @@ public abstract class RTLongTermUITask extends RTAsyncTask
     private boolean serialExecution = false;
     private boolean stickyDelivery = false;
 
-    /**
-     * Place your async code here. This method will be executed in a separate non-ui thread
-     */
-    public abstract void onTaskExecutionThread();
-
-    /**
-     * Create event payload class for task successfull execution
-     * @return successfull execution event class, which will be sent to subscribers
-     */
-    public abstract Object buildSuccessEvent();
-
-    /**
-     * Create event payload class to represent task execution error
-     * @param err execution exception
-     * @return failed execution event class, which will be sent to subscribers
-     */
-    public abstract Object buildErrorEvent(Throwable err);
-
-    /**
-     * Create event payload class to represent progress event
-     * @param state progress event type
-     * @return progress status event class, which will be sent to subscribers
-     */
-    public abstract Object buildProgressEvent(ProgressUpdateType state);
-
-    /**
-     * Publish provided event class via your event delivery subsystem you use in your app.
-     * @param event event class to publish. This is the same class that was created by {@link #buildProgressEvent(ProgressUpdateType)}, {@link #buildErrorEvent(Throwable)} or {@link #buildSuccessEvent()} method
-     * @param stickyDelivery sticky flag to indicate this event must be delivered also for recipients, currently not connected to your event subsystem.
-     */
-    protected abstract void publishEvent(Object event, boolean stickyDelivery);
-
     public RTLongTermUITask withStickyDelivery()
     {
         stickyDelivery = true;
@@ -124,6 +92,22 @@ public abstract class RTLongTermUITask extends RTAsyncTask
         }
     }
 
+    /**
+     * Publish provided event class via your event delivery subsystem you use in your app.
+     *
+     * @param event          event class to publish. This is the same class that was created by {@link #buildProgressEvent(ProgressUpdateType)}, {@link #buildErrorEvent(Throwable)} or {@link #buildSuccessEvent()} method
+     * @param stickyDelivery sticky flag to indicate this event must be delivered also for recipients, currently not connected to your event subsystem.
+     */
+    protected abstract void publishEvent(Object event, boolean stickyDelivery);
+
+    /**
+     * Create event payload class to represent progress event
+     *
+     * @param state progress event type
+     * @return progress status event class, which will be sent to subscribers
+     */
+    public abstract Object buildProgressEvent(ProgressUpdateType state);
+
     @Override
     protected void onProgressUpdate()
     {
@@ -147,6 +131,13 @@ public abstract class RTLongTermUITask extends RTAsyncTask
         }
     }
 
+    /**
+     * Create event payload class for task successfull execution
+     *
+     * @return successfull execution event class, which will be sent to subscribers
+     */
+    public abstract Object buildSuccessEvent();
+
     @Override
     protected void onError(Throwable t)
     {
@@ -160,6 +151,14 @@ public abstract class RTLongTermUITask extends RTAsyncTask
             publishEvent(buildErrorEvent(t), stickyDelivery);
         }
     }
+
+    /**
+     * Create event payload class to represent task execution error
+     *
+     * @param err execution exception
+     * @return failed execution event class, which will be sent to subscribers
+     */
+    public abstract Object buildErrorEvent(Throwable err);
 
     @Override
     protected void onCanceled()
@@ -175,6 +174,11 @@ public abstract class RTLongTermUITask extends RTAsyncTask
     {
         onTaskExecutionThread();
     }
+
+    /**
+     * Place your async code here. This method will be executed in a separate non-ui thread
+     */
+    public abstract void onTaskExecutionThread();
 
     public enum ProgressUpdateType
     {

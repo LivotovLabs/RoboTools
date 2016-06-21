@@ -8,20 +8,25 @@ import android.util.Log;
 /**
  * Very simple helper for quick load and cache typeface
  */
-public class RTFontsHelper {
+public class RTFontsHelper
+{
 
     private static LruCache<String, Typeface> sFontsCache = new LruCache<>(8);
 
 
-    public RTFontsHelper() {
+    protected RTFontsHelper()
+    {
     }
 
-    public static Typeface getTypeface(Context context, final String name) {
+    public static Typeface getTypeface(Context context, final String name)
+    {
         Typeface typeface = sFontsCache.get(name);
 
-        if (typeface == null) {
+        if (typeface == null)
+        {
             typeface = Typeface.createFromAsset(context.getResources().getAssets(), name);
-            if (typeface == null) {
+            if (typeface == null)
+            {
                 Log.e("RTFontsHelper", "Cant init typeface: " + name);
                 return null;
             }

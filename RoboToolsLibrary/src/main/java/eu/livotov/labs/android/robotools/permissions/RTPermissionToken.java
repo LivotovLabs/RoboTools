@@ -5,7 +5,8 @@ package eu.livotov.labs.android.robotools.permissions;
  * Date: 18.11.15.
  * Time: 12:38.
  */
-public interface RTPermissionToken {
+public interface RTPermissionToken
+{
 
     /**
      * Continues with the permission request process

@@ -13,7 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Date: 18.11.15.
  * Time: 12:12.
  */
-public final class RTPermissions {
+public final class RTPermissions
+{
 
     private static volatile RTPermissions sInstance;
 
@@ -23,51 +24,92 @@ public final class RTPermissions {
     private RTPermissionListener listener;
     private AtomicBoolean isRequestingPermission = new AtomicBoolean(false);
 
-    public static RTPermissions getInstance() {
-        if (sInstance == null) {
-            synchronized (RTPermissions.class) {
+    public static RTPermissions getInstance()
+    {
+        if (sInstance == null)
+        {
+            synchronized (RTPermissions.class)
+            {
                 sInstance = new RTPermissions();
             }
         }
         return sInstance;
     }
 
-    public void registerActivity(final Activity activity) {
+    public void registerActivity(final Activity activity)
+    {
         this.activity = new WeakReference<>(activity);
     }
 
-    public void unregisterActivity() {
-        if (this.activity != null) {
+    public void unregisterActivity()
+    {
+        if (this.activity != null)
+        {
             activity.clear();
         }
     }
 
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+    {
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        {
             onPermissionRequestGranted(requestCode);
-        } else {
+        }
+        else
+        {
             onPermissionRequestDenied();
         }
     }
 
-    public void checkPermission(String permission, RTPermissionListener listener){
+    private void onPermissionRequestGranted(int code)
+    {
+        finishWithGrantedPermission(permission, code);
+    }
+
+    private void onPermissionRequestDenied()
+    {
+        finishWithDeniedPermission(permission);
+    }
+
+    private void finishWithGrantedPermission(String permission, int code)
+    {
+        if (listener != null)
+        {
+            listener.onPermissionGranted(permission, code);
+        }
+        isRequestingPermission.set(false);
+    }
+
+    private void finishWithDeniedPermission(String permission)
+    {
+        if (listener != null)
+        {
+            listener.onPermissionDenied(permission);
+        }
+        isRequestingPermission.set(false);
+    }
+
+    public void checkPermission(String permission, RTPermissionListener listener)
+    {
         checkPermission(permission, listener, -1);
     }
 
-    public void checkPermission(String permission, RTPermissionListener listener, int requestCode) {
-        if (isRequestingPermission.getAndSet(true)) {
-            throw new IllegalStateException(
-                    "Only one permission request at a time. Currently handling permission: ["
-                            + this.permission + "]");
+    public void checkPermission(String permission, RTPermissionListener listener, int requestCode)
+    {
+        if (isRequestingPermission.getAndSet(true))
+        {
+            throw new IllegalStateException("Only one permission request at a time. Currently handling permission: [" + this.permission + "]");
         }
 
         this.permission = permission;
         this.listener = listener;
         this.requestCode = requestCode;
 
-        if (isContextAlive()) {
+        if (isContextAlive())
+        {
             int permissionState = ContextCompat.checkSelfPermission(activity.get(), permission);
-            switch (permissionState) {
+            switch (permissionState)
+            {
                 case PackageManager.PERMISSION_DENIED:
                     handleDeniedPermission(permission);
                     break;
@@ -79,63 +121,46 @@ public final class RTPermissions {
         }
     }
 
-
-    private void onPermissionRequestGranted(int code) {
-        finishWithGrantedPermission(permission, code);
+    private boolean isContextAlive()
+    {
+        return activity.get() != null;
     }
 
-
-    private void onPermissionRequestDenied() {
-        finishWithDeniedPermission(permission);
+    private void handleDeniedPermission(String permission)
+    {
+        if (isContextAlive() && ActivityCompat.shouldShowRequestPermissionRationale(activity.get(), permission))
+        {
+            RTPermissionRationaleToken permissionToken = new RTPermissionRationaleToken(this, permission);
+            listener.onPermissionRationaleShouldBeShown(permission, permissionToken);
+        }
+        else
+        {
+            requestPermission(permission);
+        }
     }
 
-
-    void onContinuePermissionRequest(String permission) {
-        requestPermission(permission);
-    }
-
-
-    void onCancelPermissionRequest(String permission) {
-        finishWithDeniedPermission(permission);
-    }
-
-
-    void requestPermission(String permission) {
-        if (isContextAlive()) {
+    void requestPermission(String permission)
+    {
+        if (isContextAlive())
+        {
             int permissionCode = getPermissionCodeForPermission(permission);
             ActivityCompat.requestPermissions(activity.get(), new String[]{permission}, permissionCode);
         }
     }
 
-    private void handleDeniedPermission(String permission) {
-        if (isContextAlive() && ActivityCompat.shouldShowRequestPermissionRationale(activity.get(), permission)) {
-            RTPermissionRationaleToken permissionToken = new RTPermissionRationaleToken(this, permission);
-            listener.onPermissionRationaleShouldBeShown(permission, permissionToken);
-        } else {
-            requestPermission(permission);
-        }
-    }
-
-    private void finishWithGrantedPermission(String permission, int code) {
-        if(listener != null){
-            listener.onPermissionGranted(permission, code);
-        }
-        isRequestingPermission.set(false);
-    }
-
-    private void finishWithDeniedPermission(String permission) {
-        if(listener != null){
-            listener.onPermissionDenied(permission);
-        }
-        isRequestingPermission.set(false);
-    }
-
-    private int getPermissionCodeForPermission(String permission) {
+    private int getPermissionCodeForPermission(String permission)
+    {
         return requestCode > 0 ? requestCode : 100;
     }
 
-    private boolean isContextAlive() {
-        return activity.get() != null;
+    void onContinuePermissionRequest(String permission)
+    {
+        requestPermission(permission);
+    }
+
+    void onCancelPermissionRequest(String permission)
+    {
+        finishWithDeniedPermission(permission);
     }
 }
 

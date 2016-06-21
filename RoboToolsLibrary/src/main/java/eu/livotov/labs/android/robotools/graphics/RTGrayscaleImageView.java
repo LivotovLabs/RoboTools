@@ -7,8 +7,6 @@ import android.graphics.BitmapFactory;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
-import eu.livotov.labs.android.robotools.graphics.RTBitmaps;
-
 /**
  * ImageView which always display its content in a grayscale mode
  */

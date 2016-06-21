@@ -23,24 +23,9 @@ public class RTPrefs
     protected Context ctx;
     protected Gson gson = new Gson();
 
-    public static synchronized RTPrefs getDefault(final Context ctx)
-    {
-        if (defaultPreferences == null)
-        {
-            defaultPreferences = new RTPrefs(ctx, null);
-        }
-
-        return defaultPreferences;
-    }
-
     public RTPrefs(final Context ctx)
     {
         this(ctx, null, false);
-    }
-
-    public RTPrefs(final Context ctx, final String preferenceStorageName)
-    {
-        this(ctx, preferenceStorageName, false);
     }
 
     public RTPrefs(final Context ctx, final String preferenceStorageName, boolean privateMode)
@@ -50,26 +35,31 @@ public class RTPrefs
         this.preferences = TextUtils.isEmpty(preferenceStorageName) ? PreferenceManager.getDefaultSharedPreferences(ctx) : ctx.getSharedPreferences(preferenceStorageName, getPrefsMode(privateMode));
     }
 
-    public String getString(int key, String defaultValue)
+    protected static int getPrefsMode(boolean privateMode)
     {
-        return getString(ctx.getString(key), defaultValue);
+        if (Build.VERSION.SDK_INT >= 11 && !privateMode)
+        {
+            return Context.MODE_MULTI_PROCESS;
+        }
+        else
+        {
+            return Context.MODE_PRIVATE;
+        }
     }
 
-    public String getString(String key, String defaultValue)
+    public RTPrefs(final Context ctx, final String preferenceStorageName)
     {
-        return preferences.getString(key, defaultValue);
+        this(ctx, preferenceStorageName, false);
     }
 
-    public void setString(int key, String value)
+    public static synchronized RTPrefs getDefault(final Context ctx)
     {
-        setString(ctx.getString(key), value);
-    }
+        if (defaultPreferences == null)
+        {
+            defaultPreferences = new RTPrefs(ctx, null);
+        }
 
-    public void setString(String key, String value)
-    {
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(key, value);
-        editor.apply();
+        return defaultPreferences;
     }
 
     public int getInt(int key, int defaultValue)
@@ -134,9 +124,16 @@ public class RTPrefs
         setString(key, "" + value);
     }
 
+    public void setString(String key, String value)
+    {
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(key, value);
+        editor.apply();
+    }
+
     public double getDouble(int key, double defaultValue)
     {
-       return getDouble(ctx.getString(key), defaultValue);
+        return getDouble(ctx.getString(key), defaultValue);
     }
 
     public double getDouble(String key, double defaultValue)
@@ -149,6 +146,11 @@ public class RTPrefs
         {
             return defaultValue;
         }
+    }
+
+    public String getString(String key, String defaultValue)
+    {
+        return preferences.getString(key, defaultValue);
     }
 
     public boolean getBoolean(int key, boolean defaultValue)
@@ -178,6 +180,28 @@ public class RTPrefs
         setString(key, arrayToString(array));
     }
 
+    public void setString(int key, String value)
+    {
+        setString(ctx.getString(key), value);
+    }
+
+    protected String arrayToString(int[] array)
+    {
+        StringBuffer str = new StringBuffer();
+
+        for (int a : array)
+        {
+            if (str.length() > 0)
+            {
+                str.append("|");
+            }
+
+            str.append("" + a);
+        }
+
+        return str.toString();
+    }
+
     public void setIntArray(String key, int[] array)
     {
         setString(key, arrayToString(array));
@@ -186,6 +210,23 @@ public class RTPrefs
     public void setLongArray(int key, long[] array)
     {
         setString(key, arrayToString(array));
+    }
+
+    protected String arrayToString(long[] array)
+    {
+        StringBuffer str = new StringBuffer();
+
+        for (long a : array)
+        {
+            if (str.length() > 0)
+            {
+                str.append("|");
+            }
+
+            str.append("" + a);
+        }
+
+        return str.toString();
     }
 
     public void setLongArray(String key, long[] array)
@@ -208,6 +249,32 @@ public class RTPrefs
         return stringToIntegerArray(getString(key, ""));
     }
 
+    protected int[] stringToIntegerArray(final String str)
+    {
+        StringTokenizer tok = new StringTokenizer(str, "|", false);
+        if (tok.countTokens() > 0)
+        {
+            int[] arr = new int[tok.countTokens()];
+            int index = 0;
+            while (tok.hasMoreTokens())
+            {
+                arr[index] = Integer.parseInt(tok.nextToken());
+                index++;
+            }
+
+            return arr;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    public String getString(int key, String defaultValue)
+    {
+        return getString(ctx.getString(key), defaultValue);
+    }
+
     public int[] getIntArray(String key)
     {
         return stringToIntegerArray(getString(key, ""));
@@ -216,6 +283,27 @@ public class RTPrefs
     public long[] getLongArray(int key)
     {
         return stringToLongArray(getString(key, ""));
+    }
+
+    protected long[] stringToLongArray(final String str)
+    {
+        StringTokenizer tok = new StringTokenizer(str, "|", false);
+        if (tok.countTokens() > 0)
+        {
+            long[] arr = new long[tok.countTokens()];
+            int index = 0;
+            while (tok.hasMoreTokens())
+            {
+                arr[index] = Long.parseLong(tok.nextToken());
+                index++;
+            }
+
+            return arr;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     public long[] getLongArray(String key)
@@ -243,7 +331,8 @@ public class RTPrefs
         try
         {
             return gson.fromJson(getString(key, ""), clazz);
-        } catch (Throwable ignored)
+        }
+        catch (Throwable ignored)
         {
             return defaultValue;
         }
@@ -258,21 +347,19 @@ public class RTPrefs
     {
         try
         {
-            if (object!=null)
+            if (object != null)
             {
                 setString(key, gson.toJson(object));
-            } else
+            }
+            else
             {
                 remove(key);
             }
-        } catch (Throwable err)
+        }
+        catch (Throwable err)
         {
             throw new IllegalArgumentException("Cannot convert to JSON: " + object.toString(), err);
         }
-    }
-    public void remove(final int key)
-    {
-        remove(ctx.getString(key));
     }
 
     public void remove(final String key)
@@ -280,6 +367,11 @@ public class RTPrefs
         SharedPreferences.Editor editor = preferences.edit();
         editor.remove(key);
         editor.apply();
+    }
+
+    public void remove(final int key)
+    {
+        remove(ctx.getString(key));
     }
 
     public void clear()
@@ -290,93 +382,5 @@ public class RTPrefs
     public SharedPreferences getPreferences()
     {
         return preferences;
-    }
-
-    protected static int getPrefsMode(boolean privateMode)
-    {
-        if (Build.VERSION.SDK_INT >= 11 && !privateMode)
-        {
-            return Context.MODE_MULTI_PROCESS;
-        }
-        else
-        {
-            return Context.MODE_PRIVATE;
-        }
-    }
-
-    protected String arrayToString(int[] array)
-    {
-        StringBuffer str = new StringBuffer();
-
-        for (int a : array)
-        {
-            if (str.length() > 0)
-            {
-                str.append("|");
-            }
-
-            str.append("" + a);
-        }
-
-        return str.toString();
-    }
-
-    protected String arrayToString(long[] array)
-    {
-        StringBuffer str = new StringBuffer();
-
-        for (long a : array)
-        {
-            if (str.length() > 0)
-            {
-                str.append("|");
-            }
-
-            str.append("" + a);
-        }
-
-        return str.toString();
-    }
-
-    protected int[] stringToIntegerArray(final String str)
-    {
-        StringTokenizer tok = new StringTokenizer(str, "|", false);
-        if (tok.countTokens() > 0)
-        {
-            int[] arr = new int[tok.countTokens()];
-            int index = 0;
-            while (tok.hasMoreTokens())
-            {
-                arr[index] = Integer.parseInt(tok.nextToken());
-                index++;
-            }
-
-            return arr;
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    protected long[] stringToLongArray(final String str)
-    {
-        StringTokenizer tok = new StringTokenizer(str, "|", false);
-        if (tok.countTokens() > 0)
-        {
-            long[] arr = new long[tok.countTokens()];
-            int index = 0;
-            while (tok.hasMoreTokens())
-            {
-                arr[index] = Long.parseLong(tok.nextToken());
-                index++;
-            }
-
-            return arr;
-        }
-        else
-        {
-            return null;
-        }
     }
 }

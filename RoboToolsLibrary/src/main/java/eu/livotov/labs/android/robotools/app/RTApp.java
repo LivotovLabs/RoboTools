@@ -15,20 +15,6 @@ public class RTApp extends Application
     private static RTApp instance;
     private Boolean debuggableStatus;
 
-    @Override
-    public void onCreate()
-    {
-        super.onCreate();
-        instance = this;
-    }
-
-    @Override
-    public void onTerminate()
-    {
-        instance = null;
-        super.onTerminate();
-    }
-
     public static RTApp getInstance()
     {
         return instance;
@@ -72,6 +58,20 @@ public class RTApp extends Application
         }
 
         return instance.debuggableStatus;
+    }
+
+    @Override
+    public void onCreate()
+    {
+        super.onCreate();
+        instance = this;
+    }
+
+    @Override
+    public void onTerminate()
+    {
+        instance = null;
+        super.onTerminate();
     }
 }
 

@@ -168,15 +168,6 @@ public class RTDevice
         return accounts != null && accounts.length > 0 ? accounts[0].name : null;
     }
 
-    private static class CpuFilter implements FileFilter
-    {
-
-        public boolean accept(File pathname)
-        {
-            return Pattern.matches("cpu[0-9]", pathname.getName());
-        }
-    }
-
     public static boolean isBlackberryDevice()
     {
         if (!System.getProperty("os.name").equals("qnx"))
@@ -186,6 +177,15 @@ public class RTDevice
         else
         {
             return true;
+        }
+    }
+
+    private static class CpuFilter implements FileFilter
+    {
+
+        public boolean accept(File pathname)
+        {
+            return Pattern.matches("cpu[0-9]", pathname.getName());
         }
     }
 }
