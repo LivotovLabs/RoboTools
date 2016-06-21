@@ -20,10 +20,12 @@ import android.content.Context;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 
 /**
  * Wraps {@link javax.crypto.SecretKey} instances using a public/private key pair stored in
@@ -35,10 +37,10 @@ import java.security.KeyStore;
  * <p>
  * Not inherently thread safe.
  */
-public class RTSecretKeyWrapper
-{
+public class RTSecretKeyWrapper {
     private final Cipher mCipher;
     private final KeyPair mPair;
+    private final KeyStore mKeyStore;
 
     /**
      * Create a wrapper using the public/private key pair with the given alias.
@@ -48,17 +50,16 @@ public class RTSecretKeyWrapper
             throws GeneralSecurityException, IOException {
         mCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 
-        final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
+        mKeyStore = KeyStore.getInstance("AndroidKeyStore");
+        mKeyStore.load(null);
 
-        if (!keyStore.containsAlias(alias))
-        {
-            RTCryptUtil.generateRsaPairWithGenerator(context, alias);
+        if (!mKeyStore.containsAlias(alias)) {
+            RTCryptUtil.createRsaKey(context, alias);
         }
 
         // Even if we just generated the key, always read it back to ensure we
         // can read it successfully.
-        final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(
+        final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry) mKeyStore.getEntry(
                 alias, null);
         mPair = new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
     }
@@ -70,7 +71,7 @@ public class RTSecretKeyWrapper
      * {@link javax.crypto.SecretKey}.
      *
      * @return a wrapped version of the given {@link javax.crypto.SecretKey} that can be
-     *         safely stored on untrusted storage.
+     * safely stored on untrusted storage.
      */
     public byte[] wrap(SecretKey key) throws GeneralSecurityException {
         mCipher.init(Cipher.WRAP_MODE, mPair.getPublic());
@@ -82,10 +83,23 @@ public class RTSecretKeyWrapper
      * wrapper.
      *
      * @param blob a wrapped {@link javax.crypto.SecretKey} as previously returned by
-     *            {@link #wrap(javax.crypto.SecretKey)}.
+     *             {@link #wrap(javax.crypto.SecretKey)}.
      */
     public SecretKey unwrap(byte[] blob) throws GeneralSecurityException {
         mCipher.init(Cipher.UNWRAP_MODE, mPair.getPrivate());
         return (SecretKey) mCipher.unwrap(blob, "AES", Cipher.SECRET_KEY);
+    }
+
+    /**
+     * Delete a {@link javax.crypto.SecretKey} from {@link KeyStore} for the give alia
+     */
+    public void removeKey(String alias) {
+        try {
+            if (mKeyStore.containsAlias(alias)) {
+                mKeyStore.deleteEntry(alias);
+            }
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        }
     }
 }
