@@ -32,7 +32,7 @@ public class RTGrayscaleImageView extends ImageView
     {
         if (resId > 0)
         {
-            super.setImageBitmap(RTBitmaps.toGrayscale(BitmapFactory.decodeResource(getResources(), resId)));
+            super.setImageBitmap(RTBitmaps.grayscale(BitmapFactory.decodeResource(getResources(), resId)));
         }
         else
         {
@@ -44,7 +44,7 @@ public class RTGrayscaleImageView extends ImageView
     {
         if (bm != null)
         {
-            super.setImageBitmap(RTBitmaps.toGrayscale(bm));
+            super.setImageBitmap(RTBitmaps.grayscale(bm));
         }
         else
         {
