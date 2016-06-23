@@ -35,11 +35,7 @@ import javax.security.auth.x500.X500Principal;
 import eu.livotov.labs.android.robotools.text.RTBase64;
 
 /**
- * Created with IntelliJ IDEA.
- * User: dlivotov
- * Date: 9/14/12
- * Time: 11:43 AM
- * To change this template use File | Settings | File Templates.
+ * Simple class to encrypt/decrypt user strings using a key, derived from a simple user-specified password string.
  */
 public class RTCryptUtil
 {
