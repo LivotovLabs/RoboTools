@@ -2,6 +2,7 @@ package eu.livotov.labs.android.robotools.settings;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.text.TextUtils;
 import android.util.Log;
@@ -48,7 +49,7 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
      *
      * @param password user password to unlock the preferences
      */
-    public boolean unlock(final String password)
+    public boolean unlock(@NonNull final String password)
     {
         if (isLocked())
         {
@@ -60,11 +61,10 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
                 {
                     if (!PIN_PRESENT_KEY.equalsIgnoreCase(key))
                     {
-                        final String originalTest = "" + super.getString(key, "");
-
-                        if (!TextUtils.isEmpty(originalTest))
+                        final String rawValue = "" + super.getString(key, "");
+                        if (!TextUtils.isEmpty(rawValue))
                         {
-                            RTCryptUtil.decryptAsText(super.getString(key, ""), password);
+                            RTCryptUtil.decryptAsText(rawValue, password);
                             break;
                         }
                     }
@@ -103,7 +103,7 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
      * @param oldPassword old password. Use <code>null</code> if no password was previously set, e.g.  you're assigning a password for the first time.
      * @param newPassword new password. Use <code>null</code> in case you want to remove the password at all.
      */
-    public void setPassword(final String oldPassword, final String newPassword)
+    public void setPassword(@Nullable final String oldPassword, @Nullable final String newPassword)
     {
         final boolean markerPresent = prefs.getBoolean(PIN_PRESENT_KEY, false);
 
