@@ -1,5 +1,6 @@
 package eu.livotov.labs.android.robotools.share;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -7,6 +8,7 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.customtabs.CustomTabsIntent;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 
@@ -28,7 +30,7 @@ public class RTShareTool
     }
 
     /**
-     * Builds an intent to open url in a web browser (or maybe in other app which intercepts this url scheme/part)
+     * Builds an intent to open url in a default web browser (or maybe in other app which intercepts this url scheme/part)
      *
      * @param url to open
      * @return
@@ -36,6 +38,13 @@ public class RTShareTool
     public static Intent buildInternetAddressIntent(@NonNull final String url)
     {
         return new Intent(Intent.ACTION_VIEW).setData(Uri.parse(url));
+    }
+
+    public static void openInternetAddressAsChromeTab(@NonNull Activity activity, @NonNull final String url)
+    {
+        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+        CustomTabsIntent customTabsIntent = builder.build();
+        customTabsIntent.launchUrl(activity, Uri.parse(url));
     }
 
     /**
