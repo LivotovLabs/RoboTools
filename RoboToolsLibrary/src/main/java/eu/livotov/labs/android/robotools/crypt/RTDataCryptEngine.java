@@ -22,7 +22,6 @@ public class RTDataCryptEngine
 {
 
     private static final String TAG = RTDataCryptEngine.class.getCanonicalName();
-    private static final boolean IS_JB43 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2;
     private static final String WRAPPED_KEY = "wrapped_key";
 
     private static final String KEY_PART_ONE = "MIIBOAIBAAJAW+XLnvNL99fGmjR7aKxrfQRuu9nLyVfNvQ3f1ugf5EHKzIlCS6G8\n" +
@@ -34,6 +33,7 @@ public class RTDataCryptEngine
             "talOPaCX9766MhmzhLfciEtuEogZ9gsBs8piug";
 
     private SharedPreferences privatePrefs;
+    private boolean isJB43orNonTransferable;
 
     // for JB+ api
     private RTSecretKeyWrapper secretKeyWrapper;
@@ -46,20 +46,20 @@ public class RTDataCryptEngine
 
     public RTDataCryptEngine(Context context)
     {
-        this(context, null);
+        this(context, false);
     }
 
-    public RTDataCryptEngine(Context context, String password)
+    public RTDataCryptEngine(Context context, boolean transferable)
     {
-        this.context = context;
-        this.password = password;
+        this.context = context.getApplicationContext();
         privatePrefs = context.getSharedPreferences("RTDataCryptEnginePrefs", Context.MODE_PRIVATE);
+        isJB43orNonTransferable = !transferable || Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2;
         init();
     }
 
     private void init()
     {
-        if (IS_JB43)
+        if (isJB43orNonTransferable)
         {
             try
             {

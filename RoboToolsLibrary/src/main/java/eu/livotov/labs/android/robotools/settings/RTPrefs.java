@@ -188,7 +188,7 @@ public class RTPrefs
         setString(ctx.getString(key), value);
     }
 
-    protected String arrayToString(int[] array)
+    protected static String arrayToString(int[] array)
     {
         StringBuffer str = new StringBuffer();
 
@@ -215,7 +215,7 @@ public class RTPrefs
         setString(key, arrayToString(array));
     }
 
-    protected String arrayToString(long[] array)
+    protected static String arrayToString(long[] array)
     {
         StringBuffer str = new StringBuffer();
 
@@ -252,7 +252,7 @@ public class RTPrefs
         return stringToIntegerArray(getString(key, ""));
     }
 
-    protected int[] stringToIntegerArray(final String str)
+    protected static int[] stringToIntegerArray(final String str)
     {
         StringTokenizer tok = new StringTokenizer(str, "|", false);
         if (tok.countTokens() > 0)
@@ -288,7 +288,7 @@ public class RTPrefs
         return stringToLongArray(getString(key, ""));
     }
 
-    protected long[] stringToLongArray(final String str)
+    protected static long[] stringToLongArray(final String str)
     {
         StringTokenizer tok = new StringTokenizer(str, "|", false);
         if (tok.countTokens() > 0)
