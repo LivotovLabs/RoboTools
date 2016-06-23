@@ -224,26 +224,31 @@ public class RTDevice
         }
     }
 
-    public static boolean isMarshmallow() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
-    }
-
     @TargetApi(23)
-    public static boolean isFingerprintAvailable(Context context) {
-        if (isMarshmallow()) {
+    public static boolean isFingerprintAvailable(Context context)
+    {
+        if (isMarshmallow())
+        {
             return getFingerprintManager(context).isHardwareDetected();
         }
         return false;
     }
 
-    @TargetApi(23)
-    public static KeyguardManager getKeyguardManager(Context context) {
-        return context.getSystemService(KeyguardManager.class);
+    public static boolean isMarshmallow()
+    {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
 
     @TargetApi(23)
-    public static FingerprintManager getFingerprintManager(Context context) {
+    public static FingerprintManager getFingerprintManager(Context context)
+    {
         return context.getSystemService(FingerprintManager.class);
+    }
+
+    @TargetApi(23)
+    public static KeyguardManager getKeyguardManager(Context context)
+    {
+        return context.getSystemService(KeyguardManager.class);
     }
 
     private static class CpuFilter implements FileFilter

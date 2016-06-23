@@ -38,6 +38,18 @@ public class RTPrefs
         this.preferences = TextUtils.isEmpty(preferenceStorageName) ? PreferenceManager.getDefaultSharedPreferences(ctx) : ctx.getSharedPreferences(preferenceStorageName, getPrefsMode(privateMode));
     }
 
+    protected static int getPrefsMode(boolean privateMode)
+    {
+        if (Build.VERSION.SDK_INT >= 11 && !privateMode)
+        {
+            return Context.MODE_MULTI_PROCESS;
+        }
+        else
+        {
+            return Context.MODE_PRIVATE;
+        }
+    }
+
     public RTPrefs(@NonNull final Context ctx, @Nullable final String preferenceStorageName)
     {
         this(ctx, preferenceStorageName, false);
@@ -51,18 +63,6 @@ public class RTPrefs
         }
 
         return defaultPreferences;
-    }
-
-    protected static int getPrefsMode(boolean privateMode)
-    {
-        if (Build.VERSION.SDK_INT >= 11 && !privateMode)
-        {
-            return Context.MODE_MULTI_PROCESS;
-        }
-        else
-        {
-            return Context.MODE_PRIVATE;
-        }
     }
 
     public int getInt(@StringRes int key, int defaultValue)

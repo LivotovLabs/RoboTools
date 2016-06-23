@@ -38,7 +38,8 @@ import javax.crypto.spec.PSource;
  * @author Grishko Nikita
  *         on 21.06.2016.
  */
-public class RTFingerprintCryptEngine {
+public class RTFingerprintCryptEngine
+{
 
     /**
      * Encrypt text with RSA key
@@ -46,15 +47,15 @@ public class RTFingerprintCryptEngine {
      * @param alias       - alias of the key in {@link KeyStore}
      * @param initialText - text to be encrypted
      */
-    public static String encrypt(final String alias, final String initialText) {
-        try {
+    public static String encrypt(final String alias, final String initialText)
+    {
+        try
+        {
             KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
             keyStore.load(null);
 
             PublicKey publicKey = keyStore.getCertificate(alias).getPublicKey();
-            PublicKey unrestrictedPublicKey =
-                    KeyFactory.getInstance(publicKey.getAlgorithm()).generatePublic(
-                            new X509EncodedKeySpec(publicKey.getEncoded()));
+            PublicKey unrestrictedPublicKey = KeyFactory.getInstance(publicKey.getAlgorithm()).generatePublic(new X509EncodedKeySpec(publicKey.getEncoded()));
 
             Cipher input = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
             input.init(Cipher.ENCRYPT_MODE, unrestrictedPublicKey, new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT));
@@ -67,7 +68,9 @@ public class RTFingerprintCryptEngine {
             byte[] vals = outputStream.toByteArray();
             return Base64.encodeToString(vals, Base64.DEFAULT);
 
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             Log.e(RTFingerprintCryptEngine.class.getSimpleName(), Log.getStackTraceString(e));
             return null;
         }
@@ -78,7 +81,8 @@ public class RTFingerprintCryptEngine {
      *
      * @param alias - alias of the key in {@link KeyStore}
      */
-    public static Cipher initDecryptionRSACipher(String alias) throws IOException, CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException, NoSuchPaddingException, InvalidKeyException {
+    public static Cipher initDecryptionRSACipher(String alias) throws IOException, CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException, NoSuchPaddingException, InvalidKeyException
+    {
 
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
@@ -95,39 +99,46 @@ public class RTFingerprintCryptEngine {
      * @param cipher     - authorized by user instance of {@link Cipher}
      * @param cipherText - text to be encrypted
      */
-    public static String decrypt(Cipher cipher, final String cipherText) {
-        try {
+    public static String decrypt(Cipher cipher, final String cipherText)
+    {
+        try
+        {
             CipherInputStream cipherInputStream = new CipherInputStream(new ByteArrayInputStream(Base64.decode(cipherText, Base64.DEFAULT)), cipher);
             ArrayList<Byte> values = new ArrayList<>();
 
             int nextByte;
-            while ((nextByte = cipherInputStream.read()) != -1) {
+            while ((nextByte = cipherInputStream.read()) != -1)
+            {
                 values.add((byte) nextByte);
             }
 
             byte[] bytes = new byte[values.size()];
-            for (int i = 0; i < bytes.length; i++) {
+            for (int i = 0; i < bytes.length; i++)
+            {
                 bytes[i] = values.get(i).byteValue();
             }
 
             final String finalText = new String(bytes, 0, bytes.length, "UTF-8");
             return finalText;
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             Log.e(RTFingerprintCryptEngine.class.getSimpleName(), Log.getStackTraceString(e));
             return null;
         }
     }
 
     @TargetApi(23)
-    public static KeyPair createRSAKeyUserAuthenticationRequired(String alias) {
-        try {
+    public static KeyPair createRSAKeyUserAuthenticationRequired(String alias)
+    {
+        try
+        {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
-            keyPairGenerator.initialize(new KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_DECRYPT)
-                    .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
-                    .setUserAuthenticationRequired(true)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP).build());
+            keyPairGenerator.initialize(new KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_DECRYPT).setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512).setUserAuthenticationRequired(true).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP).build());
             return keyPairGenerator.generateKeyPair();
-        } catch (Throwable e) {
+        }
+        catch (Throwable e)
+        {
             throw new RuntimeException(e);
         }
     }

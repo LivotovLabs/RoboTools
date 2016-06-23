@@ -365,7 +365,9 @@ public class RTMaterialProgressView extends View
             public void set(IndeterminateProgressDrawable object, Float value)
             {
                 object.setCurrentGlobalAngle(value);
-            }            @Override
+            }
+
+            @Override
             public Float get(IndeterminateProgressDrawable object)
             {
                 return object.getCurrentGlobalAngle();
@@ -386,7 +388,20 @@ public class RTMaterialProgressView extends View
             {
                 object.setCurrentSweepAngle(value);
             }
-        };        @Override
+        };
+
+        public IndeterminateProgressDrawable(int color, float borderWidth)
+        {
+            mBorderWidth = borderWidth;
+
+            mPaint = new Paint();
+            mPaint.setAntiAlias(true);
+            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setStrokeWidth(borderWidth);
+            mPaint.setColor(color);
+
+            setupAnimations();
+        }        @Override
         public void draw(Canvas canvas)
         {
             float startAngle = mCurrentGlobalAngle - mCurrentGlobalAngleOffset;
@@ -401,23 +416,6 @@ public class RTMaterialProgressView extends View
                 sweepAngle += MIN_SWEEP_ANGLE;
             }
             canvas.drawArc(mDrawableBounds, startAngle, sweepAngle, false, mPaint);
-        }
-
-        public IndeterminateProgressDrawable(int color, float borderWidth)
-        {
-            mBorderWidth = borderWidth;
-
-            mPaint = new Paint();
-            mPaint.setAntiAlias(true);
-            mPaint.setStyle(Paint.Style.STROKE);
-            mPaint.setStrokeWidth(borderWidth);
-            mPaint.setColor(color);
-
-            setupAnimations();
-        }        @Override
-        public void setAlpha(int alpha)
-        {
-            mPaint.setAlpha(alpha);
         }
 
         private void setupAnimations()
@@ -459,10 +457,6 @@ public class RTMaterialProgressView extends View
                     toggleAppearingMode();
                 }
             });
-        }        @Override
-        public void setColorFilter(ColorFilter cf)
-        {
-            mPaint.setColorFilter(cf);
         }
 
         private void toggleAppearingMode()
@@ -473,9 +467,9 @@ public class RTMaterialProgressView extends View
                 mCurrentGlobalAngleOffset = (mCurrentGlobalAngleOffset + MIN_SWEEP_ANGLE * 2) % 360;
             }
         }        @Override
-        public int getOpacity()
+        public void setAlpha(int alpha)
         {
-            return PixelFormat.TRANSPARENT;
+            mPaint.setAlpha(alpha);
         }
 
         @Override
@@ -503,16 +497,10 @@ public class RTMaterialProgressView extends View
             mObjectAnimatorSweep.cancel();
             invalidateSelf();
         }        @Override
-        protected void onBoundsChange(Rect bounds)
+        public void setColorFilter(ColorFilter cf)
         {
-            super.onBoundsChange(bounds);
-            mDrawableBounds.left = bounds.left + mBorderWidth / 2f + .5f;
-            mDrawableBounds.right = bounds.right - mBorderWidth / 2f - .5f;
-            mDrawableBounds.top = bounds.top + mBorderWidth / 2f + .5f;
-            mDrawableBounds.bottom = bounds.bottom - mBorderWidth / 2f - .5f;
+            mPaint.setColorFilter(cf);
         }
-
-        ///////////////////////////////////////// Animation /////////////////////////////////////////
 
         @Override
         public boolean isRunning()
@@ -523,6 +511,10 @@ public class RTMaterialProgressView extends View
         public float getCurrentGlobalAngle()
         {
             return mCurrentGlobalAngle;
+        }        @Override
+        public int getOpacity()
+        {
+            return PixelFormat.TRANSPARENT;
         }
 
         public void setCurrentGlobalAngle(float currentGlobalAngle)
@@ -540,7 +532,18 @@ public class RTMaterialProgressView extends View
         {
             mCurrentSweepAngle = currentSweepAngle;
             invalidateSelf();
+        }        @Override
+        protected void onBoundsChange(Rect bounds)
+        {
+            super.onBoundsChange(bounds);
+            mDrawableBounds.left = bounds.left + mBorderWidth / 2f + .5f;
+            mDrawableBounds.right = bounds.right - mBorderWidth / 2f - .5f;
+            mDrawableBounds.top = bounds.top + mBorderWidth / 2f + .5f;
+            mDrawableBounds.bottom = bounds.bottom - mBorderWidth / 2f - .5f;
         }
+
+        ///////////////////////////////////////// Animation /////////////////////////////////////////
+
 
 
 

@@ -482,7 +482,9 @@ public class RTBase64
             this.state = state;
             this.op = op;
             return true;
-        }        /**
+        }
+
+        /**
          * @return an overestimate for the number of bytes {@code len} bytes could decode to.
          */
         public int maxOutputSize(int len)

@@ -82,6 +82,41 @@ public class RTDataCryptEngine
         return String.format("%s%s", context.getPackageName(), ".secure_key");
     }
 
+    protected String generateDefaultKeychainKeyPassword(Context context, String userPartOfPassword)
+    {
+        String keychain = String.format("%s%s%s", RTDataCryptEngine.class.getSimpleName(), KEY_PART_ONE, context.getString(R.string.key_part_two));
+        if (!TextUtils.isEmpty(userPartOfPassword))
+        {
+            return String.format("%s%s", keychain, userPartOfPassword);
+        }
+        return keychain;
+    }
+
+    public void reset()
+    {
+        privatePrefs.edit().clear().apply();
+        if (isKWInit())
+        {
+            secretKeyWrapper.removeKey(getSecretKeyAlias());
+        }
+        init();
+    }
+
+    public boolean isKWInit()
+    {
+        return secretKeyWrapper != null;
+    }
+
+    public String decryptString(String encrypted) throws Throwable
+    {
+        return isKWInit() ? decryptWithSecretKey(encrypted) : RTCryptUtil.decryptAsText(encrypted, keychainKey);
+    }
+
+    private String decryptWithSecretKey(String cipherText) throws Throwable
+    {
+        return RTCryptUtil.decryptAesCbc(cipherText, getKey(true));
+    }
+
     private SecretKey getKey(boolean generateIfNeeded) throws GeneralSecurityException
     {
         SecretKey key = null;
@@ -111,44 +146,9 @@ public class RTDataCryptEngine
         editor.apply();
     }
 
-    public boolean isKWInit()
-    {
-        return secretKeyWrapper != null;
-    }
-
-    public void reset()
-    {
-        privatePrefs.edit().clear().apply();
-        if (isKWInit())
-        {
-            secretKeyWrapper.removeKey(getSecretKeyAlias());
-        }
-        init();
-    }
-
-    protected String generateDefaultKeychainKeyPassword(Context context, String userPartOfPassword)
-    {
-        String keychain = String.format("%s%s%s", RTDataCryptEngine.class.getSimpleName(), KEY_PART_ONE, context.getString(R.string.key_part_two));
-        if (!TextUtils.isEmpty(userPartOfPassword))
-        {
-            return String.format("%s%s", keychain, userPartOfPassword);
-        }
-        return keychain;
-    }
-
-    public String decryptString(String encrypted) throws Throwable
-    {
-        return isKWInit() ? decryptWithSecretKey(encrypted) : RTCryptUtil.decryptAsText(encrypted, keychainKey);
-    }
-
     public String encryptString(String value) throws Throwable
     {
         return isKWInit() ? encryptWithSecretKey(value) : RTCryptUtil.encrypt(value, keychainKey);
-    }
-
-    private String decryptWithSecretKey(String cipherText) throws Throwable
-    {
-        return RTCryptUtil.decryptAesCbc(cipherText, getKey(true));
     }
 
     private String encryptWithSecretKey(String plaintext) throws Throwable

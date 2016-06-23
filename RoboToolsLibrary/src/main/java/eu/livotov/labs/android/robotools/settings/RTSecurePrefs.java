@@ -21,6 +21,23 @@ public class RTSecurePrefs
     private RTPrefs prefs;
     private RTDataCryptEngine cryptEngine;
 
+    public RTSecurePrefs(final Context ctx)
+    {
+        prefs = new RTPrefs(ctx, "defaultsecure", true);
+        init(ctx);
+    }
+
+    private void init(Context ctx)
+    {
+        cryptEngine = new RTDataCryptEngine(ctx);
+    }
+
+    public RTSecurePrefs(final Context ctx, final String preferenceStorageName)
+    {
+        prefs = new RTPrefs(ctx, preferenceStorageName, true);
+        init(ctx);
+    }
+
     public static synchronized RTSecurePrefs getDefault(final Context ctx)
     {
         if (defaultPreferences == null)
@@ -30,34 +47,6 @@ public class RTSecurePrefs
 
         return defaultPreferences;
     }
-
-    public RTSecurePrefs(final Context ctx)
-    {
-        prefs = new RTPrefs(ctx, "defaultsecure", true);
-        init(ctx);
-    }
-
-    public RTSecurePrefs(final Context ctx, final String preferenceStorageName)
-    {
-        prefs = new RTPrefs(ctx, preferenceStorageName, true);
-        init(ctx);
-    }
-
-    private void init(Context ctx)
-    {
-        cryptEngine = new RTDataCryptEngine(ctx);
-    }
-
-    /**
-     * Completely resets the keychain with all data and keys. After calling this method
-     * the keychain becomes empty
-     */
-    public void reset()
-    {
-        prefs.clear();
-        cryptEngine.reset();
-    }
-
 
     public String getString(@StringRes int key, final String defaultValue)
     {
@@ -81,30 +70,6 @@ public class RTSecurePrefs
         {
             reset();
             return null;
-        }
-    }
-
-    public void setString(@StringRes int key, String value)
-    {
-        setString(prefs.ctx.getString(key), value);
-    }
-
-    public void setString(@NonNull String key, String value)
-    {
-        if (TextUtils.isEmpty(value))
-        {
-            prefs.remove(key);
-        }
-        else
-        {
-            try
-            {
-                prefs.setString(key, cryptEngine.encryptString(value));
-            }
-            catch (Throwable throwable)
-            {
-                reset();
-            }
         }
     }
 
@@ -135,6 +100,40 @@ public class RTSecurePrefs
     public void setInt(@StringRes int key, int value)
     {
         setString(key, "" + value);
+    }
+
+    public void setString(@StringRes int key, String value)
+    {
+        setString(prefs.ctx.getString(key), value);
+    }
+
+    public void setString(@NonNull String key, String value)
+    {
+        if (TextUtils.isEmpty(value))
+        {
+            prefs.remove(key);
+        }
+        else
+        {
+            try
+            {
+                prefs.setString(key, cryptEngine.encryptString(value));
+            }
+            catch (Throwable throwable)
+            {
+                reset();
+            }
+        }
+    }
+
+    /**
+     * Completely resets the keychain with all data and keys. After calling this method
+     * the keychain becomes empty
+     */
+    public void reset()
+    {
+        prefs.clear();
+        cryptEngine.reset();
     }
 
     public void setInt(@NonNull String key, int value)

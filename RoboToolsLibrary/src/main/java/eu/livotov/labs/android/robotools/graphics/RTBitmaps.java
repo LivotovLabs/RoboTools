@@ -126,6 +126,7 @@ public class RTBitmaps
 
     /**
      * Creates grayscale version of the source bitmap
+     *
      * @param source source bitmap
      * @return copied version of the source bitmap with the applied grayscale effect
      */
@@ -148,9 +149,10 @@ public class RTBitmaps
 
     /**
      * Blurs bitmap with the specified amount
+     *
      * @param context
-     * @param source source bitnap to blur
-     * @param radius blur amount, must be in range of 1...25 (25 means maximum blur)
+     * @param source  source bitnap to blur
+     * @param radius  blur amount, must be in range of 1...25 (25 means maximum blur)
      * @return copy of the source bitmap with the applied blur or same (source) bitmap instance if blur radius is out of allowed bounds
      */
     @SuppressLint("NewApi")

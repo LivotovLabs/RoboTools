@@ -17,8 +17,9 @@ public class RTDrawables
 
     /**
      * Creates new oval drawable
+     *
      * @param diameter diameter
-     * @param color color int
+     * @param color    color int
      * @return oval drawable
      */
     public static Drawable makeRound(int diameter, @ColorInt int color)
@@ -33,6 +34,7 @@ public class RTDrawables
 
     /**
      * Creates new stroked circle drawable
+     *
      * @param diameter
      * @param strokeWidth
      * @param colorStroke
@@ -52,6 +54,7 @@ public class RTDrawables
 
     /**
      * Creates new white colored rect
+     *
      * @param w
      * @param h
      * @return
@@ -63,6 +66,7 @@ public class RTDrawables
 
     /**
      * Creates new rect
+     *
      * @param w
      * @param h
      * @param color
@@ -80,6 +84,7 @@ public class RTDrawables
 
     /**
      * Creates new square
+     *
      * @param size
      * @param color
      * @return
