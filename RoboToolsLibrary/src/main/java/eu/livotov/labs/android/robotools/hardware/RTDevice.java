@@ -2,8 +2,11 @@ package eu.livotov.labs.android.robotools.hardware;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.annotation.TargetApi;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.hardware.fingerprint.FingerprintManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -219,6 +222,28 @@ public class RTDevice
         {
             return true;
         }
+    }
+
+    public static boolean isMarshmallow() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    }
+
+    @TargetApi(23)
+    public static boolean isFingerprintAvailable(Context context) {
+        if (isMarshmallow()) {
+            return getFingerprintManager(context).isHardwareDetected();
+        }
+        return false;
+    }
+
+    @TargetApi(23)
+    public static KeyguardManager getKeyguardManager(Context context) {
+        return context.getSystemService(KeyguardManager.class);
+    }
+
+    @TargetApi(23)
+    public static FingerprintManager getFingerprintManager(Context context) {
+        return context.getSystemService(FingerprintManager.class);
     }
 
     private static class CpuFilter implements FileFilter
