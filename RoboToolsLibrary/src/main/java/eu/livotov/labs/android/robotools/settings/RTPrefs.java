@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
@@ -17,22 +20,37 @@ import eu.livotov.labs.android.robotools.text.RTBase64;
  */
 public class RTPrefs
 {
-    private static RTPrefs defaultPreferences = null;
+    protected static RTPrefs defaultPreferences = null;
 
     protected SharedPreferences preferences;
     protected Context ctx;
     protected Gson gson = new Gson();
 
-    public RTPrefs(final Context ctx)
+    public RTPrefs(@NonNull final Context ctx)
     {
         this(ctx, null, false);
     }
 
-    public RTPrefs(final Context ctx, final String preferenceStorageName, boolean privateMode)
+    public RTPrefs(@NonNull final Context ctx, @Nullable final String preferenceStorageName, boolean privateMode)
     {
         super();
-        this.ctx = ctx;
+        this.ctx = ctx.getApplicationContext();
         this.preferences = TextUtils.isEmpty(preferenceStorageName) ? PreferenceManager.getDefaultSharedPreferences(ctx) : ctx.getSharedPreferences(preferenceStorageName, getPrefsMode(privateMode));
+    }
+
+    public RTPrefs(@NonNull final Context ctx, @Nullable final String preferenceStorageName)
+    {
+        this(ctx, preferenceStorageName, false);
+    }
+
+    public static synchronized RTPrefs getDefault(@NonNull final Context ctx)
+    {
+        if (defaultPreferences == null)
+        {
+            defaultPreferences = new RTPrefs(ctx, null);
+        }
+
+        return defaultPreferences;
     }
 
     protected static int getPrefsMode(boolean privateMode)
@@ -47,32 +65,17 @@ public class RTPrefs
         }
     }
 
-    public RTPrefs(final Context ctx, final String preferenceStorageName)
-    {
-        this(ctx, preferenceStorageName, false);
-    }
-
-    public static synchronized RTPrefs getDefault(final Context ctx)
-    {
-        if (defaultPreferences == null)
-        {
-            defaultPreferences = new RTPrefs(ctx, null);
-        }
-
-        return defaultPreferences;
-    }
-
-    public int getInt(int key, int defaultValue)
+    public int getInt(@StringRes int key, int defaultValue)
     {
         return getInt(ctx.getString(key), defaultValue);
     }
 
-    public int getInt(String key, int defaultValue)
+    public int getInt(@NonNull String key, int defaultValue)
     {
         return preferences.getInt(key, defaultValue);
     }
 
-    public void setInt(int key, int value)
+    public void setInt(@StringRes int key, int value)
     {
         setInt(ctx.getString(key), value);
     }
@@ -84,12 +87,12 @@ public class RTPrefs
         editor.apply();
     }
 
-    public long getLong(int key, long defaultValue)
+    public long getLong(@StringRes int key, long defaultValue)
     {
         return getLong(ctx.getString(key), defaultValue);
     }
 
-    public long getLong(String key, long defaultValue)
+    public long getLong(@NonNull String key, long defaultValue)
     {
         try
         {
@@ -102,41 +105,41 @@ public class RTPrefs
         }
     }
 
-    public void setLong(int key, long value)
+    public void setLong(@StringRes int key, long value)
     {
         setLong(ctx.getString(key), value);
     }
 
-    public void setLong(String key, long value)
+    public void setLong(@NonNull String key, long value)
     {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putLong(key, value);
         editor.commit();
     }
 
-    public void setDouble(int key, double value)
+    public void setDouble(@StringRes int key, double value)
     {
         setDouble(ctx.getString(key), value);
     }
 
-    public void setDouble(String key, double value)
+    public void setDouble(@NonNull String key, double value)
     {
         setString(key, "" + value);
     }
 
-    public void setString(String key, String value)
+    public void setString(@NonNull String key, String value)
     {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(key, value);
         editor.apply();
     }
 
-    public double getDouble(int key, double defaultValue)
+    public double getDouble(@StringRes int key, double defaultValue)
     {
         return getDouble(ctx.getString(key), defaultValue);
     }
 
-    public double getDouble(String key, double defaultValue)
+    public double getDouble(@NonNull String key, double defaultValue)
     {
         try
         {
@@ -148,39 +151,39 @@ public class RTPrefs
         }
     }
 
-    public String getString(String key, String defaultValue)
+    public String getString(@NonNull String key, String defaultValue)
     {
         return preferences.getString(key, defaultValue);
     }
 
-    public boolean getBoolean(int key, boolean defaultValue)
+    public boolean getBoolean(@StringRes int key, boolean defaultValue)
     {
         return getBoolean(ctx.getString(key), defaultValue);
     }
 
-    public boolean getBoolean(String key, boolean defaultValue)
+    public boolean getBoolean(@NonNull String key, boolean defaultValue)
     {
         return preferences.getBoolean(key, defaultValue);
     }
 
-    public void setBoolean(int key, boolean value)
+    public void setBoolean(@StringRes int key, boolean value)
     {
         setBoolean(ctx.getString(key), value);
     }
 
-    public void setBoolean(String key, boolean value)
+    public void setBoolean(@NonNull String key, boolean value)
     {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean(key, value);
         editor.commit();
     }
 
-    public void setIntArray(int key, int[] array)
+    public void setIntArray(@StringRes int key, int[] array)
     {
         setString(key, arrayToString(array));
     }
 
-    public void setString(int key, String value)
+    public void setString(@StringRes int key, String value)
     {
         setString(ctx.getString(key), value);
     }
@@ -202,12 +205,12 @@ public class RTPrefs
         return str.toString();
     }
 
-    public void setIntArray(String key, int[] array)
+    public void setIntArray(@NonNull String key, int[] array)
     {
         setString(key, arrayToString(array));
     }
 
-    public void setLongArray(int key, long[] array)
+    public void setLongArray(@StringRes int key, long[] array)
     {
         setString(key, arrayToString(array));
     }
@@ -229,22 +232,22 @@ public class RTPrefs
         return str.toString();
     }
 
-    public void setLongArray(String key, long[] array)
+    public void setLongArray(@NonNull String key, long[] array)
     {
         setString(key, arrayToString(array));
     }
 
-    public void setByteArray(int key, byte[] array)
+    public void setByteArray(@StringRes int key, byte[] array)
     {
         setString(key, RTBase64.encodeToString(array, RTBase64.NO_WRAP));
     }
 
-    public void setByteArray(String key, byte[] array)
+    public void setByteArray(@NonNull String key, byte[] array)
     {
         setString(key, RTBase64.encodeToString(array, RTBase64.NO_WRAP));
     }
 
-    public int[] getIntArray(int key)
+    public int[] getIntArray(@StringRes int key)
     {
         return stringToIntegerArray(getString(key, ""));
     }
@@ -270,17 +273,17 @@ public class RTPrefs
         }
     }
 
-    public String getString(int key, String defaultValue)
+    public String getString(@StringRes int key, String defaultValue)
     {
         return getString(ctx.getString(key), defaultValue);
     }
 
-    public int[] getIntArray(String key)
+    public int[] getIntArray(@NonNull String key)
     {
         return stringToIntegerArray(getString(key, ""));
     }
 
-    public long[] getLongArray(int key)
+    public long[] getLongArray(@StringRes int key)
     {
         return stringToLongArray(getString(key, ""));
     }
@@ -306,27 +309,27 @@ public class RTPrefs
         }
     }
 
-    public long[] getLongArray(String key)
+    public long[] getLongArray(@NonNull String key)
     {
         return stringToLongArray(getString(key, ""));
     }
 
-    public byte[] getByteArray(int key)
+    public byte[] getByteArray(@StringRes int key)
     {
         return RTBase64.decode(getString(key, ""), RTBase64.NO_WRAP);
     }
 
-    public byte[] getByteArray(String key)
+    public byte[] getByteArray(@NonNull String key)
     {
         return RTBase64.decode(getString(key, ""), RTBase64.NO_WRAP);
     }
 
-    public <T> T getObject(Class<T> clazz, int key, T defaultValue)
+    public <T> T getObject(Class<T> clazz, @StringRes int key, T defaultValue)
     {
         return getObject(clazz, ctx.getString(key), defaultValue);
     }
 
-    public <T extends Object> T getObject(Class<T> clazz, String key, T defaultValue)
+    public <T extends Object> T getObject(Class<T> clazz, @NonNull String key, T defaultValue)
     {
         try
         {
@@ -338,12 +341,12 @@ public class RTPrefs
         }
     }
 
-    public void setObject(int key, Object object)
+    public void setObject(@StringRes int key, Object object)
     {
         setObject(ctx.getString(key), object);
     }
 
-    public void setObject(String key, Object object)
+    public void setObject(@NonNull String key, Object object)
     {
         try
         {
@@ -362,14 +365,14 @@ public class RTPrefs
         }
     }
 
-    public void remove(final String key)
+    public void remove(@NonNull final String key)
     {
         SharedPreferences.Editor editor = preferences.edit();
         editor.remove(key);
         editor.apply();
     }
 
-    public void remove(final int key)
+    public void remove(@StringRes final int key)
     {
         remove(ctx.getString(key));
     }

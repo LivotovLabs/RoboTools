@@ -7,9 +7,9 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
-import javax.crypto.SecretKey;
-
 import java.security.GeneralSecurityException;
+
+import javax.crypto.SecretKey;
 
 import eu.livotov.labs.android.robotools.R;
 
@@ -18,7 +18,8 @@ import eu.livotov.labs.android.robotools.R;
  * Date: 16/06/14
  * Time: 15:16
  */
-public class RTDataCryptEngine {
+public class RTDataCryptEngine
+{
 
     private static final String TAG = RTDataCryptEngine.class.getCanonicalName();
     private static final boolean IS_JB43 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2;
@@ -43,90 +44,115 @@ public class RTDataCryptEngine {
     private String password;
 
 
-    public RTDataCryptEngine(Context context) {
+    public RTDataCryptEngine(Context context)
+    {
         this(context, null);
     }
 
-    public RTDataCryptEngine(Context context, String password) {
+    public RTDataCryptEngine(Context context, String password)
+    {
         this.context = context;
         this.password = password;
         privatePrefs = context.getSharedPreferences("RTDataCryptEnginePrefs", Context.MODE_PRIVATE);
         init();
     }
 
-    private void init() {
-        if (IS_JB43) {
-            try {
+    private void init()
+    {
+        if (IS_JB43)
+        {
+            try
+            {
                 secretKeyWrapper = new RTSecretKeyWrapper(context, getSecretKeyAlias());
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 keychainKey = generateDefaultKeychainKeyPassword(context, password);
                 Log.e(TAG, e.getMessage(), e);
             }
-        } else {
+        }
+        else
+        {
             keychainKey = generateDefaultKeychainKeyPassword(context, password);
         }
     }
 
-    private String getSecretKeyAlias() {
+    private String getSecretKeyAlias()
+    {
         return String.format("%s%s", context.getPackageName(), ".secure_key");
     }
 
-    private SecretKey getKey(boolean generateIfNeeded) throws GeneralSecurityException {
+    private SecretKey getKey(boolean generateIfNeeded) throws GeneralSecurityException
+    {
         SecretKey key = null;
         String wrappedKey = getWrappedKey();
-        if (TextUtils.isEmpty(wrappedKey) && generateIfNeeded) {
+        if (TextUtils.isEmpty(wrappedKey) && generateIfNeeded)
+        {
             key = RTCryptUtil.createAesKey();
             wrappedKey = Base64.encodeToString(secretKeyWrapper.wrap(key), Base64.NO_WRAP);
             saveWrappedKey(wrappedKey);
-        } else if (!TextUtils.isEmpty(wrappedKey)) {
+        }
+        else if (!TextUtils.isEmpty(wrappedKey))
+        {
             key = secretKeyWrapper.unwrap(Base64.decode(wrappedKey, Base64.NO_WRAP));
         }
         return key;
     }
 
-    private String getWrappedKey() {
+    private String getWrappedKey()
+    {
         return privatePrefs.getString(WRAPPED_KEY, "");
     }
 
-    private void saveWrappedKey(String wrappedKey) {
+    private void saveWrappedKey(String wrappedKey)
+    {
         SharedPreferences.Editor editor = privatePrefs.edit();
         editor.putString(WRAPPED_KEY, wrappedKey);
         editor.apply();
     }
 
-    public boolean isKWInit() {
+    public boolean isKWInit()
+    {
         return secretKeyWrapper != null;
     }
 
-    public void reset() {
+    public void reset()
+    {
         privatePrefs.edit().clear().apply();
-        if (isKWInit()) {
+        if (isKWInit())
+        {
             secretKeyWrapper.removeKey(getSecretKeyAlias());
         }
         init();
     }
 
-    protected String generateDefaultKeychainKeyPassword(Context context, String userPartOfPassword) {
+    protected String generateDefaultKeychainKeyPassword(Context context, String userPartOfPassword)
+    {
         String keychain = String.format("%s%s%s", RTDataCryptEngine.class.getSimpleName(), KEY_PART_ONE, context.getString(R.string.key_part_two));
-        if (!TextUtils.isEmpty(userPartOfPassword)) {
+        if (!TextUtils.isEmpty(userPartOfPassword))
+        {
             return String.format("%s%s", keychain, userPartOfPassword);
         }
         return keychain;
     }
 
-    public String decryptString(String encrypted) throws Throwable {
+    public String decryptString(String encrypted) throws Throwable
+    {
         return isKWInit() ? decryptWithSecretKey(encrypted) : RTCryptUtil.decryptAsText(encrypted, keychainKey);
     }
 
-    public String encryptString(String value) throws Throwable {
+    public String encryptString(String value) throws Throwable
+    {
         return isKWInit() ? encryptWithSecretKey(value) : RTCryptUtil.encrypt(value, keychainKey);
     }
 
-    private String decryptWithSecretKey(String cipherText) throws Throwable {
+    private String decryptWithSecretKey(String cipherText) throws Throwable
+    {
         return RTCryptUtil.decryptAesCbc(cipherText, getKey(true));
     }
 
-    private String encryptWithSecretKey(String plaintext) throws Throwable {
+    private String encryptWithSecretKey(String plaintext) throws Throwable
+    {
         return RTCryptUtil.encryptAesCbc(plaintext, getKey(true));
     }
 }
