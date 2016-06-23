@@ -40,6 +40,12 @@ public class RTShareTool
         return new Intent(Intent.ACTION_VIEW).setData(Uri.parse(url));
     }
 
+    /**
+     * Opens an internet address (web page) in a custom chrome tab inside your app.
+     * This works only in case the target phone has a proepr version of Google Chrome installed, otherwise, the specified url will be opened using the phone's default browser.
+     * @param activity activity to open chrome tab in
+     * @param url web address to open in the chrome tab
+     */
     public static void openInternetAddressAsChromeTab(@NonNull Activity activity, @NonNull final String url)
     {
         CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
