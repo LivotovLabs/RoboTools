@@ -114,7 +114,7 @@ public class RTPrefs
     {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putLong(key, value);
-        editor.commit();
+        editor.apply();
     }
 
     public void setDouble(@StringRes int key, double value)
@@ -175,7 +175,7 @@ public class RTPrefs
     {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean(key, value);
-        editor.commit();
+        editor.apply();
     }
 
     public void setIntArray(@StringRes int key, int[] array)

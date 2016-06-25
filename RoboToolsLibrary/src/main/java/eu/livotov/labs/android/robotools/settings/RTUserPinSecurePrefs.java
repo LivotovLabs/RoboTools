@@ -41,7 +41,7 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
      */
     public boolean isLocked()
     {
-        return prefs.getBoolean(PIN_PRESENT_KEY, false) && !TextUtils.isEmpty(locker);
+        return innerPrefs.getBoolean(PIN_PRESENT_KEY, false) && !TextUtils.isEmpty(locker);
     }
 
     /**
@@ -55,7 +55,7 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
         {
             try
             {
-                Set<String> keys = prefs.getPreferences().getAll().keySet();
+                Set<String> keys = innerPrefs.getPreferences().getAll().keySet();
 
                 for (String key : keys)
                 {
@@ -105,7 +105,7 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
      */
     public void setPassword(@Nullable final String oldPassword, @Nullable final String newPassword)
     {
-        final boolean markerPresent = prefs.getBoolean(PIN_PRESENT_KEY, false);
+        final boolean markerPresent = innerPrefs.getBoolean(PIN_PRESENT_KEY, false);
 
         if (markerPresent)
         {
@@ -119,7 +119,7 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
 
             if (unlock(oldPassword))
             {
-                Set<String> keys = prefs.getPreferences().getAll().keySet();
+                Set<String> keys = innerPrefs.getPreferences().getAll().keySet();
                 for (String key : keys)
                 {
                     if (!PIN_PRESENT_KEY.equalsIgnoreCase(key))
@@ -138,7 +138,7 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
                 if (TextUtils.isEmpty(newPassword))
                 {
                     locker = null;
-                    prefs.remove(PIN_PRESENT_KEY);
+                    innerPrefs.remove(PIN_PRESENT_KEY);
                 }
                 else
                 {
@@ -158,14 +158,14 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
                 throw new IllegalArgumentException("When setting up the new password, it cannot be emoty !");
             }
 
-            Set<String> keys = prefs.getPreferences().getAll().keySet();
+            Set<String> keys = innerPrefs.getPreferences().getAll().keySet();
             for (String key : keys)
             {
                 if (!PIN_PRESENT_KEY.equalsIgnoreCase(key))
                 {
                     super.setString(key, RTCryptUtil.encrypt(super.getString(key, ""), newPassword));
                     locker = RTCryptUtil.encrypt(newPassword, MASK);
-                    prefs.setBoolean(PIN_PRESENT_KEY, true);
+                    innerPrefs.setBoolean(PIN_PRESENT_KEY, true);
                 }
             }
         }
@@ -437,7 +437,7 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
 
         try
         {
-            return prefs.gson.fromJson(json, clazz);
+            return innerPrefs.gson.fromJson(json, clazz);
         }
         catch (Throwable err)
         {
@@ -452,7 +452,7 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
 
         try
         {
-            return prefs.gson.fromJson(json, clazz);
+            return innerPrefs.gson.fromJson(json, clazz);
         }
         catch (Throwable err)
         {
@@ -463,18 +463,18 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
     @Override
     public void setObject(@StringRes int key, Object object)
     {
-        setString(key, prefs.gson.toJson(object));
+        setString(key, innerPrefs.gson.toJson(object));
     }
 
     @Override
     public void setObject(@NonNull String key, Object object)
     {
-        setString(key, prefs.gson.toJson(object));
+        setString(key, innerPrefs.gson.toJson(object));
     }
 
     private String userEncryptString(final String src)
     {
-        final boolean markerPresent = prefs.getBoolean(PIN_PRESENT_KEY, false);
+        final boolean markerPresent = innerPrefs.getBoolean(PIN_PRESENT_KEY, false);
 
         if (markerPresent)
         {
@@ -495,7 +495,7 @@ public class RTUserPinSecurePrefs extends RTSecurePrefs
 
     private String userDecryptString(final String src)
     {
-        final boolean markerPresent = prefs.getBoolean(PIN_PRESENT_KEY, false);
+        final boolean markerPresent = innerPrefs.getBoolean(PIN_PRESENT_KEY, false);
 
         if (markerPresent)
         {

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.text.TextUtils;
+import android.util.Log;
 
 import eu.livotov.labs.android.robotools.crypt.RTDataCryptEngine;
 import eu.livotov.labs.android.robotools.text.RTBase64;
@@ -16,7 +17,7 @@ import eu.livotov.labs.android.robotools.text.RTBase64;
 public class RTSecurePrefs {
     private static RTSecurePrefs defaultPreferences;
 
-    protected RTPrefs prefs;
+    protected RTPrefs innerPrefs;
     private RTDataCryptEngine cryptEngine;
 
     /**
@@ -25,7 +26,7 @@ public class RTSecurePrefs {
      * @param ctx
      */
     public RTSecurePrefs(final Context ctx) {
-        prefs = new RTPrefs(ctx, "defaultsecure", false);
+        innerPrefs = new RTPrefs(ctx, "defaultsecure", false);
         init(ctx, false);
     }
 
@@ -36,7 +37,7 @@ public class RTSecurePrefs {
      * @param preferenceStorageName file name to store properties in
      */
     public RTSecurePrefs(final Context ctx, final String preferenceStorageName) {
-        prefs = new RTPrefs(ctx, preferenceStorageName, false);
+        innerPrefs = new RTPrefs(ctx, preferenceStorageName, false);
         init(ctx, false);
     }
 
@@ -49,7 +50,7 @@ public class RTSecurePrefs {
      *                              reinstalled on the same phone, will not be able to read the prefs file, created by a previous app installation. This is mainly important when you need to backup and restore your prefs using android backup service.
      */
     public RTSecurePrefs(final Context ctx, final String preferenceStorageName, boolean transferable) {
-        prefs = new RTPrefs(ctx, preferenceStorageName, true);
+        innerPrefs = new RTPrefs(ctx, preferenceStorageName, true);
         init(ctx, transferable);
     }
 
@@ -66,12 +67,13 @@ public class RTSecurePrefs {
     }
 
     public String getString(@StringRes int key, final String defaultValue) {
-        return getString(prefs.ctx.getString(key), defaultValue);
+        return getString(innerPrefs.ctx.getString(key), defaultValue);
     }
 
     public synchronized String getString(@NonNull String key, final String defaultValue) {
         try {
-            final String encryptedValue = getString(key, "");
+
+            final String encryptedValue = innerPrefs.getString(key, "");
 
             if (TextUtils.isEmpty(encryptedValue)) {
                 return encryptedValue;
@@ -105,15 +107,15 @@ public class RTSecurePrefs {
     }
 
     public void setString(@StringRes int key, String value) {
-        setString(prefs.ctx.getString(key), value);
+        setString(innerPrefs.ctx.getString(key), value);
     }
 
     public synchronized void setString(@NonNull String key, String value) {
         if (TextUtils.isEmpty(value)) {
-            prefs.remove(key);
+            innerPrefs.remove(key);
         } else {
             try {
-                prefs.setString(key, cryptEngine.encryptString(value));
+                innerPrefs.setString(key, cryptEngine.encryptString(value));
             } catch (Throwable throwable) {
                 reset();
             }
@@ -125,7 +127,7 @@ public class RTSecurePrefs {
      * the keychain becomes empty
      */
     public void reset() {
-        prefs.clear();
+        innerPrefs.clear();
         cryptEngine.reset();
     }
 
@@ -150,19 +152,19 @@ public class RTSecurePrefs {
     }
 
     public void setIntArray(@StringRes int key, int[] array) {
-        setString(key, prefs.arrayToString(array));
+        setString(key, RTPrefs.arrayToString(array));
     }
 
     public void setIntArray(@NonNull String key, int[] array) {
-        setString(key, prefs.arrayToString(array));
+        setString(key, RTPrefs.arrayToString(array));
     }
 
     public void setLongArray(@StringRes int key, long[] array) {
-        setString(key, prefs.arrayToString(array));
+        setString(key, RTPrefs.arrayToString(array));
     }
 
     public void setLongArray(@NonNull String key, long[] array) {
-        setString(key, prefs.arrayToString(array));
+        setString(key, RTPrefs.arrayToString(array));
     }
 
     public void setByteArray(@StringRes int key, byte[] array) {
@@ -174,19 +176,19 @@ public class RTSecurePrefs {
     }
 
     public int[] getIntArray(@StringRes int key) {
-        return prefs.stringToIntegerArray(getString(key, ""));
+        return RTPrefs.stringToIntegerArray(getString(key, ""));
     }
 
     public int[] getIntArray(@NonNull String key) {
-        return prefs.stringToIntegerArray(getString(key, ""));
+        return RTPrefs.stringToIntegerArray(getString(key, ""));
     }
 
     public long[] getLongArray(@StringRes int key) {
-        return prefs.stringToLongArray(getString(key, ""));
+        return innerPrefs.stringToLongArray(getString(key, ""));
     }
 
     public long[] getLongArray(@NonNull String key) {
-        return prefs.stringToLongArray(getString(key, ""));
+        return RTPrefs.stringToLongArray(getString(key, ""));
     }
 
     public byte[] getByteArray(@StringRes int key) {
@@ -254,27 +256,27 @@ public class RTSecurePrefs {
     }
 
     public <T> T getObject(Class<T> clazz, @StringRes int key, T defaultValue) {
-        return getObject(clazz, prefs.ctx.getString(key), defaultValue);
+        return getObject(clazz, innerPrefs.ctx.getString(key), defaultValue);
     }
 
     public <T> T getObject(Class<T> clazz, @NonNull String key, T defaultValue) {
         try {
-            return prefs.gson.fromJson(getString(key, ""), clazz);
+            return innerPrefs.gson.fromJson(getString(key, ""), clazz);
         } catch (Throwable ignored) {
             return defaultValue;
         }
     }
 
     public void setObject(@StringRes int key, Object object) {
-        setObject(prefs.ctx.getString(key), object);
+        setObject(innerPrefs.ctx.getString(key), object);
     }
 
     public void setObject(@NonNull String key, Object object) {
         try {
             if (object != null) {
-                setString(key, prefs.gson.toJson(object));
+                setString(key, innerPrefs.gson.toJson(object));
             } else {
-                prefs.remove(key);
+                innerPrefs.remove(key);
             }
         } catch (Throwable err) {
             throw new IllegalArgumentException("Cannot convert to JSON: " + object.toString(), err);
