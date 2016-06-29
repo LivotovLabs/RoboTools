@@ -73,7 +73,7 @@ public class RTSecurePrefs {
     public synchronized String getString(@NonNull String key, final String defaultValue) {
         try {
 
-            final String encryptedValue = innerPrefs.getString(key, "");
+            final String encryptedValue = innerPrefs.getString(key, defaultValue);
 
             if (TextUtils.isEmpty(encryptedValue)) {
                 return encryptedValue;
