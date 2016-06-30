@@ -75,7 +75,8 @@ public class RTSecurePrefs {
 
             final String encryptedValue = innerPrefs.getString(key, defaultValue);
 
-            if (TextUtils.isEmpty(encryptedValue)) {
+            if (TextUtils.isEmpty(encryptedValue)
+                    || encryptedValue.equalsIgnoreCase(defaultValue)) {
                 return encryptedValue;
             }
 
