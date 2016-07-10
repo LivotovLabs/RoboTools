@@ -18,7 +18,7 @@ public class RTLocation
      * @param lon2
      * @return Distance in km.
      */
-    public double findDistance(double lat1, double lon1, double lat2, double lon2)
+    public static double findDistance(double lat1, double lon1, double lat2, double lon2)
     {
         return Math.acos(Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * (Math.cos(Math.toRadians(lon1)) * Math.cos(Math.toRadians(lon2)) + Math.sin(Math.toRadians(lon1)) * Math.sin(Math.toRadians(lon2)))) * EARTH_RADIUS;
     }
