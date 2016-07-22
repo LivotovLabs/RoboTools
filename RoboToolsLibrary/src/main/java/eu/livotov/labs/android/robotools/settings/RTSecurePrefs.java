@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.text.TextUtils;
-import android.util.Log;
 
 import eu.livotov.labs.android.robotools.crypt.RTDataCryptEngine;
 import eu.livotov.labs.android.robotools.text.RTBase64;
@@ -64,6 +63,14 @@ public class RTSecurePrefs {
         }
 
         return defaultPreferences;
+    }
+
+    public boolean contains(@StringRes int key) {
+        return contains(innerPrefs.ctx.getString(key));
+    }
+
+    public boolean contains(String key) {
+        return !TextUtils.isEmpty(innerPrefs.getString(key, null));
     }
 
     public String getString(@StringRes int key, final String defaultValue) {
