@@ -37,7 +37,6 @@ dependencies {
      * Play Services
      */
     compile playServicesLibs.base
-
     /**
      * Other deps
      */
