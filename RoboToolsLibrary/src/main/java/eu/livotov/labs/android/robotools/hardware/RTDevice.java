@@ -6,11 +6,11 @@ import android.annotation.TargetApi;
 import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.hardware.fingerprint.FingerprintManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Environment;
+import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -22,17 +22,14 @@ import java.util.regex.Pattern;
 import eu.livotov.labs.android.robotools.crypt.RTCryptUtil;
 
 @SuppressWarnings("unused")
-public class RTDevice
-{
+public class RTDevice {
 
     private static int cachedCoresCount = 0;
 
-    private RTDevice()
-    {
+    private RTDevice() {
     }
 
-    public static boolean isTablet(Context context)
-    {
+    public static boolean isTablet(Context context) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
 
         int shortSizeDp = (int) (displayMetrics.density * Math.min(displayMetrics.widthPixels, displayMetrics.heightPixels));
@@ -40,41 +37,32 @@ public class RTDevice
         return shortSizeDp > 1024;
     }
 
-    public static float dp2px(Context ctx, float px)
-    {
+    public static float dp2px(Context ctx, float px) {
         return px / ctx.getResources().getDisplayMetrics().density;
     }
 
-    public static float px2dp(Context ctx, float dp)
-    {
+    public static float px2dp(Context ctx, float dp) {
         return dp * ctx.getResources().getDisplayMetrics().density;
     }
 
-    public static boolean supportsCamera(Context ctx)
-    {
+    public static boolean supportsCamera(Context ctx) {
         return ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
     }
 
-    public static boolean supportsTelephony(Context ctx)
-    {
+    public static boolean supportsTelephony(Context ctx) {
         return ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY);
     }
 
-    public static boolean supportsGps(Context ctx)
-    {
+    public static boolean supportsGps(Context ctx) {
         return ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION);
     }
 
-    public static boolean supportsSms(Context ctx)
-    {
-        try
-        {
-            if (ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY))
-            {
+    public static boolean supportsSms(Context ctx) {
+        try {
+            if (ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
                 TelephonyManager telMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
                 int simState = telMgr.getSimState();
-                switch (simState)
-                {
+                switch (simState) {
                     case TelephonyManager.SIM_STATE_ABSENT:
                     case TelephonyManager.SIM_STATE_NETWORK_LOCKED:
                     case TelephonyManager.SIM_STATE_PIN_REQUIRED:
@@ -91,26 +79,19 @@ public class RTDevice
             }
 
             return false;
-        }
-        catch (Throwable err)
-        {
+        } catch (Throwable err) {
             err.printStackTrace();
             return false;
         }
     }
 
-    public synchronized static int getCpuCoresCount()
-    {
-        if (cachedCoresCount == 0)
-        {
-            try
-            {
+    public synchronized static int getCpuCoresCount() {
+        if (cachedCoresCount == 0) {
+            try {
                 File dir = new File("/sys/devices/system/cpu/");
                 File[] files = dir.listFiles(new CpuFilter());
                 cachedCoresCount = files.length;
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Log.e(RTDevice.class.getSimpleName(), e.getMessage(), e);
                 cachedCoresCount = 1;
             }
@@ -119,143 +100,108 @@ public class RTDevice
         return cachedCoresCount;
     }
 
-    public static boolean isExternalStorageReady()
-    {
+    public static boolean isExternalStorageReady() {
         final String state = Environment.getExternalStorageState();
         return !(Environment.MEDIA_REMOVED.equals(state) || Environment.MEDIA_BAD_REMOVAL.equals(state) || Environment.MEDIA_UNMOUNTABLE.equals(state) || Environment.MEDIA_UNMOUNTED.equals(state));
     }
 
-    public static File getExternalStorage()
-    {
+    public static File getExternalStorage() {
         return getExternalStorage(null);
     }
 
-    public static File getExternalStorage(final String type)
-    {
+    public static File getExternalStorage(final String type) {
         File file = Environment.getExternalStoragePublicDirectory(type);
-        if (!file.exists())
-        {
+        if (!file.exists()) {
             file.mkdirs();
         }
         return file;
     }
 
-    public static boolean isConnected(final Context ctx)
-    {
+    public static boolean isConnected(final Context ctx) {
         final ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnected();
     }
 
-    public static boolean isConnectedToWiFi(final Context ctx)
-    {
+    public static boolean isConnectedToWiFi(final Context ctx) {
         final ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnected() && netInfo.getType() == ConnectivityManager.TYPE_WIFI;
     }
 
-    public static boolean isConnectedToCellular(final Context ctx)
-    {
+    public static boolean isConnectedToCellular(final Context ctx) {
         final ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnected() && netInfo.getType() != ConnectivityManager.TYPE_WIFI;
     }
 
-    public static boolean isInRoaming(final Context ctx)
-    {
+    public static boolean isInRoaming(final Context ctx) {
         final ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.getType() != ConnectivityManager.TYPE_WIFI && netInfo.isRoaming();
     }
 
-    public static CharSequence getOwnerEmail(Context context)
-    {
-        try
-        {
+    public static CharSequence getOwnerEmail(Context context) {
+        try {
             Account[] accounts = AccountManager.get(context).getAccountsByType("com.google");
             return accounts != null && accounts.length > 0 ? accounts[0].name : null;
-        }
-        catch (Throwable err)
-        {
+        } catch (Throwable err) {
             return null;
         }
     }
 
-    public static String getDeviceUID(final Context ctx)
-    {
+    public static String getDeviceUID(final Context ctx) {
         StringBuffer id = new StringBuffer();
 
-        if (ctx != null)
-        {
-            try
-            {
+        if (ctx != null) {
+            try {
                 final String androidDeviceId = android.provider.Settings.Secure.getString(ctx.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                if (androidDeviceId == null)
-                {
+                if (androidDeviceId == null) {
                     id.append(Build.FINGERPRINT);
-                }
-                else
-                {
+                } else {
                     id.append(androidDeviceId);
                 }
-            }
-            catch (Throwable e)
-            {
+            } catch (Throwable e) {
                 id.append(Build.FINGERPRINT);
             }
-        }
-        else
-        {
+        } else {
             id.append(Build.FINGERPRINT);
         }
 
         return RTCryptUtil.md5(id.toString());
     }
 
-    public static boolean isBlackberryDevice()
-    {
-        if (!System.getProperty("os.name").equals("qnx"))
-        {
+    public static boolean isBlackberryDevice() {
+        if (!System.getProperty("os.name").equals("qnx")) {
             return android.os.Build.BRAND.toLowerCase().contains("blackberry");
-        }
-        else
-        {
+        } else {
             return true;
         }
     }
 
-    @TargetApi(23)
-    public static boolean isFingerprintAvailable(Context context)
-    {
-        if (isMarshmallow())
-        {
+    public static boolean isFingerprintAvailable(Context context) {
+        if (isMarshmallow()) {
             return getFingerprintManager(context).isHardwareDetected();
         }
         return false;
     }
 
-    public static boolean isMarshmallow()
-    {
+    public static boolean isMarshmallow() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
 
-    @TargetApi(23)
-    public static FingerprintManager getFingerprintManager(Context context)
-    {
-        return context.getSystemService(FingerprintManager.class);
+    public static FingerprintManagerCompat getFingerprintManager(Context context) {
+        return FingerprintManagerCompat.from(context);
     }
 
     @TargetApi(23)
-    public static KeyguardManager getKeyguardManager(Context context)
-    {
+    public static KeyguardManager getKeyguardManager(Context context) {
         return context.getSystemService(KeyguardManager.class);
     }
 
-    private static class CpuFilter implements FileFilter
-    {
+    private static class CpuFilter implements FileFilter {
 
-        public boolean accept(File pathname)
-        {
+        public boolean accept(File pathname) {
             return Pattern.matches("cpu[0-9]", pathname.getName());
         }
     }
