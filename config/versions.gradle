@@ -8,9 +8,18 @@ ext {
     /**
      * Build Tools Versions
      */
-    androidBuildToolsVersion = '23.0.3'
-    androidTargetSdkVersion = 23
-    androidCompileSdkVersion = 23
-    androidMinSdkVersion = 16
+    androidBuildToolsVersion = '25.0.0'
+    googleServicesPluginVersion = '3.0.0'
+    androidTargetSdkVersion = 25
+    androidCompileSdkVersion = 25
+    androidMinSdkVersion = 19
+
+    /**
+     * Support Libs Versions
+     */
+    supportLibVersion = '25.0.0'
+    wearableSupportVersion = '1.4.0'
+    gmsLibVersion = '9.6.1'
+    multidexLibVersion = '1.0.1'
 
 }

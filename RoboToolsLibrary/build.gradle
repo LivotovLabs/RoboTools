@@ -3,7 +3,6 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.2'
     }
 }
 apply plugin: 'com.android.library'
@@ -37,6 +36,7 @@ dependencies {
      * Play Services
      */
     compile playServicesLibs.base
+
     /**
      * Other deps
      */

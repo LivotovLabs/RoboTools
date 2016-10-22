@@ -152,4 +152,18 @@ public class RTShareTool
         }
     }
 
+    /**
+     * Build an intent to open navigation app from current location to specified point.
+     * Typically, a Google Maps app will handle this intent.
+     * @param lat destination point latitude
+     * @param lon destination point longtitude
+     * @return intent that launches a navigation app such as Google Maps
+     */
+    public static Intent getNavigationIntent(double lat, double lon)
+    {
+        Uri gmmIntentUri = Uri.parse(String.format("google.navigation:q=%s,%s", lat, lon));
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+        return mapIntent;
+    }
 }
