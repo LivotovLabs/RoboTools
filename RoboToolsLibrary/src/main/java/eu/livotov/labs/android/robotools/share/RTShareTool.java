@@ -1,5 +1,6 @@
 package eu.livotov.labs.android.robotools.share;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -160,11 +161,11 @@ public class RTShareTool {
      * Build an intent to share image and text
      *
      * @param image Bitmap image to share
-     * @param text  Text to share
+     * @param text  String object or null if not need.
      * @return intent to create chooser;
      */
-    @RequiresPermission(allOf = {"android.permission.WRITE_EXTERNAL_STORAGE"})
-    public static Intent buildShareImageAndTextIntent(@NonNull Context context, @NonNull Bitmap image, @NonNull String text) throws IllegalStateException {
+    @RequiresPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    public static Intent buildShareImageAndTextIntent(@NonNull Context context, @NonNull Bitmap image, @Nullable String text) throws IllegalStateException {
         String path = MediaStore.Images.Media.insertImage(context.getContentResolver(),
                 image, String.format("ShareImage_%s", UUID.randomUUID().toString()), null);
 
@@ -174,22 +175,24 @@ public class RTShareTool {
         Uri imageUri = Uri.parse(path);
         Intent shareIntent = new Intent();
         shareIntent.setAction(Intent.ACTION_SEND);
-        shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+        if (!TextUtils.isEmpty(text))
+            shareIntent.putExtra(Intent.EXTRA_TEXT, text);
         shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
         shareIntent.setType("image/*");
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         return shareIntent;
     }
 
+
     /**
      * Build an intent to share list of images and text
      *
      * @param images List of Bitmaps to share
-     * @param text   Text to share
+     * @param text   String object or null if not need.
      * @return intent to create chooser;
      */
-    @RequiresPermission(allOf = {"android.permission.WRITE_EXTERNAL_STORAGE"})
-    public static Intent buildShareListOfImagesAndTextIntent(@NonNull Context context, @NonNull List<Bitmap> images, @NonNull String text) throws IllegalStateException {
+    @RequiresPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    public static Intent buildShareListOfImagesAndTextIntent(@NonNull Context context, @NonNull List<Bitmap> images, @Nullable String text) throws IllegalStateException {
 
         ArrayList<Uri> uriList = new ArrayList<>(images.size());
 
@@ -206,10 +209,18 @@ public class RTShareTool {
 
         Intent shareIntent = new Intent();
         shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
-        shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+        if (!TextUtils.isEmpty(text))
+            shareIntent.putExtra(Intent.EXTRA_TEXT, text);
         shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uriList);
         shareIntent.setType("image/*");
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         return shareIntent;
+    }
+
+    @RequiresPermission(Manifest.permission.READ_CONTACTS)
+    public static Intent buildSelectContactIntent() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
+        return intent;
     }
 }
